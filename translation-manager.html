@@ -1,0 +1,3460 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Translation Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EEF1F5; --surface:#FFFFFF; --surface-2:#F6F8FB; --surface-3:#EDF1F6;
+    --line:#DCE3EC; --line-strong:#C6D0DC;
+    --ink:#0E1620; --ink-2:#4C5B6B; --ink-3:#8291A2;
+    --accent:#2340C4; --accent-soft:#E5E9FB;
+    --jade:#0B7A5E; --jade-soft:#DFF1EA;
+    --ochre:#9A6205; --ochre-soft:#FAEED5;
+    --rose:#AF2437; --rose-soft:#FBE4E7;
+    --tick-empty:#D3DBE5;
+    --shadow:0 1px 2px rgba(14,22,32,.05), 0 8px 24px -16px rgba(14,22,32,.22);
+    --r:12px;
+  }
+  html[data-theme="dark"]{
+    --bg:#0A0E13; --surface:#111821; --surface-2:#151D27; --surface-3:#1A232E;
+    --line:#232E3B; --line-strong:#31404F;
+    --ink:#E7EEF6; --ink-2:#9DAFC0; --ink-3:#6A7B8C;
+    --accent:#7E9CFF; --accent-soft:#1B2540;
+    --jade:#3CC79E; --jade-soft:#102C25;
+    --ochre:#E5AB44; --ochre-soft:#2C2313;
+    --rose:#FF8090; --rose-soft:#331A20;
+    --tick-empty:#26313D;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -18px rgba(0,0,0,.8);
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    font-size:14px; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    transition:background .25s ease,color .25s ease;
+  }
+  .mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+  .wrap{max-width:1200px; margin:0 auto; padding:28px 22px 80px}
+
+  /* ---------- header ---------- */
+  .eyebrow{
+    font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-3);
+  }
+  .topbar{display:flex; align-items:flex-start; gap:20px; flex-wrap:wrap}
+  h1{
+    font-family:"Bricolage Grotesque",Inter,sans-serif; font-weight:700;
+    font-size:clamp(24px,3.4vw,34px); line-height:1.05; letter-spacing:-.02em;
+    margin:6px 0 0;
+  }
+  .subline{display:flex; align-items:center; gap:8px; margin-top:10px; flex-wrap:wrap}
+  .chip{
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--surface); border:1px solid var(--line); border-radius:999px;
+    padding:3px 10px; font-size:12px; color:var(--ink-2);
+  }
+  .chip input{
+    all:unset; width:5.5em; font:500 12px/1.2 "IBM Plex Mono",monospace;
+    color:var(--accent); text-align:center;
+  }
+  .chip input:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
+  .filemeta{font-size:12px; color:var(--ink-3)}
+  .actions{display:flex; gap:8px; margin-left:auto; flex-wrap:wrap; align-items:center}
+
+  button{
+    font-family:inherit; font-size:12.5px; font-weight:500; color:var(--ink);
+    background:var(--surface); border:1px solid var(--line); border-radius:9px;
+    padding:8px 12px; cursor:pointer; display:inline-flex; align-items:center; gap:7px;
+    transition:background .15s,border-color .15s,color .15s,transform .05s;
+  }
+  button:hover{background:var(--surface-2); border-color:var(--line-strong)}
+  button:active{transform:translateY(1px)}
+  button:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  button.primary{background:var(--accent); border-color:var(--accent); color:#fff}
+  html[data-theme="dark"] button.primary{color:#0A0E13}
+  button.primary:hover{filter:brightness(1.06); background:var(--accent)}
+  button.icon{padding:8px; width:34px; justify-content:center}
+  button:disabled{opacity:.4; cursor:not-allowed; pointer-events:none}
+  svg{flex:none}
+
+  /* ---------- panel ---------- */
+  .panel{
+    background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--r); box-shadow:var(--shadow);
+  }
+  .panel + .panel{margin-top:16px}
+  .hero{margin-top:22px; padding:20px 22px 18px}
+
+  .stats{display:flex; gap:10px; flex-wrap:wrap}
+  .stat{
+    display:block; flex:1 1 128px; background:var(--surface-2); border:1px solid var(--line);
+    border-radius:10px; padding:12px 14px; text-align:left;
+    position:relative; overflow:hidden; cursor:pointer;
+  }
+  .stat:hover{border-color:var(--line-strong)}
+  .stat[aria-pressed="true"]{border-color:currentColor}
+  .stat[aria-pressed="true"]::after{
+    content:""; position:absolute; inset:0 auto 0 0; width:3px; background:currentColor;
+  }
+  .stat .num{
+    display:block; font-family:"Bricolage Grotesque",Inter,sans-serif; font-weight:600;
+    font-size:26px; line-height:1.1; letter-spacing:-.02em;
+    font-variant-numeric:tabular-nums; color:var(--ink);
+  }
+  .stat .lbl{
+    display:flex; align-items:center; gap:6px; margin-top:4px;
+    font-size:11.5px; letter-spacing:.02em; color:inherit;
+  }
+  .stat .lbl span{color:var(--ink-2)}
+  .stat.total{color:var(--accent)} .stat.done{color:var(--jade)}
+  .stat.review{color:var(--ochre)} .stat.missing{color:var(--rose)}
+  .stat.strings{color:var(--ink-2)}
+  /* Export · Keys section */
+  .keysearch{width:100%; font:inherit; font-size:13px; color:var(--ink); background:var(--surface-2);
+    border:1px solid var(--line); border-radius:9px; padding:8px 11px}
+  .keysearch:focus-visible{outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent)}
+  .keylistwrap{max-height:280px; overflow-y:auto}
+  .keylist{display:flex; flex-direction:column}
+  .keyrow{display:flex; align-items:center; gap:10px; padding:7px 4px; border-bottom:1px solid var(--line); cursor:pointer}
+  .keyrow:last-child{border-bottom:0}
+  .keyrow input{flex:none; width:15px; height:15px; accent-color:var(--accent); cursor:pointer}
+  .keyrow .kname{flex:1; min-width:0; font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .keyrow .kcnt{flex:none; font-size:11px; color:var(--ink-3); font-variant-numeric:tabular-nums}
+  .keyrow.off .kname{color:var(--ink-3); text-decoration:line-through}
+  .keymore{padding:9px 4px; font-size:11.5px; color:var(--ink-3)}
+  .dot{width:7px; height:7px; border-radius:50%; background:currentColor; flex:none}
+
+  /* ---------- ribbon (signature) ---------- */
+  .ribbonhead{
+    display:flex; align-items:baseline; gap:10px; margin:20px 0 8px; flex-wrap:wrap;
+  }
+  .coverage{
+    font-family:"Bricolage Grotesque",Inter,sans-serif; font-weight:600; font-size:15px;
+    letter-spacing:-.01em; font-variant-numeric:tabular-nums;
+  }
+  .ribbon{
+    display:flex; flex-wrap:wrap; gap:2px; align-content:flex-start;
+    padding:10px 11px; background:var(--surface-2);
+    border:1px solid var(--line); border-radius:10px; min-height:44px;
+  }
+  .tick{
+    width:4px; height:16px; border-radius:1.5px; background:var(--tick-empty);
+    cursor:pointer; transition:transform .1s ease, opacity .1s ease;
+  }
+  .tick:hover{transform:scaleY(1.35)}
+  .tick.done{background:var(--jade)} .tick.review{background:var(--ochre)} .tick.missing{background:var(--rose)}
+  .tick.dim{opacity:.22}
+  .tickhint{margin-top:8px; font-size:11.5px; color:var(--ink-3)}
+
+  /* ---------- controls ---------- */
+  .controls{
+    display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    padding:12px 14px; border-bottom:1px solid var(--line);
+  }
+  .segmented{display:flex; background:var(--surface-2); border:1px solid var(--line); border-radius:9px; padding:2px}
+  .segmented button{
+    border:0; background:transparent; border-radius:7px; padding:6px 11px; color:var(--ink-2);
+    font-size:12.5px;
+  }
+  .segmented button:hover{background:var(--surface-3); color:var(--ink)}
+  .segmented button[aria-pressed="true"]{background:var(--surface); color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.08); font-weight:600}
+  .segmented .count{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--ink-3); margin-left:5px}
+  .segmented button[aria-pressed="true"] .count{color:var(--accent)}
+
+  .search{
+    display:flex; align-items:center; gap:8px; background:var(--surface-2);
+    border:1px solid var(--line); border-radius:9px; padding:0 10px; min-width:210px; flex:1 1 210px;
+  }
+  .search:focus-within{border-color:var(--accent)}
+  .search input{all:unset; flex:1; padding:8px 0; font-size:13px; color:var(--ink); min-width:0}
+  .search kbd{
+    font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--ink-3);
+    border:1px solid var(--line); border-radius:4px; padding:1px 4px;
+  }
+  select{
+    font-family:inherit; font-size:12.5px; color:var(--ink); background:var(--surface-2);
+    border:1px solid var(--line); border-radius:9px; padding:8px 10px; cursor:pointer;
+  }
+  select:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+  /* ---------- table ---------- */
+  .thead,.row{display:grid; grid-template-columns:32px minmax(150px,1fr) minmax(170px,1.6fr) minmax(150px,1.3fr) minmax(120px,0.9fr) 120px 40px; gap:14px}
+  .thead{
+    padding:9px 14px; border-bottom:1px solid var(--line); background:var(--surface-2);
+    position:sticky; top:0; z-index:5; border-radius:0;
+    font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.13em;
+    text-transform:uppercase; color:var(--ink-3);
+  }
+  .thead .sortable{cursor:pointer; background:none; border:0; padding:0; font:inherit; letter-spacing:inherit; text-transform:inherit; color:inherit}
+  .thead .sortable:hover{color:var(--ink)}
+  .rows{display:flex; flex-direction:column}
+  .row{
+    padding:11px 14px; border-bottom:1px solid var(--line); align-items:start;
+    transition:background .12s;
+  }
+  .row:last-child{border-bottom:0}
+  .row:hover{background:var(--surface-2)}
+  .row.flash{animation:flash 1.4s ease-out}
+  @keyframes flash{0%,25%{background:var(--accent-soft)}100%{background:transparent}}
+  .key{font-family:"IBM Plex Mono",monospace; font-size:12px; line-height:1.55; word-break:break-word}
+  .pick{display:flex; align-items:center; justify-content:center; padding-top:2px}
+  .pick input, .thead .pick input{
+    appearance:none; -webkit-appearance:none; width:16px; height:16px; margin:0; cursor:pointer;
+    border:1.5px solid var(--line-strong); border-radius:4px; background:var(--surface);
+    display:grid; place-content:center; flex:none; transition:background .12s,border-color .12s;
+  }
+  .pick input:hover{border-color:var(--accent)}
+  .pick input:checked{background:var(--accent); border-color:var(--accent)}
+  .pick input:checked::after{
+    content:""; width:9px; height:9px;
+    background:no-repeat center/9px url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>');
+  }
+  html[data-theme="dark"] .pick input:checked::after{filter:none}
+  .pick input:indeterminate{background:var(--accent); border-color:var(--accent)}
+  .pick input:indeterminate::after{content:""; width:9px; height:2px; background:#fff; border-radius:1px}
+  .pick input:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  .row.sel{background:var(--accent-soft)}
+  .row.sel:hover{background:var(--accent-soft)}
+  .key .ns{color:var(--ink-3)}
+  .meta{margin-top:3px; font-size:11px; color:var(--ink-3)}
+  .val{font-size:13.5px; line-height:1.5; color:var(--ink); cursor:text; word-break:break-word; min-height:20px}
+  .val:hover{text-decoration:underline; text-decoration-color:var(--line-strong); text-underline-offset:3px}
+  .val.empty{color:var(--ink-3); font-style:italic}
+  .val:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:6px}
+  .src{font-size:13px; line-height:1.5; color:var(--ink-2); word-break:break-word; direction:ltr; text-align:left}
+  .src.none{color:var(--ink-3); font-style:italic}
+  .val textarea{
+    width:100%; font:400 13.5px/1.5 Inter,sans-serif; color:var(--ink);
+    background:var(--surface); border:1px solid var(--accent); border-radius:8px;
+    padding:7px 9px; resize:vertical; min-height:64px;
+  }
+  .val textarea:focus{outline:none}
+  .pill{
+    display:inline-flex; align-items:center; gap:6px; padding:3px 9px; border-radius:999px;
+    font-size:11.5px; font-weight:500; white-space:nowrap;
+  }
+  .pill.done{color:var(--jade); background:var(--jade-soft)}
+  .pill.review{color:var(--ochre); background:var(--ochre-soft)}
+  .pill.missing{color:var(--rose); background:var(--rose-soft)}
+  /* tag chips */
+  .tags{display:flex; flex-wrap:wrap; gap:6px; align-content:flex-start; min-width:0}
+  .tags .notag{color:var(--ink-3)}
+  .tag{
+    display:inline-flex; align-items:center; gap:2px;
+    padding:2px 3px 2px 9px; border-radius:999px;
+    font-size:11px; font-weight:600; line-height:1.7; white-space:nowrap;
+    color:var(--ink-2); background:var(--surface-3); border:1px solid var(--line-strong);
+  }
+  .tag.t-merged{color:var(--ochre); background:var(--ochre-soft); border-color:transparent}
+  .tag.t-newly-translated{color:var(--accent); background:var(--accent-soft); border-color:transparent}
+  .tag.t-merged-new-translation{color:var(--jade); background:var(--jade-soft); border-color:transparent}
+  .tag.t-inserted-new-translations{color:var(--rose); background:var(--rose-soft); border-color:transparent}
+  .tag .tagx{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:15px; height:15px; padding:0; margin:0; border:0; border-radius:999px;
+    background:none; color:inherit; cursor:pointer; opacity:.55; font-size:14px; line-height:1;
+  }
+  .tag .tagx:hover{opacity:1; background:rgba(0,0,0,.08)}
+  html[data-theme="dark"] .tag .tagx:hover{background:rgba(255,255,255,.14)}
+  .tag .tagx:focus-visible{outline:2px solid var(--accent); outline-offset:1px; opacity:1}
+  .flag{
+    padding:5px; width:28px; height:28px; justify-content:center; border-color:transparent;
+    background:transparent; color:var(--ink-3); opacity:0; border-radius:8px;
+  }
+  .row:hover .flag,.flag:focus-visible,.flag.on{opacity:1}
+  .flag.on{color:var(--ochre)}
+  .flag:hover{background:var(--surface-3); color:var(--ink)}
+
+  .tablefoot{padding:12px 14px; display:flex; justify-content:center}
+  .reviewbar{
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    padding:10px 14px; border-bottom:1px solid var(--line);
+    background:var(--ochre-soft);
+  }
+  .reviewbar-label{font-size:12.5px; color:var(--ochre); font-weight:500}
+  .reviewbar-actions{display:flex; gap:8px; margin-left:auto}
+  .reviewbar-actions button{background:var(--surface)}
+  .reviewbar-actions button.approve{background:var(--jade); border-color:var(--jade); color:#fff}
+  html[data-theme="dark"] .reviewbar-actions button.approve{color:#08130F}
+  .reviewbar-actions button.approve:hover{filter:brightness(1.06); background:var(--jade)}
+  .empty{padding:56px 22px; text-align:center; color:var(--ink-2)}
+  .empty h3{font-family:"Bricolage Grotesque",Inter,sans-serif; font-size:17px; margin:0 0 6px; color:var(--ink)}
+  .empty p{margin:0 auto; max-width:380px; font-size:13px}
+  .empty .cta{margin-top:16px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
+
+  /* ---------- misc ---------- */
+  .tooltip{
+    position:fixed; z-index:60; pointer-events:none; opacity:0; transform:translateY(3px);
+    transition:opacity .1s; background:var(--ink); color:var(--bg);
+    border-radius:7px; padding:6px 9px; font-size:11.5px; max-width:300px;
+    font-family:"IBM Plex Mono",monospace; line-height:1.45;
+  }
+  .tooltip.show{opacity:1; transform:none}
+  .toast{
+    position:fixed; left:50%; bottom:24px; transform:translate(-50%,16px);
+    background:var(--ink); color:var(--bg); padding:10px 16px; border-radius:10px;
+    font-size:12.5px; opacity:0; transition:.2s; z-index:70; pointer-events:none;
+  }
+  .toast.show{opacity:1; transform:translate(-50%,0)}
+  .drop{
+    position:fixed; inset:0; z-index:80; background:rgba(128,140,158,.42);
+    background:color-mix(in srgb,var(--bg) 86%,transparent);
+    display:none; place-items:center; backdrop-filter:blur(3px);
+  }
+  .drop.on{display:grid}
+  .drop div{
+    border:2px dashed var(--accent); border-radius:16px; padding:40px 56px;
+    font-family:"Bricolage Grotesque",Inter,sans-serif; font-size:18px; color:var(--accent);
+    background:var(--surface);
+  }
+  .legend{display:flex; gap:14px; flex-wrap:wrap; font-size:11.5px; color:var(--ink-2); margin-left:auto}
+  .legend span{display:inline-flex; align-items:center; gap:5px}
+  .footnote{margin-top:14px; font-size:11.5px; color:var(--ink-3); text-align:center}
+  /* Excel Tool home + sub-page nav */
+  .excelback{
+    display:inline-flex; align-items:center; gap:6px; margin:0 0 14px;
+    font-size:12.5px; font-weight:600; color:var(--ink-2); background:none; border:0; cursor:pointer; padding:4px 2px;
+  }
+  .excelback:hover{color:var(--accent)}
+  .excelhome{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+  .excelhome-card{
+    display:flex; flex-direction:column; align-items:flex-start; gap:8px; text-align:left;
+    padding:22px; border:1px solid var(--line); border-radius:var(--r); background:var(--surface); cursor:pointer;
+    transition:border-color .15s ease, transform .05s ease;
+  }
+  .excelhome-card:hover{border-color:var(--accent)}
+  .excelhome-card:active{transform:translateY(1px)}
+  .excelhome-card .ehc-ic{display:inline-flex; padding:10px; border-radius:12px; background:var(--accent-soft); color:var(--accent)}
+  .excelhome-card .ehc-title{font-family:"Bricolage Grotesque",Inter,sans-serif; font-size:19px; font-weight:600; color:var(--ink)}
+  .excelhome-card .ehc-desc{font-size:12.5px; line-height:1.55; color:var(--ink-2)}
+  @media (max-width:640px){ .excelhome{grid-template-columns:1fr} }
+  /* collapsible "what the buttons do" help */
+  .help{margin:18px 0 0; border:1px solid var(--line); border-radius:var(--r); background:var(--surface); overflow:hidden}
+  .help > summary{
+    list-style:none; cursor:pointer; display:flex; align-items:center; gap:9px;
+    padding:13px 16px; font-weight:600; font-size:13px; color:var(--ink); user-select:none;
+  }
+  .help > summary::-webkit-details-marker{display:none}
+  .help > summary:hover{color:var(--accent)}
+  .help > summary:focus-visible{outline:2px solid var(--accent); outline-offset:-2px; border-radius:var(--r)}
+  .help > summary .chev{transition:transform .18s ease; color:var(--ink-3); flex:none; display:inline-flex}
+  .help[open] > summary .chev{transform:rotate(90deg)}
+  .help > summary .ic{color:var(--accent); flex:none; display:inline-flex}
+  .help > summary .hint{margin-left:auto; font-weight:400; font-size:11.5px; color:var(--ink-3)}
+  .help-body{padding:14px 16px 16px; border-top:1px solid var(--line)}
+  .help-body dl{margin:0; display:grid; grid-template-columns:max-content 1fr; gap:9px 18px; align-items:baseline}
+  .help-body dt{font-weight:600; font-size:12.5px; color:var(--accent); white-space:nowrap}
+  .help-body dd{margin:0; font-size:12.5px; line-height:1.55; color:var(--ink-2)}
+  .help-body dd .t{font-family:"IBM Plex Mono",monospace; font-size:11px; padding:1px 5px; border-radius:5px; background:var(--surface-3); color:var(--ink-2)}
+  @media (max-width:640px){
+    .help-body dl{grid-template-columns:1fr; gap:2px 0}
+    .help-body dt{margin-top:8px}
+    .help-body dt:first-child{margin-top:0}
+  }
+  @media (max-width:760px){
+    .thead{display:none}
+    .row{grid-template-columns:24px 1fr 34px; gap:6px 10px; padding:13px 14px}
+    .row .pick{grid-row:1; grid-column:1}
+    .row .pill{grid-column:2}
+    .flag{opacity:1; grid-row:1; grid-column:3}
+    .key{grid-column:2}
+    .val{grid-column:1 / -1}
+    .src{grid-column:1 / -1}
+    .tags{grid-column:1 / -1}
+    .tags.empty{display:none}
+    .src::before{content:"EN: "; font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--ink-3)}
+  }
+  /* ---------- manage keys view ---------- */
+  .keysbanner{
+    display:flex; align-items:flex-start; gap:10px; margin-top:22px; margin-bottom:-4px;
+    padding:12px 16px; border-radius:var(--r);
+    background:var(--accent-soft); border:1px solid transparent; color:var(--accent);
+    font-size:12.5px; line-height:1.5;
+  }
+  .keysbanner svg{margin-top:1px; flex:none}
+  .keysbanner b{font-weight:600}
+  .keyshero{padding:18px 20px; border-left:3px solid var(--accent)}
+  .keystats{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px}
+  .kstat{
+    flex:1 1 140px; background:var(--surface-2); border:1px solid var(--line);
+    border-radius:10px; padding:12px 14px;
+  }
+  .kstat .num{
+    display:block; font-family:"Bricolage Grotesque",Inter,sans-serif; font-weight:600;
+    font-size:24px; line-height:1.1; letter-spacing:-.02em; font-variant-numeric:tabular-nums; color:var(--ink);
+  }
+  .kstat.warn .num{color:var(--rose)} .kstat.ok .num{color:var(--jade)}
+  .kstat .lbl{margin-top:3px; font-size:11.5px; color:var(--ink-2)}
+  .kstat.click{cursor:pointer; user-select:none; transition:border-color .12s, background .12s}
+  .kstat.click:hover{border-color:var(--line-strong)}
+  .kstat.click:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  .kstat.click[aria-disabled="true"]{cursor:default}
+  .kstat.click[aria-disabled="true"]:hover{border-color:var(--line)}
+  .kstat.on{border-color:var(--accent); background:var(--accent-soft)}
+  .kstat.warn.on{border-color:var(--rose); background:var(--rose-soft)}
+  .tapcue{
+    font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.04em; text-transform:uppercase;
+    color:var(--rose); opacity:.8; margin-left:6px;
+  }
+  .kstat.warn.on .tapcue{opacity:1}
+  .keysbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+  .addkey{display:flex; gap:6px; flex:1 1 320px; min-width:240px}
+  .addkey input{
+    flex:1; font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--ink);
+    background:var(--surface-2); border:1px solid var(--line); border-radius:9px; padding:8px 11px;
+  }
+  .addkey input:focus{outline:none; border-color:var(--accent)}
+  .keysearch{flex:0 1 200px}
+  #syncAllBtn{border-color:var(--line-strong)}
+  #syncAllBtn:hover{border-color:var(--accent); color:var(--accent)}
+  #syncAllBtn.pending{background:var(--rose-soft); border-color:var(--rose); color:var(--rose)}
+  #syncAllBtn.pending:hover{filter:brightness(1.03)}
+  .synchint{margin-top:10px; font-size:12px; color:var(--ink-3)}
+  .synchint b{color:var(--rose); font-weight:600}
+
+  .keythead,.keyrow{display:grid; grid-template-columns:minmax(220px,1.4fr) minmax(200px,2fr) 40px; gap:14px}
+  .keyrow{padding:11px 14px; border-bottom:1px solid var(--line); align-items:center}
+  .keyrow:last-child{border-bottom:0}
+  .keyrow:hover{background:var(--surface-2)}
+  .keyrow.flash{animation:flash 1.4s ease-out}
+  .keyname{font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--ink); cursor:text; word-break:break-word}
+  .keyname:hover{text-decoration:underline; text-decoration-color:var(--line-strong); text-underline-offset:3px}
+  .keyname .ns{color:var(--ink-3)}
+  .keyname input{
+    width:100%; font:400 12.5px/1.4 "IBM Plex Mono",monospace; color:var(--ink);
+    background:var(--surface); border:1px solid var(--accent); border-radius:7px; padding:6px 8px;
+  }
+  .keyname input:focus{outline:none}
+  .presence{display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:11.5px; color:var(--ink-2)}
+  .presence .full{color:var(--jade); display:inline-flex; align-items:center; gap:5px}
+  .presence .part{color:var(--ochre); display:inline-flex; align-items:center; gap:5px}
+  .miss{
+    display:inline-flex; align-items:center; padding:2px 7px; border-radius:999px;
+    background:var(--rose-soft); color:var(--rose); font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+  }
+  .keydel{
+    padding:5px; width:28px; height:28px; justify-content:center; border-color:transparent;
+    background:transparent; color:var(--ink-3); opacity:0; border-radius:8px;
+  }
+  .keyrow:hover .keydel,.keydel:focus-visible{opacity:1}
+  .keydel:hover{background:var(--surface-3); color:var(--rose)}
+  #viewBtn.on{background:var(--accent); border-color:var(--accent); color:#fff}
+  html[data-theme="dark"] #viewBtn.on{color:#0A0E13}
+  @media (max-width:760px){
+    .keythead{display:none}
+    .keyrow{grid-template-columns:1fr 34px; gap:6px 10px}
+    .keydel{opacity:1}
+    .presence{grid-column:1}
+  }
+
+  /* ---------- excel tool view ---------- */
+  .tabselect{margin-top:16px; border-top:1px solid var(--line); padding-top:14px}
+  .tabselect-head{display:flex; align-items:center; gap:10px; margin-bottom:10px}
+  .tabselect-head .eyebrow{flex:1}
+  .tabselect-actions{display:flex; gap:6px}
+  .tabselect-actions button{padding:5px 9px; font-size:11.5px}
+  .tabchips{display:flex; flex-wrap:wrap; gap:6px; max-height:190px; overflow-y:auto}
+  .tabchip{
+    display:inline-flex; align-items:center; gap:7px; padding:6px 10px; border-radius:8px;
+    border:1px solid var(--line); background:var(--surface-2); cursor:pointer; font-size:12px;
+    color:var(--ink); user-select:none;
+  }
+  .tabchip:hover{border-color:var(--line-strong)}
+  .tabchip.on{border-color:var(--accent); background:var(--accent-soft)}
+  .tabchip.active{outline:2px solid var(--accent); outline-offset:1px}
+  .tabchip input{
+    appearance:none; -webkit-appearance:none; width:14px; height:14px; margin:0; flex:none;
+    border:1.5px solid var(--line-strong); border-radius:4px; background:var(--surface); display:grid; place-content:center;
+  }
+  .tabchip input:checked{background:var(--accent); border-color:var(--accent)}
+  .tabchip input:checked::after{content:""; width:8px; height:8px; background:no-repeat center/8px url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>')}
+  .tabchip .cnt{font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--ink-3)}
+  .tabchip.on .cnt{color:var(--accent)}
+  .tabchip .name{font-family:"IBM Plex Mono",monospace}
+  .previewwrap{overflow:auto; max-height:520px}
+  table.preview{border-collapse:collapse; width:100%; font-size:12.5px}
+  table.preview th,table.preview td{
+    border:1px solid var(--line); padding:6px 9px; text-align:left; vertical-align:top;
+    max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  table.preview th{
+    position:sticky; top:0; background:var(--surface-2); color:var(--ink-3);
+    font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; z-index:1;
+  }
+  table.preview td:first-child{color:var(--ink-3); font-family:"IBM Plex Mono",monospace; text-align:right; background:var(--surface-2)}
+  table.preview tr:hover td{background:var(--surface-2)}
+
+  /* ---------- app shell + sidebar ---------- */
+  .app{display:flex; min-height:100vh; align-items:stretch}
+  .sidebar{
+    width:250px; flex:none; background:var(--surface); border-right:1px solid var(--line);
+    display:flex; flex-direction:column; position:sticky; top:0; height:100vh;
+    transition:width .22s ease;
+  }
+  .sbhead{display:flex; align-items:center; gap:8px; padding:16px 16px 10px}
+  .sbhead .eyebrow{flex:1}
+  .sbsort{display:flex; align-items:center; gap:7px; padding:0 16px 10px; color:var(--ink-3)}
+  .sbsort select{
+    flex:1; min-width:0; font:inherit; font-size:12px; color:var(--ink-2);
+    background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:5px 8px; cursor:pointer;
+  }
+  .sbsort select:hover{border-color:var(--accent)}
+  .sbsort select:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
+  .app.railed .sbsort{display:none}
+  .collapseBtn{
+    padding:5px; width:26px; height:26px; justify-content:center; border-radius:7px;
+    color:var(--ink-2); background:transparent; border-color:transparent;
+  }
+  .collapseBtn:hover{background:var(--surface-2)}
+  .locales{flex:1; overflow-y:auto; padding:2px 10px 10px; display:flex; flex-direction:column; gap:3px}
+  .loc{
+    display:flex; align-items:center; gap:10px; width:100%; text-align:left;
+    padding:9px 10px; border-radius:9px; border:1px solid transparent; background:transparent;
+    cursor:pointer;
+  }
+  .loc:hover{background:var(--surface-2)}
+  .loc.active{background:var(--accent-soft); border-color:transparent}
+  .loc.active .code{color:var(--accent)}
+  .loc .badge{
+    width:34px; height:34px; flex:none; border-radius:8px; display:grid; place-items:center;
+    font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:500;
+    background:conic-gradient(var(--jade) calc(var(--pct)*1%), var(--tick-empty) 0);
+    position:relative;
+  }
+  .loc .badge::before{
+    content:""; position:absolute; inset:3px; border-radius:6px; background:var(--surface);
+  }
+  .loc.active .badge::before{background:var(--accent-soft)}
+  .loc .badge span{position:relative; z-index:1; color:var(--ink-2); font-size:10px}
+  .loc .meta2{min-width:0; flex:1}
+  .loc .code{font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:500; color:var(--ink); display:block}
+  .loc .sub{font-size:11px; color:var(--ink-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .loc .rm{
+    margin-left:auto; padding:3px; width:22px; height:22px; justify-content:center; border-radius:6px;
+    color:var(--ink-3); background:transparent; border-color:transparent; opacity:0; flex:none;
+  }
+  .loc:hover .rm,.loc .rm:focus-visible{opacity:1}
+  .loc .rm:hover{background:var(--surface-3); color:var(--rose)}
+  .addLoc{
+    margin:8px 12px 8px; justify-content:center; border-style:dashed; color:var(--ink-2);
+  }
+  .addLoc:hover{color:var(--accent); border-color:var(--accent)}
+  .sbfoot{
+    display:flex; flex-direction:column; gap:6px; padding:10px 12px 14px;
+    margin-top:auto; border-top:1px solid var(--line);
+  }
+  .sbfootBtn{
+    justify-content:flex-start; gap:9px; color:var(--ink-2); font-size:12.5px;
+  }
+  .sbfootBtn:hover{color:var(--ink)}
+  .sbfootBtn.danger:hover{border-color:var(--rose); color:var(--rose)}
+  .sbfootBtn.manage{color:var(--ink); font-weight:500}
+  .sbfootBtn.manage:hover{border-color:var(--accent); color:var(--accent)}
+  .sbfootBtn.manage.on{background:var(--accent); border-color:var(--accent); color:#fff}
+  html[data-theme="dark"] .sbfootBtn.manage.on{color:#0A0E13}
+  .mismatch-badge{
+    margin-left:auto; min-width:18px; height:18px; padding:0 5px; border-radius:999px;
+    background:var(--rose); color:#fff; font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+    font-weight:600; display:inline-flex; align-items:center; justify-content:center; flex:none;
+  }
+  .sbfootBtn.manage.on .mismatch-badge{background:rgba(255,255,255,.28); color:#fff}
+  #saveAllBtn{color:var(--ink); font-weight:500}
+  #saveAllBtn:hover{border-color:var(--accent); color:var(--accent)}
+
+  .app.railed .sidebar{width:64px}
+  .app.railed .sbhead .eyebrow,
+  .app.railed .loc .meta2,
+  .app.railed .loc .rm,
+  .app.railed .addLoc span,
+  .app.railed .sbfootBtn span{display:none}
+  .app.railed .sbhead{justify-content:center; padding:16px 0 10px}
+  .app.railed .locales{padding:2px 8px; align-items:center}
+  .app.railed .loc{justify-content:center; padding:6px}
+  .app.railed .addLoc{margin:8px auto 8px; width:40px; padding:9px 0}
+  .app.railed .sbfoot{align-items:center; padding:10px 8px 14px}
+  .app.railed .sbfootBtn{width:40px; padding:9px 0; justify-content:center}
+  .app.railed .mismatch-badge{
+    position:absolute; margin:0; top:-4px; right:-4px; min-width:16px; height:16px; font-size:9px;
+  }
+  .app.railed .sbfootBtn.manage{position:relative}
+
+  .app .wrap{flex:1; min-width:0; max-width:1180px; margin:0 auto}
+
+  @media (max-width:860px){
+    .app{flex-direction:column}
+    .sidebar{
+      width:auto; height:auto; position:static; border-right:0; border-bottom:1px solid var(--line);
+      flex-direction:column;
+    }
+    .locales{flex-direction:row; overflow-x:auto; padding:8px 12px; gap:6px}
+    .loc{width:auto; flex:none}
+    .loc .sub{display:none}
+    .addLoc{margin:0 12px 8px}
+    .sbfoot{flex-direction:row; margin-top:0; border-top:0; padding:0 12px 12px}
+    .sbfootBtn{flex:1; justify-content:center}
+    .collapseBtn{display:none}
+    .app.railed .sidebar{width:auto}
+    .app.railed .loc .meta2,.app.railed .addLoc span,.app.railed .sbfootBtn span{display:flex}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sbhead">
+      <span class="eyebrow" id="localesHead">Locales</span>
+      <button class="collapseBtn" id="collapseBtn" title="Collapse sidebar" aria-label="Collapse sidebar">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>
+      </button>
+    </div>
+    <div class="sbsort" id="sbSort" hidden>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h12M3 12h9M3 18h6M17 6v12m0 0 3-3m-3 3-3-3"/></svg>
+      <select id="localeSort" title="Sort the locale list">
+        <option value="file">Added order</option>
+        <option value="code-asc">Code A→Z</option>
+        <option value="code-desc">Code Z→A</option>
+        <option value="cov-desc">Coverage: high→low</option>
+        <option value="cov-asc">Coverage: low→high</option>
+      </select>
+    </div>
+    <nav class="locales" id="localeList" aria-label="Locales"></nav>
+    <button class="addLoc" id="addLocaleBtn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      <span>Add locale</span>
+    </button>
+    <div class="sbfoot">
+      <button class="sbfootBtn manage" id="viewBtn" title="Manage keys across all locales">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.5 12.5 8-8M15 8l2 2M19 4l2 2"/></svg>
+        <span id="viewBtnLabel">Manage Keys</span>
+        <span class="mismatch-badge" id="mismatchBadge" hidden>0</span>
+      </button>
+      <button class="sbfootBtn manage" id="excelBtn" title="Import an Excel workbook and split its tabs into locale files">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>
+        <span>Excel Tool</span>
+      </button>
+      <button class="sbfootBtn" id="openFileBtn" title="Open a Save All project file">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>
+        <span>Open File (big JSON)</span>
+      </button>
+      <button class="sbfootBtn" id="saveAllBtn" title="Export every locale into one project file">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+        <span>Save All (big JSON)</span>
+      </button>
+      <button class="sbfootBtn danger" id="clearAllBtn" title="Remove every loaded locale and start from a blank slate (undoable)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 5v6m6-6v6"/></svg>
+        <span>Clear All (big JSON)</span>
+      </button>
+    </div>
+    <input type="file" id="addLocaleInput" accept=".json,.xlsx,application/json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+    <input type="file" id="openFileInput" accept=".json,application/json" hidden>
+  </aside>
+
+  <div class="wrap">
+
+  <header class="topbar">
+    <div>
+      <div class="eyebrow" id="eyebrow">Translation Manager</div>
+      <h1 id="appName">Translation Manager</h1>
+      <div class="subline">
+        <span class="chip" id="localeChip">locale <input id="localeInput" value="en-US" aria-label="Locale code" spellcheck="false"></span>
+        <span class="filemeta" id="fileMeta">no file loaded</span>
+        <span class="filemeta" id="keysMeta" hidden></span>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="icon" id="themeBtn" title="Switch to dark mode" aria-label="Switch colour theme"></button>
+      <button id="undoBtn" title="Undo last change" disabled>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7 4 12l5 5"/><path d="M4 12h11a5 5 0 0 1 0 10h-1"/></svg>
+        <span id="undoLabel">Undo</span>
+      </button>
+      <button id="mergeBtn" title="Merge translations from a JSON or Excel file into the current locale (overwrites matching keys)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v6a3 3 0 0 0 3 3h4a3 3 0 0 1 3 3v6M7 3H4m3 0h3m7 18h3m-3 0h-3"/></svg>
+        Merge
+      </button>
+      <button id="mergeMissingBtn" title="Fill only the untranslated entries in the current locale from a JSON or Excel file — existing values are left untouched">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9M4 12h9M4 17h5m7-4v6m3-3h-6"/></svg>
+        Merge Missing Translations
+      </button>
+      <button id="mergeNewBtn" title="Insert only keys that don't exist in the current locale yet (with their English source text and translation) from a JSON or Excel file — existing keys are ignored">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M4 11h10M4 16h6m6-6v8m4-4h-8"/></svg>
+        Merge New Translations
+      </button>
+      <button id="xlsxBtn" title="Export the checked strings as an Excel file" disabled>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="m8 8 8 8M16 8l-8 8"/></svg>
+        <span id="xlsxLabel">Export Selected</span>
+      </button>
+      <button id="csvBtn">Export CSV</button>
+      <button class="primary" id="jsonBtn">Export Locale (JSON)</button>
+      <input type="file" id="fileInput" accept=".json,.csv,.tsv,.txt,.xlsx,application/json,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+    </div>
+  </header>
+
+  <div id="translateView">
+  <details class="help">
+    <summary>
+      <span class="chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
+      What the buttons on this page do
+      <span class="hint">tap to expand</span>
+    </summary>
+    <div class="help-body">
+      <dl>
+        <dt>Merge</dt>
+        <dd>Import a JSON or Excel file and <b>overwrite</b> matching keys in this locale, adding any keys that are new. Touched rows are tagged <span class="t">merged</span> and flagged Needs review.</dd>
+        <dt>Merge Missing Translations</dt>
+        <dd>Fill only the <b>untranslated</b> (empty) entries already in this locale; existing translations are left untouched. Filled rows are tagged <span class="t">merged new translation</span> and flagged.</dd>
+        <dt>Merge New Translations</dt>
+        <dd>Insert only keys that <b>don't exist</b> in this locale yet, with their English source and translation. Existing keys are ignored. New rows are tagged <span class="t">inserted new translations</span> and flagged.</dd>
+        <dt>Export Selected</dt>
+        <dd>Download the tick-selected rows as a POEditor-format Excel (<span class="t">.xlsx</span>) file. Enabled once you tick at least one row.</dd>
+        <dt>Export CSV</dt>
+        <dd>Download the rows currently shown as a CSV — the active filter, search, and section narrow what's exported.</dd>
+        <dt>Export Locale (JSON)</dt>
+        <dd>Download this one locale as a POEditor-format JSON file (the shape the Excel Tool extracts).</dd>
+        <dt>Undo</dt>
+        <dd>Step back through the last 10 changes, across every locale.</dd>
+        <dt>Flag &amp; tags</dt>
+        <dd>The flag button toggles a row's Needs review state. The <b>×</b> on a tag removes it; removing a row's <b>last</b> tag also clears its review flag.</dd>
+        <dt>Approve / Approve All</dt>
+        <dd>Shown on the <b>Needs review</b> filter — clear the review flag on the selected, or on all shown, flagged rows.</dd>
+        <dt>Add locale · Open File · Save All (big JSON)</dt>
+        <dd>In the left sidebar: add a locale from a file; open a saved project bundle; or save every locale — including tags and review flags — into one project JSON.</dd>
+      </dl>
+    </div>
+  </details>
+  <section class="panel hero">
+    <div class="stats">
+      <button class="stat total"   data-f="all"      aria-pressed="true"><span class="num" id="cTotal">0</span><span class="lbl"><i class="dot"></i><span>Strings total</span></span></button>
+      <button class="stat done"    data-f="done"     aria-pressed="false"><span class="num" id="cDone">0</span><span class="lbl"><i class="dot"></i><span>Translated</span></span></button>
+      <button class="stat review"  data-f="review"   aria-pressed="false"><span class="num" id="cReview">0</span><span class="lbl"><i class="dot"></i><span>Needs review</span></span></button>
+      <button class="stat missing" data-f="missing"  aria-pressed="false"><span class="num" id="cMissing">0</span><span class="lbl"><i class="dot"></i><span>Untranslated</span></span></button>
+    </div>
+
+    <div class="ribbonhead">
+      <span class="coverage" id="coverage">—</span>
+      <span class="eyebrow">one mark per string, in file order</span>
+      <span class="legend">
+        <span style="color:var(--jade)"><i class="dot"></i>translated</span>
+        <span style="color:var(--ochre)"><i class="dot"></i>needs review</span>
+        <span style="color:var(--rose)"><i class="dot"></i>untranslated</span>
+      </span>
+    </div>
+    <div class="ribbon" id="ribbon"></div>
+    <div class="tickhint">Hover a mark to read its key, click to jump to the string.</div>
+  </section>
+
+  <section class="panel">
+    <div class="controls">
+      <div class="segmented" id="filters">
+        <button data-f="all"     aria-pressed="true">All <span class="count" data-c="all">0</span></button>
+        <button data-f="done"    aria-pressed="false">Translated <span class="count" data-c="done">0</span></button>
+        <button data-f="missing" aria-pressed="false">Untranslated <span class="count" data-c="missing">0</span></button>
+        <button data-f="review"  aria-pressed="false">Needs review <span class="count" data-c="review">0</span></button>
+      </div>
+      <label class="search">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4.3-4.3"/></svg>
+        <input id="q" placeholder="Search keys and text" aria-label="Search strings">
+        <kbd>/</kbd>
+      </label>
+      <select id="sectionSel" aria-label="Filter by section"></select>
+      <select id="sortSel" aria-label="Sort order">
+        <option value="file">File order</option>
+        <option value="key">Key A–Z</option>
+        <option value="status">Untranslated first</option>
+      </select>
+    </div>
+
+    <div class="reviewbar" id="reviewBar" hidden>
+      <span class="reviewbar-label" id="reviewBarLabel"></span>
+      <div class="reviewbar-actions">
+        <button id="approveSelBtn" disabled>Approve Selected</button>
+        <button class="primary approve" id="approveAllBtn">Approve All</button>
+      </div>
+    </div>
+
+    <div class="thead">
+      <div class="pick"><input type="checkbox" id="selectAll" title="Select all shown" aria-label="Select all shown strings"></div>
+      <div><button class="sortable" data-sort="key">Key</button></div>
+      <div id="valHead">Translation</div>
+      <div>English Source Text</div>
+      <div>Tags</div>
+      <div><button class="sortable" data-sort="status">Status</button></div>
+      <div></div>
+    </div>
+    <div class="rows" id="rows"></div>
+    <div class="tablefoot" id="foot"></div>
+  </section>
+  </div>
+
+  <div id="keysView" hidden>
+    <div class="keysbanner">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+      <span>Global view — you're managing the <b>key set shared by every locale</b>, not one locale's translations. Add, rename, delete, or sync here and it applies to all locales at once.</span>
+    </div>
+    <details class="help">
+      <summary>
+        <span class="chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
+        What the buttons on this page do
+        <span class="hint">tap to expand</span>
+      </summary>
+      <div class="help-body">
+        <dl>
+          <dt>Add key</dt>
+          <dd>Add a brand-new key to <b>every</b> locale at once, with an empty value ready to translate.</dd>
+          <dt>Sync to All</dt>
+          <dd>Find keys that exist in some locales but not others and add each missing key (empty) to the locales that lack it, so every locale shares the same key set.</dd>
+          <dt>All keys / Mismatched</dt>
+          <dd>Filter the list to every key, or only the keys that are <b>missing from at least one locale</b>.</dd>
+          <dt>Search keys</dt>
+          <dd>Narrow the list to keys whose name matches your text.</dd>
+          <dt>Rename (click a key)</dt>
+          <dd>Click a key to edit it inline; the rename applies across <b>all</b> locales at once.</dd>
+          <dt>Delete</dt>
+          <dd>The × on a row removes that key from <b>every</b> locale. Undo reverses it.</dd>
+        </dl>
+      </div>
+    </details>
+    <section class="panel keyshero">
+      <div class="keystats" id="keyStats"></div>
+      <div class="keysbar">
+        <div class="segmented" id="keyFilters">
+          <button data-kf="all" aria-pressed="true">All keys <span class="count" data-kc="all">0</span></button>
+          <button data-kf="mismatch" aria-pressed="false">Mismatched <span class="count" data-kc="mismatch">0</span></button>
+        </div>
+        <div class="addkey">
+          <input id="newKeyInput" placeholder="New key, e.g. Modal.Title" aria-label="New key name" spellcheck="false">
+          <button class="primary" id="addKeyBtn">Add key</button>
+        </div>
+        <label class="search keysearch">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4.3-4.3"/></svg>
+          <input id="keyQ" placeholder="Search keys" aria-label="Search keys">
+        </label>
+        <button id="syncAllBtn" title="Add every missing key to the locales that lack it, with an empty value">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+          Sync to All
+        </button>
+      </div>
+      <div class="synchint" id="syncHint"></div>
+    </section>
+    <section class="panel">
+      <div class="thead keythead">
+        <div>Key</div>
+        <div>Present in locales</div>
+        <div></div>
+      </div>
+      <div class="rows" id="keysRows"></div>
+      <div class="tablefoot" id="keysFoot"></div>
+    </section>
+  </div>
+
+  <div id="excelView" hidden>
+    <!-- Excel Tool home -->
+    <div id="excelHome">
+      <div class="keysbanner">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg>
+        <span>The Excel Tool has two areas. Pick <b>Import</b> to bring an Excel workbook into the app, or <b>Export</b> for the outbound tools.</span>
+      </div>
+      <section class="panel">
+        <div class="excelhome">
+          <button type="button" class="excelhome-card" id="excelGoImport">
+            <span class="ehc-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M12 4 7 9M12 4l5 5M4 18v2h16v-2"/></svg></span>
+            <span class="ehc-title">Import</span>
+            <span class="ehc-desc">Load a multi-tab Excel workbook, preview it, and split its tabs into locale files or add them straight into the app.</span>
+          </button>
+          <button type="button" class="excelhome-card" id="excelGoExport">
+            <span class="ehc-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v12m0-12L7 13m5-5 5 5M4 6V4h16v2"/></svg></span>
+            <span class="ehc-title">Export</span>
+            <span class="ehc-desc">Outbound tools for turning your locales into files. A different set of functionalities.</span>
+          </button>
+        </div>
+      </section>
+    </div>
+    <!-- Import area -->
+    <div id="excelImport" hidden>
+      <button type="button" class="excelback" id="excelImportBack">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg>
+        Excel Tool home
+      </button>
+      <div class="keysbanner">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg>
+        <span>Import a multi-tab Excel workbook to preview it (read-only), then <b>Extract Locales</b> to split every tab into its own POEditor-format file, named after the tab.</span>
+      </div>
+    <details class="help">
+      <summary>
+        <span class="chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
+        What the buttons on this page do
+        <span class="hint">tap to expand</span>
+      </summary>
+      <div class="help-body">
+        <dl>
+          <dt>Import XLSX</dt>
+          <dd>Load a multi-tab Excel workbook. Each tab is previewed here <b>read-only</b> — nothing changes until you extract or import.</dd>
+          <dt>Tabs to extract</dt>
+          <dd>Tick the tabs that are actual locales. <span class="t">Select all</span> / <span class="t">Select none</span> toggle them all; tabs that look like summaries are left unticked automatically.</dd>
+          <dt>Extract Locales (XLSX)</dt>
+          <dd>Save each ticked tab as its own POEditor-format <span class="t">.xlsx</span> file — bundled into a <span class="t">.zip</span> when more than one is selected.</dd>
+          <dt>Extract Locales (JSON)</dt>
+          <dd>Same as above but each tab is written as a POEditor-format <span class="t">.json</span> file.</dd>
+          <dt>Import Selected as Locales</dt>
+          <dd>Add each ticked tab straight into your locale list on the left, ready to edit — no download step.</dd>
+          <dt>Clear</dt>
+          <dd>Discard the imported workbook and its preview so you can start over.</dd>
+        </dl>
+      </div>
+    </details>
+    <section class="panel keyshero">
+      <div class="keysbar">
+        <button class="primary" id="importXlsxBtn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 16V4M12 4 7 9M12 4l5 5M4 18v2h16v-2"/></svg>
+          Import XLSX
+        </button>
+        <button id="extractBtn" title="Extract each selected tab into a POEditor-format .xlsx file" disabled>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          <span id="extractLabel">Extract Locales (XLSX)</span>
+        </button>
+        <button id="extractJsonBtn" title="Extract each selected tab into a POEditor-format .json file" disabled>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          <span id="extractJsonLabel">Extract Locales (JSON)</span>
+        </button>
+        <button id="importLocalesBtn" class="primary approve" title="Add each selected tab to your locale list on the left, ready to edit in the app" disabled>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4v16M4 12h11m0 0-4-4m4 4-4 4"/></svg>
+          <span id="importLocalesLabel">Import Selected as Locales</span>
+        </button>
+        <span class="filemeta" id="xlsxMeta" style="margin-left:auto"></span>
+        <button id="clearXlsxBtn" title="Clear the imported workbook and start over" hidden>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+          Clear
+        </button>
+        <input type="file" id="xlsxInput" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+      </div>
+      <div class="tabselect" id="tabSelect" hidden>
+        <div class="tabselect-head">
+          <span class="eyebrow" id="tabSelectHead">Tabs</span>
+          <div class="tabselect-actions">
+            <button id="tabAllBtn">Select all</button>
+            <button id="tabNoneBtn">Select none</button>
+          </div>
+        </div>
+        <div class="tabchips" id="tabChips"></div>
+      </div>
+    </section>
+    <section class="panel" id="previewPanel" hidden>
+      <div class="controls" style="border-bottom:1px solid var(--line)">
+        <span class="eyebrow" id="previewTabName">Preview</span>
+        <span class="filemeta" id="previewMeta" style="margin-left:auto"></span>
+      </div>
+      <div class="previewwrap"><table class="preview" id="previewTable"></table></div>
+    </section>
+    <section class="panel" id="excelEmpty">
+      <div class="empty"><h3>No workbook loaded</h3><p>Use <b>Import XLSX</b> to load a multi-tab Excel file. Each tab is previewed here read-only; nothing is changed until you extract.</p></div>
+    </section>
+    </div><!-- /#excelImport -->
+    <!-- Export area -->
+    <div id="excelExport" hidden>
+      <button type="button" class="excelback" id="excelExportBack">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg>
+        Excel Tool home
+      </button>
+      <div class="keysbanner">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v12m0-12L7 13m5-5 5 5M4 6V4h16v2"/></svg>
+        <span>Export your locales to Excel. Click a card to filter the list, tick the locales to include, then export — each locale becomes its own tab, with a clickable <b>Contents</b> tab first.</span>
+      </div>
+      <section class="panel hero">
+        <div class="stats" id="expStats">
+          <button class="stat total"    data-cat="locales"      aria-pressed="true"><span class="num" id="xLocales">0</span><span class="lbl"><i class="dot"></i><span>Locales</span></span></button>
+          <button class="stat strings"  data-cat="strings"      aria-pressed="false"><span class="num" id="xStrings">0</span><span class="lbl"><i class="dot"></i><span>Strings</span></span></button>
+          <button class="stat done"     data-cat="translated"   aria-pressed="false"><span class="num" id="xDone">0</span><span class="lbl"><i class="dot"></i><span>Translated</span></span></button>
+          <button class="stat missing"  data-cat="untranslated" aria-pressed="false"><span class="num" id="xMiss">0</span><span class="lbl"><i class="dot"></i><span>Untranslated</span></span></button>
+          <button class="stat review"   data-cat="review"       aria-pressed="false"><span class="num" id="xReview">0</span><span class="lbl"><i class="dot"></i><span>Needs review</span></span></button>
+        </div>
+      </section>
+      <section class="panel keyshero" id="expActions">
+        <div class="keysbar">
+          <button class="primary" id="exportAllBtn" title="Export all strings of the selected locales, each locale in its own tab" disabled>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+            <span id="exportAllLabel">Export ALL to XLSX</span>
+          </button>
+          <button id="exportUntransBtn" title="Export only the untranslated strings of the selected locales, each locale in its own tab" disabled>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+            <span id="exportUntransLabel">Export Untranslated to XLSX</span>
+          </button>
+          <span class="filemeta" id="expMeta" style="margin-left:auto"></span>
+        </div>
+        <div class="tabselect" id="expTabSelect">
+          <div class="tabselect-head">
+            <span class="eyebrow" id="expTabHead">Locales</span>
+            <div class="tabselect-actions">
+              <button id="expAllBtn">Select all</button>
+              <button id="expNoneBtn">Select none</button>
+            </div>
+          </div>
+          <div class="tabchips" id="expChips"></div>
+        </div>
+      </section>
+      <section class="panel" id="expPreviewPanel" hidden>
+        <div class="controls" style="border-bottom:1px solid var(--line)">
+          <span class="eyebrow" id="expPreviewName">Preview</span>
+          <span class="filemeta" id="expPreviewMeta" style="margin-left:auto"></span>
+        </div>
+        <div class="previewwrap"><table class="preview" id="expPreviewTable"></table></div>
+      </section>
+      <section class="panel" id="expKeysPanel" hidden>
+        <div class="controls" style="border-bottom:1px solid var(--line)">
+          <span class="eyebrow" id="expKeysHead">Keys</span>
+          <div class="tabselect-actions" style="margin-left:auto">
+            <button id="expKeysAll">Select all</button>
+            <button id="expKeysNone">Select none</button>
+          </div>
+        </div>
+        <div class="controls">
+          <input id="expKeySearch" class="keysearch" type="search" placeholder="Search keys…" aria-label="Search keys">
+        </div>
+        <div class="keylistwrap"><div class="keylist" id="expKeyList"></div></div>
+      </section>
+      <section class="panel" id="expEmpty" hidden>
+        <div class="empty"><h3>No locales to export</h3><p>Add or open locales first, then come back here to export them to Excel.</p></div>
+      </section>
+    </div>
+  </div>
+
+  <p class="footnote">Edits stay in this tab until you export. Undo covers the last 10 changes across all locales.</p>
+  </div>
+</div>
+
+<div class="tooltip" id="tip"></div>
+<div class="toast" id="toast"></div>
+<div class="drop" id="drop"><div>Drop a .json or .csv locale file</div></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============ state ============ */
+  /* Each locale: { id, code, name, file, rows[] }.
+     view (filter/search/sort/limit) is shared UI, not per-locale. */
+  var state = {
+    locales: [], active: -1,
+    view: "translate",                 // 'translate' | 'keys' | 'excel'
+    filter: "all", q: "", section: "all", sort: "file", limit: 120,
+    keysQ: "", keysLimit: 150, keysFilter: "all"
+  };
+  var HISTORY_MAX = 10;
+  var history = [];   // snapshots: { code, name, file, rows }
+  var uid = 0;
+
+  var STATUS = {
+    done:    {label:"Translated",   cls:"done"},
+    review:  {label:"Needs review", cls:"review"},
+    missing: {label:"Untranslated", cls:"missing"}
+  };
+  var $ = function(s){ return document.querySelector(s); };
+
+  function activeLocale(){ return state.active > -1 ? state.locales[state.active] : null; }
+  function activeRows(){ var l = activeLocale(); return l ? l.rows : []; }
+
+  /* deep-ish clone of a row list (rows are flat objects) */
+  function cloneRows(rows){ return rows.map(function(r){ return {
+    term:r.term, definition:r.definition, context:r.context, term_plural:r.term_plural,
+    reference:r.reference, comment:r.comment, source:r.source,
+    tags:(r.tags ? r.tags.slice() : []), fuzzy:r.fuzzy }; }); }
+  function cloneLocale(l){ return { id:l.id, code:l.code, name:l.name, file:l.file,
+    rows:cloneRows(l.rows), selected:Object.assign({}, l.selected) }; }
+
+  /* Call BEFORE any content change. Snapshots the WHOLE project (all locales), tagged with
+     the active locale id, so undo restores everything — including multi-locale key edits —
+     and returns focus to the locale that was active. Capped at HISTORY_MAX. */
+  function snapshot(){
+    if(!state.locales.length) return;
+    var a = activeLocale();
+    history.push({ activeId: a ? a.id : -1, locales: state.locales.map(cloneLocale) });
+    if(history.length > HISTORY_MAX) history.shift();
+    updateUndo();
+  }
+  function undo(){
+    var snap = history.pop();
+    if(!snap){ updateUndo(); return; }
+    state.locales = snap.locales;
+    var idx = state.locales.findIndex(function(l){ return l.id === snap.activeId; });
+    state.active = idx === -1 ? (state.locales.length ? 0 : -1) : idx;
+    state.limit = 120;
+    updateUndo();
+    render();
+    toast("Reverted last change");
+  }
+  function updateUndo(){
+    var btn = $("#undoBtn"), lab = $("#undoLabel");
+    btn.disabled = history.length === 0;
+    btn.title = history.length ? "Undo last change (" + history.length + " available)" : "Nothing to undo";
+    if(lab) lab.textContent = history.length ? "Undo " + history.length : "Undo";
+  }
+
+  function statusOf(r){
+    if(!String(r.definition == null ? "" : r.definition).trim()) return "missing";
+    var f = r.fuzzy;
+    if(f === 1 || f === true || f === "1" || f === "true") return "review";
+    return "done";
+  }
+
+  /* ============ theme ============ */
+  var SUN = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.4v2.2M12 19.4v2.2M2.4 12h2.2M19.4 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6"/></svg>';
+  var MOON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.5 14.6A8.6 8.6 0 1 1 9.4 3.5a7 7 0 0 0 11.1 11.1Z"/></svg>';
+  function setTheme(t){
+    document.documentElement.setAttribute("data-theme", t);
+    var b = $("#themeBtn");
+    b.innerHTML = t === "dark" ? SUN : MOON;
+    b.title = t === "dark" ? "Switch to light mode" : "Switch to dark mode";
+  }
+  setTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  $("#themeBtn").addEventListener("click", function(){
+    setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
+  });
+
+  /* ============ toast ============ */
+  var toastT;
+  function toast(msg){
+    var el = $("#toast");
+    el.textContent = msg; el.classList.add("show");
+    clearTimeout(toastT); toastT = setTimeout(function(){ el.classList.remove("show"); }, 2600);
+  }
+
+  /* ============ csv ============ */
+  function sniffDelim(line){
+    var best = ",", n = -1;
+    [",",";","\t","|"].forEach(function(d){
+      var c = 0, q = false;
+      for(var i=0;i<line.length;i++){
+        var ch = line[i];
+        if(ch === '"') q = !q;
+        else if(ch === d && !q) c++;
+      }
+      if(c > n){ n = c; best = d; }
+    });
+    return best;
+  }
+  function parseCSV(text){
+    text = text.replace(/^\uFEFF/, "");
+    var d = sniffDelim(text.split(/\r?\n/)[0] || ",");
+    var rows = [], cur = [], field = "", q = false, i = 0;
+    while(i < text.length){
+      var c = text[i];
+      if(q){
+        if(c === '"'){
+          if(text[i+1] === '"'){ field += '"'; i += 2; continue; }
+          q = false; i++; continue;
+        }
+        field += c; i++; continue;
+      }
+      if(c === '"'){ q = true; i++; continue; }
+      if(c === d){ cur.push(field); field = ""; i++; continue; }
+      if(c === "\r"){ i++; continue; }
+      if(c === "\n"){ cur.push(field); rows.push(cur); cur = []; field = ""; i++; continue; }
+      field += c; i++;
+    }
+    if(field !== "" || cur.length){ cur.push(field); rows.push(cur); }
+    return rows.filter(function(r){ return r.length > 1 || String(r[0]||"").trim() !== ""; });
+  }
+  function csvCell(v){
+    v = v == null ? "" : String(v);
+    return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+  }
+
+  /* ============ import ============ */
+  var ALIAS = {
+    term:      ["term","key","id","string_id","stringid","name","msgid","identifier","string","source_key"],
+    definition:["definition","translation","value","target","text","msgstr","translated","translation_text","en-us","en_us","enus"],
+    context:   ["context","description","notes"],
+    term_plural:["term_plural","plural","term plural"],
+    reference: ["reference","ref","file","location"],
+    comment:   ["comment","comments","translator_comment"],
+    source:    ["source","english","english source","english_source","source_text","source text","reference_language","reference language","meaning","english_meaning"],
+    fuzzy:     ["fuzzy","needs_review","review","needs review","is_fuzzy"],
+    status:    ["status","state"]
+  };
+  function normKey(k){ return String(k).trim().toLowerCase().replace(/\s+/g, "_"); }
+  function mapHeaders(headers){
+    var map = {};
+    headers.forEach(function(h, idx){
+      var n = normKey(h);
+      Object.keys(ALIAS).forEach(function(canon){
+        if(map[canon] === undefined && ALIAS[canon].indexOf(n) !== -1) map[canon] = idx;
+      });
+    });
+    return map;
+  }
+  function truthyFuzzy(v){
+    var s = String(v == null ? "" : v).trim().toLowerCase();
+    return s === "1" || s === "true" || s === "yes" || s === "y" ||
+           s.indexOf("review") !== -1 || s === "fuzzy";
+  }
+  var TAG_MERGED = "merged", TAG_NEW = "newly translated", TAG_MERGED_NEW = "merged new translation", TAG_INSERTED = "inserted new translations";
+  /* Tags are a small array of short labels on a row. Accept an array or a
+     comma/pipe-separated string; trim, drop blanks, de-dupe case-insensitively. */
+  function normTags(v){
+    if(v == null) return [];
+    var arr = Array.isArray(v) ? v : String(v).split(/[|,]/);
+    var out = [], seen = {};
+    arr.forEach(function(t){
+      t = String(t == null ? "" : t).trim();
+      var k = t.toLowerCase();
+      if(t && !seen[k]){ seen[k] = 1; out.push(t); }
+    });
+    return out;
+  }
+  function hasTag(r, tag){ return normTags(r.tags).some(function(t){ return t.toLowerCase() === tag.toLowerCase(); }); }
+  function addTag(r, tag){ r.tags = normTags(r.tags); if(!hasTag(r, tag)) r.tags.push(tag); }
+  function removeTag(r, tag){ r.tags = normTags(r.tags).filter(function(t){ return t.toLowerCase() !== tag.toLowerCase(); }); }
+  function tagSlug(t){ return String(t).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
+
+  function makeRow(o){
+    return {
+      term: String(o.term == null ? "" : o.term),
+      definition: o.definition == null ? "" : String(o.definition),
+      context: o.context == null ? "" : String(o.context),
+      term_plural: o.term_plural == null ? "" : String(o.term_plural),
+      reference: o.reference == null ? "" : String(o.reference),
+      comment: o.comment == null ? "" : String(o.comment),
+      source: o.source == null ? "" : String(o.source),   // English source text (POEditor col F)
+      tags: normTags(o.tags),
+      fuzzy: truthyFuzzy(o.fuzzy) ? 1 : 0
+    };
+  }
+  function flatten(obj, prefix, out){
+    Object.keys(obj).forEach(function(k){
+      var v = obj[k], key = prefix ? prefix + "." + k : k;
+      if(v && typeof v === "object" && !Array.isArray(v)) flatten(v, key, out);
+      else out.push(makeRow({ term: key, definition: Array.isArray(v) ? v.join(" | ") : v }));
+    });
+    return out;
+  }
+  function fromJSON(text){
+    var data = JSON.parse(text);
+    if(Array.isArray(data)){
+      return data.map(function(o){
+        if(o == null || typeof o !== "object") return makeRow({ term: String(o) });
+        var src = {};
+        Object.keys(o).forEach(function(k){
+          var n = normKey(k);
+          Object.keys(ALIAS).forEach(function(canon){
+            if(src[canon] === undefined && ALIAS[canon].indexOf(n) !== -1) src[canon] = o[k];
+          });
+        });
+        if(src.fuzzy === undefined && src.status !== undefined) src.fuzzy = src.status;
+        if(src.term === undefined) src.term = o.term || "";
+        return makeRow(src);
+      });
+    }
+    if(data && typeof data === "object") return flatten(data, "", []);
+    throw new Error("Unrecognised JSON shape");
+  }
+  function fromCSV(text){
+    var grid = parseCSV(text);
+    if(!grid.length) throw new Error("Empty file");
+    var map = mapHeaders(grid[0]);
+    var headerMode = map.term !== undefined && map.definition !== undefined;
+    var out = [];
+    if(headerMode){
+      for(var i = 1; i < grid.length; i++){
+        var r = grid[i];
+        var pick = function(c){ return map[c] === undefined ? "" : (r[map[c]] || ""); };
+        var fz = map.fuzzy !== undefined ? pick("fuzzy") : pick("status");
+        var term = String(pick("term")).trim();
+        if(!term) continue;
+        out.push(makeRow({
+          term: term, definition: pick("definition"), context: pick("context"),
+          term_plural: pick("term_plural"), reference: pick("reference"),
+          comment: pick("comment"), source: pick("source"), fuzzy: fz
+        }));
+      }
+      return out;
+    }
+    // No recognisable header row → assume the standard headerless POEditor layout:
+    // term, translation, context, term_plural, reference, english-source
+    for(var j = 0; j < grid.length; j++){
+      var row = grid[j];
+      var t = String(row[0] == null ? "" : row[0]).trim();
+      if(!t) continue;
+      out.push(makeRow({
+        term: t, definition: row[1], context: row[2],
+        term_plural: row[3], reference: row[4], source: row[5]
+      }));
+    }
+    if(!out.length) throw new Error("Needs a key column and a translation column");
+    return out;
+  }
+  var LANGS = { english:"en", spanish:"es", french:"fr", german:"de", italian:"it",
+    portuguese:"pt", dutch:"nl", polish:"pl", swedish:"sv", danish:"da", norwegian:"nb",
+    finnish:"fi", japanese:"ja", chinese:"zh", korean:"ko", czech:"cs", greek:"el",
+    hungarian:"hu", romanian:"ro", turkish:"tr", russian:"ru", ukrainian:"uk",
+    arabic:"ar", hebrew:"he", thai:"th", vietnamese:"vi", hindi:"hi", indonesian:"id",
+    bulgarian:"bg", croatian:"hr", serbian:"sr", slovak:"sk", slovenian:"sl",
+    estonian:"et", latvian:"lv", lithuanian:"lt", catalan:"ca", farsi:"fa", persian:"fa" };
+  // languages that read right-to-left
+  var RTL = { ar:1, he:1, fa:1, ur:1 };
+  function isRTL(code){ return !!RTL[String(code || "").slice(0,2).toLowerCase()]; }
+  function langWord(name){
+    var low = name.toLowerCase(), found = "";
+    Object.keys(LANGS).forEach(function(w){ if(low.indexOf(w) !== -1) found = w; });
+    return found;
+  }
+  function guessLocale(name){
+    var base = name.replace(/\.[^.]+$/, "");
+    var word = langWord(base);
+    if(word){
+      var after = base.slice(base.toLowerCase().indexOf(word) + word.length);
+      var reg = after.match(/^[_\- ]?([A-Za-z]{2})(?:[_\- ]|$)/);
+      return LANGS[word] + (reg ? "-" + reg[1].toUpperCase() : "");
+    }
+    var m = base.match(/(?:^|[^A-Za-z])([a-z]{2})[-_]([A-Z]{2})(?:[^A-Za-z]|$)/);
+    return m ? m[1] + "-" + m[2] : "";
+  }
+  function prettyName(name){
+    var base = name.replace(/\.[^.]+$/, "");
+    var word = langWord(base);
+    var out = base.replace(/(?:^|[^A-Za-z])([a-z]{2})[-_]([A-Z]{2})(?:[^A-Za-z]|$)/g, " ");
+    if(word) out = out.replace(new RegExp(word + "[_\\- ]?[A-Za-z]{0,2}", "i"), " ");
+    out = out.replace(/[_-]+/g, " ").replace(/\s{2,}/g, " ").trim();
+    return out || "Locale file";
+  }
+  function uniqueCode(code, exceptIdx){
+    var base = code || "locale", c = base, n = 2;
+    var taken = function(x){
+      return state.locales.some(function(l, i){ return i !== exceptIdx && l.code === x; });
+    };
+    while(taken(c)){ c = base + "-" + n; n++; }
+    return c;
+  }
+
+  /* Add a brand-new locale to the sidebar and switch to it. */
+  function addLocale(rows, fileName, codeOverride){
+    if(!rows.length){ toast("No strings found in that file"); return; }
+    var code = uniqueCode(codeOverride || guessLocale(fileName) || "locale");
+    var loc = {
+      id: ++uid, code: code, name: prettyName(fileName) || "Locale",
+      file: fileName || "", rows: rows, selected: {}
+    };
+    state.locales.push(loc);
+    state.active = state.locales.length - 1;
+    state.limit = 120; state.filter = "all"; state.q = ""; state.section = "all";
+    render();
+    toast("Added " + code + " · " + rows.length + " strings");
+  }
+
+  /* Replace the ACTIVE locale's contents from a file (header Import button). Undoable. */
+  function replaceActive(rows, fileName){
+    if(!rows.length){ toast("No strings found in that file"); return; }
+    if(state.active === -1){ addLocale(rows, fileName); return; }
+    snapshot();
+    var loc = activeLocale();
+    loc.rows = rows; loc.file = fileName || loc.file;
+    loc.name = prettyName(fileName) || loc.name;
+    var guess = guessLocale(fileName);
+    if(guess) loc.code = uniqueCode(guess, state.active);
+    state.limit = 120;
+    render();
+    toast("Replaced " + loc.code + " · " + rows.length + " strings");
+  }
+
+  function switchLocale(idx){
+    if(idx < 0 || idx >= state.locales.length) return;
+    var changed = idx !== state.active;
+    state.active = idx;
+    state.view = "translate";              // picking a locale shows its strings
+    if(changed){
+      state.limit = 120; state.filter = "all"; state.q = ""; state.section = "all";
+      var qEl = $("#q"); if(qEl) qEl.value = "";
+    }
+    render();
+  }
+  function removeLocale(idx){
+    var l = state.locales[idx];
+    if(!l) return;
+    if(!window.confirm("Remove locale " + l.code + "? Unexported edits will be lost. (You can undo this.)")) return;
+    snapshot();
+    state.locales.splice(idx, 1);
+    if(state.locales.length === 0) state.active = -1;
+    else if(state.active >= state.locales.length) state.active = state.locales.length - 1;
+    else if(state.active > idx) state.active -= 1;
+    state.limit = 120;
+    render();
+    toast("Removed " + l.code);
+  }
+
+  function parseFileText(name, txt){
+    var isJSON = /\.json$/i.test(name) || /^\s*[\[{]/.test(txt);
+    return isJSON ? fromJSON(txt) : fromCSV(txt);
+  }
+  /* Which sheet of a single-locale workbook holds the strings: POEditor.com if present,
+     else the first sheet that isn't an exported Contents/summary tab. */
+  function pickLocaleSheet(names){
+    if(names.indexOf("POEditor.com") > -1) return "POEditor.com";
+    for(var i = 0; i < names.length; i++){
+      if(!/^(contents|summary|overview|readme|index)$/i.test(names[i])) return names[i];
+    }
+    return names[0];
+  }
+  /* Robust file reads: Blob.text()/arrayBuffer() fully materialize the bytes into an
+     object that's independent of the <input>, so resetting the input afterward can't
+     truncate the read. Falls back to FileReader where those methods are unavailable.
+     This avoids intermittent truncation of large files under file:// origins. */
+  function readTextRobust(file){
+    if(file && typeof file.text === "function") return file.text();
+    return new Promise(function(res, rej){
+      var fr = new FileReader();
+      fr.onload = function(){ res(String(fr.result || "")); };
+      fr.onerror = function(){ rej(fr.error || new Error("read failed")); };
+      fr.readAsText(file);
+    });
+  }
+  function readBufferRobust(file){
+    if(file && typeof file.arrayBuffer === "function") return file.arrayBuffer();
+    return new Promise(function(res, rej){
+      var fr = new FileReader();
+      fr.onload = function(){ res(fr.result); };
+      fr.onerror = function(){ rej(fr.error || new Error("read failed")); };
+      fr.readAsArrayBuffer(file);
+    });
+  }
+  function readFile(file, handler){
+    readTextRobust(file).then(function(txt){
+      try{ handler(parseFileText(file.name, txt), file.name); }
+      catch(err){ toast("Could not read that file — " + err.message); }
+    }).catch(function(){ toast("Could not read that file"); });
+  }
+
+  // header Merge → merge a JSON or Excel file into the active locale (overwrites matching keys)
+  // header Merge Missing Translations → fill only the untranslated entries, leave existing values
+  var pendingMerger = null;
+  $("#mergeBtn").addEventListener("click", function(){
+    if(state.active === -1){ toast("Load a locale first, then Merge into it"); return; }
+    pendingMerger = mergeIntoActive;
+    $("#fileInput").click();
+  });
+  $("#mergeMissingBtn").addEventListener("click", function(){
+    if(state.active === -1){ toast("Load a locale first, then Merge into it"); return; }
+    pendingMerger = mergeMissingIntoActive;
+    $("#fileInput").click();
+  });
+  $("#mergeNewBtn").addEventListener("click", function(){
+    if(state.active === -1){ toast("Load a locale first, then Merge into it"); return; }
+    pendingMerger = mergeNewIntoActive;
+    $("#fileInput").click();
+  });
+  $("#fileInput").addEventListener("change", function(e){
+    var input = e.target;
+    var file = input.files && input.files[0];
+    if(file){ mergeFile(file, pendingMerger || mergeIntoActive).then(function(){ input.value = ""; }); }
+    else { input.value = ""; }
+  });
+
+  /* Turn a raw Excel sheet (POEditor A–F layout, with or without a header row) into
+     merge pairs: column A = key, column B = translation value. */
+  function xlsxRowsToPairs(rows){
+    var out = [];
+    rows.forEach(function(r, i){
+      var term = r[0] == null ? "" : String(r[0]).trim();
+      if(!term) return;
+      // skip a header row like  Field | Translation Value  (only ever the first row)
+      if(i === 0){
+        var b = (r[1] == null ? "" : String(r[1])).trim().toLowerCase();
+        if(/^(field|term|key|context|reference|term[_ ]?plural)$/.test(term.toLowerCase()) ||
+           /^(translation( value)?|definition|value|source|english)$/.test(b)) return;
+      }
+      out.push({ term: term, definition: r[1] == null ? "" : String(r[1]), source: r[5] == null ? "" : String(r[5]) });
+    });
+    return out;
+  }
+
+  /* Merge translations from an imported file into the currently loaded locale.
+     Existing keys are overwritten with the incoming (non-empty) value; keys not
+     already present are added. Blank incoming values never wipe an existing one.
+     The whole merge is a single undoable action. */
+  function mergeIntoActive(pairs, srcName){
+    var loc = activeLocale();
+    if(!loc){ toast("Load a locale first, then Merge into it"); return; }
+    if(!pairs || !pairs.length){ toast("No translations found in that file"); return; }
+    snapshot();
+    var byTerm = {};
+    loc.rows.forEach(function(r){ byTerm[r.term] = r; });
+    var updated = 0, added = 0, blank = 0, same = 0;
+    pairs.forEach(function(p){
+      var term = p.term == null ? "" : String(p.term).trim();
+      if(!term) return;
+      var val = p.definition == null ? "" : String(p.definition);
+      var ex = byTerm[term];
+      if(ex){
+        if(val === ""){ blank++; return; }        // don't overwrite with an empty value
+        if(ex.definition === val){ same++; return; }
+        ex.definition = val;
+        addTag(ex, TAG_MERGED);                    // mark as just-merged …
+        ex.fuzzy = 1;                              // … and flag it for review
+        updated++;
+      } else {
+        var nr = makeRow({
+          term: term, definition: val,
+          context: p.context || "", term_plural: p.term_plural || "",
+          reference: p.reference || "", comment: p.comment || "",
+          source: p.source || "", tags: [TAG_MERGED], fuzzy: 1
+        });
+        loc.rows.push(nr); byTerm[term] = nr; added++;
+      }
+    });
+    if(!updated && !added){
+      history.pop(); updateUndo();
+      toast(same ? "Already up to date — nothing changed" : "Nothing to merge");
+      return;
+    }
+    state.limit = 120;
+    render();
+    var bits = [];
+    if(updated) bits.push(updated + " updated");
+    if(added) bits.push(added + " added");
+    if(blank) bits.push(blank + " blank skipped");
+    toast("Merged into " + loc.code + " · " + bits.join(" · "));
+  }
+
+  /* Merge ONLY the missing translations: for keys already in the current locale whose
+     value is empty, fill in the incoming value. Keys that already have a value are left
+     untouched, and keys not present in this locale are ignored. Each filled row gets the
+     "merged new translation" tag and is flagged for review. One undoable action. */
+  function mergeMissingIntoActive(pairs, srcName){
+    var loc = activeLocale();
+    if(!loc){ toast("Load a locale first, then Merge into it"); return; }
+    if(!pairs || !pairs.length){ toast("No translations found in that file"); return; }
+    snapshot();
+    var byTerm = {};
+    loc.rows.forEach(function(r){ byTerm[r.term] = r; });
+    var filled = 0, hadValue = 0, blank = 0, absent = 0;
+    pairs.forEach(function(p){
+      var term = p.term == null ? "" : String(p.term).trim();
+      if(!term) return;
+      var val = p.definition == null ? "" : String(p.definition);
+      var ex = byTerm[term];
+      if(!ex){ absent++; return; }                              // key not in this locale → ignore
+      if(String(ex.definition).trim() !== ""){ hadValue++; return; } // already translated → ignore
+      if(val === ""){ blank++; return; }                        // nothing to fill with
+      ex.definition = val;
+      addTag(ex, TAG_MERGED_NEW);
+      ex.fuzzy = 1;
+      filled++;
+    });
+    if(!filled){
+      history.pop(); updateUndo();
+      toast(hadValue ? "No missing translations to fill — every match already has a value"
+                     : "Nothing filled — no matching empty entries in this locale");
+      return;
+    }
+    state.limit = 120;
+    render();
+    var bits = [filled + " filled"];
+    if(hadValue) bits.push(hadValue + " already translated");
+    if(absent) bits.push(absent + " not in locale");
+    toast("Filled missing in " + loc.code + " · " + bits.join(" · "));
+  }
+
+  /* Merge ONLY new keys: insert entries whose key is not yet in the current locale,
+     bringing their English source text and translation. Keys that already exist are
+     ignored (whatever their value). Each inserted row gets the "inserted new translations"
+     tag and is flagged for review. One undoable action. */
+  function mergeNewIntoActive(pairs, srcName){
+    var loc = activeLocale();
+    if(!loc){ toast("Load a locale first, then Merge into it"); return; }
+    if(!pairs || !pairs.length){ toast("No translations found in that file"); return; }
+    snapshot();
+    var byTerm = {};
+    loc.rows.forEach(function(r){ byTerm[r.term] = r; });
+    var inserted = 0, existed = 0;
+    pairs.forEach(function(p){
+      var term = p.term == null ? "" : String(p.term).trim();
+      if(!term) return;
+      if(byTerm[term]){ existed++; return; }                    // already in locale → ignore
+      var nr = makeRow({
+        term: term, definition: p.definition || "",
+        context: p.context || "", term_plural: p.term_plural || "",
+        reference: p.reference || "", comment: p.comment || "",
+        source: p.source || "", tags: [TAG_INSERTED], fuzzy: 1
+      });
+      loc.rows.push(nr); byTerm[term] = nr; inserted++;
+    });
+    if(!inserted){
+      history.pop(); updateUndo();
+      toast("No new keys to insert — every key is already in this locale");
+      return;
+    }
+    state.limit = 120;
+    render();
+    var bits = [inserted + " inserted"];
+    if(existed) bits.push(existed + " already present");
+    toast("Inserted new in " + loc.code + " · " + bits.join(" · "));
+  }
+
+  /* Read the dropped/chosen file as JSON/CSV (text) or XLSX (binary), then hand the
+     parsed pairs to the chosen merge function (full merge or missing-only). */
+  function mergeFile(file, merger){
+    var run = merger || mergeIntoActive;
+    if(state.active === -1){ toast("Load a locale first, then Merge into it"); return Promise.resolve(); }
+    var name = file.name || "";
+    if(/\.xlsx$/i.test(name)){
+      return readBufferRobust(file).then(readXlsx).then(function(wb){
+        if(!wb.names.length){ toast("No sheets found in that Excel file"); return; }
+        var sheet = pickLocaleSheet(wb.names);
+        run(xlsxRowsToPairs(wb.rowsOf(sheet)), name);
+      }).catch(function(err){
+        toast("Could not read that Excel file — " + (err && err.message ? err.message : "unknown error"));
+      });
+    }
+    return readTextRobust(file).then(function(txt){
+      try{ run(parseFileText(name, txt), name); }
+      catch(err){ toast("Could not read that file — " + err.message); }
+    }).catch(function(){ toast("Could not read that file"); });
+  }
+  // sidebar Add locale → new locale (JSON)
+  $("#addLocaleBtn").addEventListener("click", function(){ $("#addLocaleInput").click(); });
+  $("#addLocaleInput").addEventListener("change", function(e){
+    var input = e.target;
+    var file = input.files && input.files[0];
+    if(!file) return;
+    var name = file.name || "";
+    function addWithPrompt(rows){
+      if(!rows.length){ toast("No strings found in that file"); return; }
+      var guess = guessLocale(name) || "locale";
+      var code = guess;
+      if(typeof window.prompt === "function"){
+        var entered = window.prompt("Locale code for this file (e.g. en-US, ar-SA):", guess);
+        if(entered === null) return;            // cancelled → don't add
+        code = entered.trim() || guess;
+      }
+      addLocale(rows, name, code);
+    }
+    var done = function(){ input.value = ""; };
+    if(/\.xlsx$/i.test(name)){
+      readBufferRobust(file).then(readXlsx).then(function(wb){
+        if(!wb.names.length){ toast("No sheets found in that Excel file"); return; }
+        var sheet = pickLocaleSheet(wb.names);
+        addWithPrompt(tabToLocaleRows(wb.rowsOf(sheet)));   // A=key, B=translation, F=English source
+      }).catch(function(err){
+        toast("Could not read that Excel file — " + (err && err.message ? err.message : "unknown error"));
+      }).then(done);
+    } else {
+      readTextRobust(file).then(function(txt){
+        try{ addWithPrompt(parseFileText(name, txt)); }
+        catch(err){ toast("Could not read that file — " + err.message); }
+      }).catch(function(){ toast("Could not read that file"); }).then(done);
+    }
+  });
+
+  /* ---- Save All: every locale + all its data in one project file ---- */
+  var PROJECT_FORMAT = "translation-manager";
+  function saveAll(){
+    if(!state.locales.length){ toast("No locales to save"); return; }
+    var bundle = {
+      format: PROJECT_FORMAT,
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      localeCount: state.locales.length,
+      locales: state.locales.map(function(l){
+        return {
+          code: l.code, name: l.name, file: l.file,
+          rtl: isRTL(l.code),
+          stringCount: l.rows.length,
+          strings: l.rows.map(function(r){
+            return { term:r.term, definition:r.definition, context:r.context,
+                     term_plural:r.term_plural, reference:r.reference,
+                     comment:r.comment, source:r.source,
+                     tags:normTags(r.tags), fuzzy:r.fuzzy };
+          })
+        };
+      })
+    };
+    var codes = state.locales.map(function(l){ return l.code; }).join("_");
+    var fname = "translations_" + state.locales.length + "-locales" +
+                (codes.length < 40 ? "_" + codes : "") + ".json";
+    download(JSON.stringify(bundle, null, 2), fname, "application/json");
+    toast("Saved all " + state.locales.length + " locales");
+  }
+  $("#saveAllBtn").addEventListener("click", saveAll);
+  function clearAllLocales(){
+    if(!state.locales.length){ toast("No locales to clear"); return; }
+    var n = state.locales.length;
+    if(typeof window.confirm === "function" &&
+       !window.confirm("Clear all " + n + " loaded locale" + (n > 1 ? "s" : "") + "? You can undo this right after.")) return;
+    snapshot();                                   // so Undo brings everything back
+    state.locales = [];
+    state.active = -1;
+    state.view = "translate";
+    state.limit = 120; state.filter = "all"; state.q = ""; state.section = "all";
+    render();
+    toast("Cleared all locales");
+  }
+  $("#clearAllBtn").addEventListener("click", clearAllLocales);
+
+  /* ---- Open File: load a Save All project (multiple locales) ---- */
+  function isBundle(data){
+    return data && !Array.isArray(data) && typeof data === "object" &&
+           Array.isArray(data.locales) &&
+           (data.format === PROJECT_FORMAT || data.locales.every(function(l){
+             return l && (Array.isArray(l.strings) || Array.isArray(l.rows));
+           }));
+  }
+  function loadBundle(data, fileName){
+    var built = [];
+    data.locales.forEach(function(L){
+      var src = L.strings || L.rows || [];
+      if(!Array.isArray(src) || !src.length) return;
+      var rows = src.map(function(o){ return makeRow(o); });
+      var code = String(L.code || guessLocale(L.file || "") || "locale");
+      // dedupe codes within the incoming project
+      var base = code, c = code, n = 2;
+      while(built.some(function(b){ return b.code === c; })){ c = base + "-" + n; n++; }
+      built.push({ id: ++uid, code: c, name: L.name || prettyName(L.file || "") || "Locale",
+                   file: L.file || "", rows: rows, selected: {} });
+    });
+    if(!built.length){ toast("No locales found in that file"); return; }
+    if(state.locales.length &&
+       typeof window.confirm === "function" &&
+       !window.confirm("Open this project? It replaces the current " +
+         state.locales.length + " locale(s) with " + built.length + " from the file.")) return;
+    state.locales = built;
+    state.active = 0;
+    history = []; updateUndo();
+    state.filter = "all"; state.q = ""; state.section = "all"; state.limit = 120;
+    var qEl = $("#q"); if(qEl) qEl.value = "";
+    render();
+    toast("Opened project · " + built.length + " locales");
+  }
+  $("#openFileBtn").addEventListener("click", function(){ $("#openFileInput").click(); });
+  $("#openFileInput").addEventListener("change", function(e){
+    var input = e.target;
+    var file = input.files && input.files[0];
+    if(!file) return;
+    readTextRobust(file).then(function(txt){
+      try{
+        var data = JSON.parse(txt);
+        if(isBundle(data)){ loadBundle(data, file.name); }
+        else { addLocale(fromJSON(txt), file.name); }   // fall back: a single-locale JSON
+      }catch(err){ toast("Could not open that file — " + err.message); }
+    }).catch(function(){
+      toast("Could not open that file");
+    }).then(function(){ input.value = ""; });            // reset only after the read finishes
+  });
+
+  /* ---- sidebar render + interactions ---- */
+  var FLAGSVG_RM = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+  function renderSidebar(){
+    var host = $("#localeList");
+    host.textContent = "";
+    var n = state.locales.length;
+    var head = $("#localesHead");
+    if(head) head.textContent = n + (n > 1 ? " locales" : " locale");
+    var showActive = state.view === "translate";   // global views (keys/excel) have no active locale
+
+    // sort control: only worth showing with 2+ locales
+    var sortRow = $("#sbSort"), sortSel = $("#localeSort");
+    var sortKey = state.localeSort || "file";
+    if(sortRow) sortRow.hidden = n < 2;
+    if(sortSel) sortSel.value = sortKey;
+
+    // build display order over ORIGINAL indices, so switch/remove/active stay correct
+    var items = state.locales.map(function(l, i){
+      var done = 0; l.rows.forEach(function(r){ if(statusOf(r) === "done") done++; });
+      var all = l.rows.length;
+      return { i:i, l:l, all:all, done:done, pct: all ? Math.round(done / all * 100) : 0 };
+    });
+    var cmps = {
+      "file":     function(a,b){ return a.i - b.i; },
+      "code-asc": function(a,b){ return a.l.code.localeCompare(b.l.code) || a.i - b.i; },
+      "code-desc":function(a,b){ return b.l.code.localeCompare(a.l.code) || a.i - b.i; },
+      "cov-desc": function(a,b){ return b.pct - a.pct || a.l.code.localeCompare(b.l.code); },
+      "cov-asc":  function(a,b){ return a.pct - b.pct || a.l.code.localeCompare(b.l.code); }
+    };
+    items.sort(cmps[sortKey] || cmps.file);
+
+    items.forEach(function(o){
+      var l = o.l, i = o.i, c = { all:o.all, done:o.done }, pct = o.pct;
+      var region = (l.code.split(/[-_]/)[1] || l.code.slice(0,2) || "??").toUpperCase().slice(0,2);
+
+      var btn = document.createElement("button");
+      btn.className = "loc" + (showActive && i === state.active ? " active" : "");
+      btn.style.setProperty("--pct", pct);
+      btn.setAttribute("aria-current", showActive && i === state.active ? "true" : "false");
+      btn.title = l.code + " — " + pct + "% translated";
+      btn.innerHTML =
+        '<span class="badge"><span>' + esc(region) + '</span></span>' +
+        '<span class="meta2"><span class="code">' + esc(l.code) + '</span>' +
+        '<span class="sub">' + c.done + "/" + c.all + " · " + pct + '%</span></span>';
+
+      var rm = document.createElement("button");
+      rm.className = "rm"; rm.innerHTML = FLAGSVG_RM;
+      rm.title = "Remove " + l.code;
+      rm.setAttribute("aria-label", "Remove " + l.code);
+      rm.addEventListener("click", function(ev){ ev.stopPropagation(); removeLocale(i); });
+      btn.appendChild(rm);
+
+      btn.addEventListener("click", function(){ switchLocale(i); });
+      host.appendChild(btn);
+    });
+    if(!state.locales.length){
+      host.innerHTML = '<p style="padding:10px 12px;font-size:12px;color:var(--ink-3)">No locales yet. Use “Add locale”.</p>';
+    }
+  }
+
+  $("#localeSort").addEventListener("change", function(){
+    state.localeSort = this.value;
+    renderSidebar();
+  });
+
+  /* collapse / rail toggle */
+  $("#collapseBtn").addEventListener("click", function(){
+    $("#app").classList.toggle("railed");
+    var railed = $("#app").classList.contains("railed");
+    this.title = railed ? "Expand sidebar" : "Collapse sidebar";
+  });
+
+  /* the header locale field renames the ACTIVE locale's code */
+  $("#localeInput").addEventListener("change", function(){
+    var l = activeLocale();
+    if(!l){ return; }
+    var next = uniqueCode(this.value.trim() || l.code, state.active);
+    if(next !== l.code){ l.code = next; }
+    this.value = l.code;
+    render();
+  });
+
+  /* ============ Manage Keys ============ */
+  // Union of keys across all locales, in first-seen order, with presence info.
+  function keyIndex(){
+    var sets = state.locales.map(function(l){
+      var s = {}; l.rows.forEach(function(r){ s[r.term] = true; }); return s;
+    });
+    var order = [], seen = {};
+    state.locales.forEach(function(l){
+      l.rows.forEach(function(r){ if(!seen[r.term]){ seen[r.term] = 1; order.push(r.term); } });
+    });
+    var presence = {};
+    order.forEach(function(t){
+      var cnt = 0, missing = [];
+      for(var i = 0; i < state.locales.length; i++){
+        if(sets[i][t]) cnt++; else missing.push(state.locales[i].code);
+      }
+      presence[t] = { count: cnt, missing: missing };
+    });
+    return { order: order, presence: presence, sets: sets };
+  }
+  function keyExists(term){
+    return state.locales.some(function(l){
+      return l.rows.some(function(r){ return r.term === term; });
+    });
+  }
+  function addKey(term){
+    term = String(term || "").trim();
+    if(!term){ toast("Enter a key name"); return false; }
+    if(state.locales.length === 0){ toast("Add a locale first"); return false; }
+    if(keyExists(term)){ toast("That key already exists"); return false; }
+    snapshot();
+    state.locales.forEach(function(l){ l.rows.push(makeRow({ term: term, definition: "" })); });
+    render();
+    toast("Added key to all " + state.locales.length + " locale" + (state.locales.length>1?"s":""));
+    return true;
+  }
+  function deleteKey(term){
+    if(!window.confirm("Delete key “" + term + "” from all locales? You can undo this.")) return;
+    snapshot();
+    state.locales.forEach(function(l){
+      l.rows = l.rows.filter(function(r){ return r.term !== term; });
+      if(l.selected[term]) delete l.selected[term];
+    });
+    render();
+    toast("Deleted " + term);
+  }
+  function renameKey(oldT, newT){
+    newT = String(newT || "").trim();
+    if(!newT || newT === oldT) return false;
+    if(keyExists(newT)){ toast("A key named “" + newT + "” already exists"); return false; }
+    snapshot();
+    state.locales.forEach(function(l){
+      l.rows.forEach(function(r){ if(r.term === oldT) r.term = newT; });
+      if(l.selected[oldT]){ delete l.selected[oldT]; l.selected[newT] = 1; }
+    });
+    render();
+    toast("Renamed key");
+    return true;
+  }
+  function countMissing(ki){
+    var n = 0;
+    ki.order.forEach(function(t){ n += (state.locales.length - ki.presence[t].count); });
+    return n;
+  }
+  function syncAll(){
+    if(state.locales.length < 1){ toast("Add a locale first"); return; }
+    var ki = keyIndex();
+    var missing = countMissing(ki);
+    if(missing === 0){ toast("All locales already have every key"); return; }
+    snapshot();
+    state.locales.forEach(function(l, i){
+      ki.order.forEach(function(t){
+        if(!ki.sets[i][t]) l.rows.push(makeRow({ term: t, definition: "" }));
+      });
+    });
+    render();
+    toast("Synced " + missing + " missing entr" + (missing>1?"ies":"y") + " · all locales now match");
+  }
+
+  // view toggle
+  function setView(v){
+    state.view = v;
+    render();
+    if(v === "keys"){ var n = $("#newKeyInput"); if(n) n.focus(); }
+  }
+  $("#viewBtn").addEventListener("click", function(){
+    setView(state.view === "keys" ? "translate" : "keys");
+  });
+  $("#addKeyBtn").addEventListener("click", function(){
+    var inp = $("#newKeyInput");
+    if(addKey(inp.value)) inp.value = "";
+  });
+  $("#newKeyInput").addEventListener("keydown", function(e){
+    if(e.key === "Enter"){ e.preventDefault(); if(addKey(this.value)) this.value = ""; }
+  });
+  $("#keyQ").addEventListener("input", function(e){ state.keysQ = e.target.value; state.keysLimit = 150; renderKeys(); });
+  $("#syncAllBtn").addEventListener("click", syncAll);
+  Array.prototype.forEach.call(document.querySelectorAll("#keyFilters button"), function(b){
+    b.addEventListener("click", function(){ state.keysFilter = b.dataset.kf; state.keysLimit = 150; renderKeys(); });
+  });
+  function pickKeyFilter(card){
+    if(!card || card.getAttribute("aria-disabled") === "true") return;
+    state.keysFilter = card.dataset.kf; state.keysLimit = 150; renderKeys();
+  }
+  $("#keyStats").addEventListener("click", function(e){ pickKeyFilter(e.target.closest("[data-kf]")); });
+  $("#keyStats").addEventListener("keydown", function(e){
+    if(e.key === "Enter" || e.key === " "){
+      var card = e.target.closest("[data-kf]");
+      if(card){ e.preventDefault(); pickKeyFilter(card); }
+    }
+  });
+
+  function renderKeyStats(ki){
+    var host = $("#keyStats");
+    var uniq = ki.order.length, nLoc = state.locales.length;
+    var missing = countMissing(ki);
+    var inAll = ki.order.filter(function(t){ return ki.presence[t].count === nLoc; }).length;
+    var onAll = state.keysFilter === "all", onMis = state.keysFilter === "mismatch";
+    host.innerHTML =
+      '<div class="kstat click' + (onAll?" on":"") + '" data-kf="all" role="button" tabindex="0" aria-pressed="' + onAll + '" title="Show all keys">' +
+        '<span class="num">' + uniq + '</span><span class="lbl">Unique keys</span></div>' +
+      '<div class="kstat"><span class="num">' + nLoc + '</span><span class="lbl">Locale' + (nLoc!==1?"s":"") + '</span></div>' +
+      '<div class="kstat ' + (missing?"":"ok") + '"><span class="num">' + inAll + '</span><span class="lbl">In every locale</span></div>' +
+      '<div class="kstat warn click' + (onMis?" on":"") + '" data-kf="mismatch" role="button" tabindex="' + (missing?"0":"-1") + '"' +
+        ' aria-pressed="' + onMis + '" aria-disabled="' + (missing?"false":"true") + '"' +
+        ' title="' + (missing? "Show only keys missing from some locales" : "No keys are missing") + '">' +
+        '<span class="num">' + missing + '</span><span class="lbl">Missing entries' +
+        (missing? ' <span class="tapcue">tap to filter</span>' : "") + '</span></div>';
+
+    var btn = $("#syncAllBtn");
+    btn.classList.toggle("pending", missing > 0);
+    btn.disabled = missing === 0;
+    var hint = $("#syncHint");
+    if(nLoc <= 1){
+      hint.innerHTML = "Add a second locale to compare key coverage. Every key you add here is created in all loaded locales.";
+    } else if(missing){
+      var affected = ki.order.filter(function(t){ return ki.presence[t].count < nLoc; }).length;
+      hint.innerHTML = "<b>" + affected + "</b> key" + (affected>1?"s are":" is") +
+        " missing from at least one locale (" + missing + " entries total). " +
+        "Sync to All adds them with an empty value so every locale reaches " + uniq + " strings.";
+    } else {
+      hint.textContent = "All " + nLoc + " locales share the same " + uniq + " keys. Nothing to sync.";
+    }
+  }
+  function renderKeys(){
+    var ki = keyIndex();
+    renderKeyStats(ki);
+    var host = $("#keysRows"), foot = $("#keysFoot");
+    host.textContent = ""; foot.textContent = "";
+    if(state.active === -1 || !ki.order.length){
+      host.innerHTML = '<div class="empty"><h3>No keys yet</h3><p>Add a locale, or create a key above. Keys you add appear in every loaded locale.</p></div>';
+      return;
+    }
+    var q = state.keysQ.toLowerCase();
+    var nLoc = state.locales.length;
+    var mismatched = ki.order.filter(function(t){ return ki.presence[t].count < nLoc; });
+    // filter-count chips
+    var kcAll = $("[data-kc='all']"), kcMis = $("[data-kc='mismatch']");
+    if(kcAll) kcAll.textContent = ki.order.length;
+    if(kcMis) kcMis.textContent = mismatched.length;
+    Array.prototype.forEach.call(document.querySelectorAll("#keyFilters button"), function(b){
+      b.setAttribute("aria-pressed", b.dataset.kf === state.keysFilter ? "true" : "false");
+    });
+    var base = state.keysFilter === "mismatch" ? mismatched : ki.order;
+    var list = q ? base.filter(function(t){ return t.toLowerCase().indexOf(q) !== -1; }) : base;
+    if(!list.length){
+      var msg = state.keysFilter === "mismatch"
+        ? (q ? "No mismatched keys match your search." : "Every key exists in all " + nLoc + " locales. Nothing to sync.")
+        : "Clear the search to see all keys.";
+      host.innerHTML = '<div class="empty"><h3>' +
+        (state.keysFilter === "mismatch" && !q ? "All keys are in sync" : "No keys match") +
+        "</h3><p>" + msg + "</p></div>";
+      return;
+    }
+    var slice = list.slice(0, state.keysLimit);
+    var frag = document.createDocumentFragment();
+    slice.forEach(function(term){
+      var info = ki.presence[term];
+      var row = document.createElement("div");
+      row.className = "keyrow"; row.dataset.key = term;
+
+      var kn = document.createElement("div");
+      kn.className = "keyname";
+      var dot = term.indexOf(".");
+      kn.innerHTML = dot > -1
+        ? '<span class="ns">' + esc(term.slice(0, dot + 1)) + "</span>" + esc(term.slice(dot + 1))
+        : esc(term);
+      kn.title = "Click to rename this key";
+      kn.addEventListener("click", function(){
+        if(kn.querySelector("input")) return;
+        var inp = document.createElement("input");
+        inp.value = term; kn.textContent = ""; kn.appendChild(inp);
+        inp.focus(); inp.select();
+        var done = false;
+        function commit(){ if(done) return; done = true; if(!renameKey(term, inp.value)) renderKeys(); }
+        inp.addEventListener("blur", commit);
+        inp.addEventListener("keydown", function(ev){
+          if(ev.key === "Enter"){ ev.preventDefault(); inp.blur(); }
+          if(ev.key === "Escape"){ done = true; renderKeys(); }
+        });
+      });
+
+      var pres = document.createElement("div");
+      pres.className = "presence";
+      if(info.count === nLoc){
+        pres.innerHTML = '<span class="full"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>All ' + nLoc + '</span>';
+      } else {
+        var chips = info.missing.map(function(c){ return '<span class="miss">' + esc(c) + '</span>'; }).join("");
+        pres.innerHTML = '<span class="part">' + info.count + "/" + nLoc + '</span> missing: ' + chips;
+      }
+
+      var act = document.createElement("div");
+      var del = document.createElement("button");
+      del.className = "keydel"; del.title = "Delete key from all locales";
+      del.setAttribute("aria-label", "Delete " + term);
+      del.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>';
+      del.addEventListener("click", function(){ deleteKey(term); });
+      act.appendChild(del);
+
+      row.appendChild(kn); row.appendChild(pres); row.appendChild(act);
+      frag.appendChild(row);
+    });
+    host.appendChild(frag);
+
+    if(list.length > slice.length){
+      var more = document.createElement("button");
+      more.textContent = "Show more — " + (list.length - slice.length) + " remaining";
+      more.addEventListener("click", function(){ state.keysLimit += 200; renderKeys(); });
+      foot.appendChild(more);
+    } else {
+      var note = document.createElement("span");
+      note.className = "filemeta";
+      note.textContent = "Showing all " + list.length + " keys";
+      foot.appendChild(note);
+    }
+  }
+
+  /* drag & drop */
+  var dz = $("#drop"), depth = 0;
+  window.addEventListener("dragenter", function(e){ e.preventDefault(); depth++; dz.classList.add("on"); });
+  window.addEventListener("dragover", function(e){ e.preventDefault(); });
+  window.addEventListener("dragleave", function(){ if(--depth <= 0){ depth = 0; dz.classList.remove("on"); } });
+  window.addEventListener("drop", function(e){
+    e.preventDefault(); depth = 0; dz.classList.remove("on");
+    var f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if(!f) return;
+    // dropping a file adds it as a new locale (or seeds the first one)
+    readFile(f, function(rows, name){ addLocale(rows, name); });
+  });
+
+  /* ============ minimal XLSX writer (no dependencies, offline-safe) ============ */
+  var CRC_TABLE = (function(){
+    var t = [];
+    for(var n=0;n<256;n++){ var c=n; for(var k=0;k<8;k++){ c = (c&1)?(0xEDB88320^(c>>>1)):(c>>>1); } t[n]=c>>>0; }
+    return t;
+  })();
+  function crc32(bytes){
+    var c = 0xFFFFFFFF;
+    for(var i=0;i<bytes.length;i++){ c = CRC_TABLE[(c^bytes[i])&0xFF] ^ (c>>>8); }
+    return (c^0xFFFFFFFF)>>>0;
+  }
+  function utf8(s){ return new TextEncoder().encode(String(s)); }
+  function xesc(s){
+    s = String(s==null?"":s).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,"");
+    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+            .replace(/"/g,"&quot;").replace(/'/g,"&apos;");
+  }
+  function colLetter(n){ var s=""; while(n>0){ var m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=(n-m-1)/26; } return s; }
+  /* Shared stylesheet for exported workbooks. cellXfs indices:
+     0 default · 1 thin box · 2 bold · 3 hyperlink · 4 percent · 5 bold percent · 6 bold + bottom rule */
+  var STYLES_XML =
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+
+    '<fonts count="4">'+
+      '<font><sz val="11"/><name val="Calibri"/></font>'+
+      '<font><b/><sz val="11"/><name val="Calibri"/></font>'+
+      '<font><u/><sz val="11"/><color rgb="FF0563C1"/><name val="Calibri"/></font>'+
+      '<font><b/><sz val="14"/><name val="Calibri"/></font>'+
+    '</fonts>'+
+    '<fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>'+
+    '<borders count="3">'+
+      '<border><left/><right/><top/><bottom/><diagonal/></border>'+
+      '<border><left style="thin"><color rgb="FF000000"/></left><right style="thin"><color rgb="FF000000"/></right>'+
+      '<top style="thin"><color rgb="FF000000"/></top><bottom style="thin"><color rgb="FF000000"/></bottom><diagonal/></border>'+
+      '<border><left/><right/><top/><bottom style="thin"><color rgb="FF000000"/></bottom><diagonal/></border>'+
+    '</borders>'+
+    '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'+
+    '<cellXfs count="8">'+
+      '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'+
+      '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1"/>'+
+      '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>'+
+      '<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/>'+
+      '<xf numFmtId="9" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'+
+      '<xf numFmtId="9" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1" applyNumberFormat="1"/>'+
+      '<xf numFmtId="0" fontId="1" fillId="0" borderId="2" xfId="0" applyFont="1" applyBorder="1"/>'+
+      '<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>'+
+    '</cellXfs>'+
+    '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>'+
+    '</styleSheet>';
+  var XS = { box:1, bold:2, link:3, pct:4, boldPct:5, head:6, title:7 };
+
+  /* Build one worksheet.
+     rows: arrays of cells; a cell is a plain value (string/number) or {v, s} with a cellXfs style index.
+     opts (or a plain array = borderCols, for backward compatibility):
+       borderCols – 0-based columns always emitted as a thin box, even when empty (translator input marker)
+       colWidths  – explicit widths per column (overrides the content-based sizing)
+       hyperlinks – [{ref:"A5", location:"'fr-FR'!A1", display:"fr-FR"}] internal links
+       widthSkipRows – row indices ignored when sizing columns (e.g. a long title row) */
+  function buildSheetXml(rows, opts){
+    if(Array.isArray(opts)) opts = { borderCols: opts };
+    opts = opts || {};
+    var borderCols = opts.borderCols || [];
+    var bc = {}; borderCols.forEach(function(i){ bc[i] = 1; });
+    var skip = {}; (opts.widthSkipRows || []).forEach(function(i){ skip[i] = 1; });
+    function cellV(cell){ return (cell && typeof cell === "object") ? cell.v : cell; }
+    function cellS(cell){ return (cell && typeof cell === "object" && cell.s != null) ? cell.s : null; }
+    var ncol = 0;
+    rows.forEach(function(r){ if(r.length > ncol) ncol = r.length; });
+    borderCols.forEach(function(i){ if(i+1 > ncol) ncol = i+1; });
+    var maxLen = new Array(ncol); for(var k=0;k<ncol;k++) maxLen[k] = 0;
+    rows.forEach(function(r, ri){
+      if(skip[ri]) return;
+      for(var c=0;c<ncol;c++){
+        var v = c < r.length ? cellV(r[c]) : "";
+        var L = String(v == null ? "" : v).length;
+        if(L > maxLen[c]) maxLen[c] = L;
+      }
+    });
+    var sd = [];
+    for(var r=0;r<rows.length;r++){
+      var cells = rows[r], x = "";
+      for(var c=0;c<ncol;c++){
+        var cell = c < cells.length ? cells[c] : "";
+        var v = cellV(cell), st = cellS(cell);
+        var boxed = bc[c];
+        if(st == null && boxed) st = XS.box;
+        var ref = colLetter(c+1)+(r+1), sa = st != null ? ' s="'+st+'"' : '';
+        if(v==null || v===""){
+          if(st != null) x += '<c r="'+ref+'"'+sa+'/>';                        // empty styled/boxed cell
+          continue;
+        }
+        if(typeof v === "number" && isFinite(v)){
+          x += '<c r="'+ref+'"'+sa+'><v>'+v+'</v></c>';
+        } else {
+          x += '<c r="'+ref+'" t="inlineStr"'+sa+'><is><t xml:space="preserve">'+xesc(v)+'</t></is></c>';
+        }
+      }
+      sd.push('<row r="'+(r+1)+'">'+x+'</row>');
+    }
+    // size columns to fit their content (keys, source text); box column stays comfortably wide
+    var colParts = [];
+    for(var c2=0;c2<ncol;c2++){
+      var w = 0;
+      if(opts.colWidths && opts.colWidths[c2]) w = opts.colWidths[c2];
+      else if(bc[c2]) w = 42;                                              // empty translation box
+      else if(maxLen[c2] > 0) w = Math.min(Math.max(maxLen[c2] + 2, 10), 80);
+      if(w) colParts.push('<col min="'+(c2+1)+'" max="'+(c2+1)+'" width="'+w+'" customWidth="1"/>');
+    }
+    var cols = colParts.length ? '<cols>'+colParts.join("")+'</cols>' : "";
+    var links = "";
+    if(opts.hyperlinks && opts.hyperlinks.length){
+      links = '<hyperlinks>' + opts.hyperlinks.map(function(h){
+        return '<hyperlink ref="'+h.ref+'" location="'+xesc(h.location)+'"'+(h.display ? ' display="'+xesc(h.display)+'"' : '')+'/>';
+      }).join("") + '</hyperlinks>';
+    }
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+      '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+
+      cols + '<sheetData>'+sd.join("")+'</sheetData>' + links + '</worksheet>';
+  }
+  // Generic STORE-method zip. entries: [{name, data:Uint8Array}] → Uint8Array.
+  function zipStore(entries){
+    var out = [];
+    function u16(a){ out.push(a&0xFF,(a>>>8)&0xFF); }
+    function u32(a){ out.push(a&0xFF,(a>>>8)&0xFF,(a>>>16)&0xFF,(a>>>24)&0xFF); }
+    function push(arr){ for(var i=0;i<arr.length;i++) out.push(arr[i]); }
+    var central = [], offset = 0;
+    entries.forEach(function(f){
+      var name = utf8(f.name), data = f.data, crc = crc32(data), localOff = offset, start = out.length;
+      u32(0x04034b50); u16(20); u16(0x0800); u16(0); u16(0); u16(0);
+      u32(crc); u32(data.length); u32(data.length); u16(name.length); u16(0);
+      push(name); push(data);
+      offset += out.length - start;
+      central.push({ name:name, crc:crc, size:data.length, off:localOff });
+    });
+    var cdStart = offset;
+    central.forEach(function(e){
+      var start = out.length;
+      u32(0x02014b50); u16(20); u16(20); u16(0x0800); u16(0); u16(0); u16(0);
+      u32(e.crc); u32(e.size); u32(e.size); u16(e.name.length); u16(0); u16(0); u16(0); u16(0); u32(0); u32(e.off);
+      push(e.name);
+      offset += out.length - start;
+    });
+    u32(0x06054b50); u16(0); u16(0); u16(central.length); u16(central.length); u32(offset-cdStart); u32(cdStart); u16(0);
+    return Uint8Array.from(out);
+  }
+  function xlsxParts(sheetName, rows){
+    return [
+      { name:"[Content_Types].xml", data:utf8(
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'+
+        '<Default Extension="xml" ContentType="application/xml"/>'+
+        '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'+
+        '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'+
+        '</Types>') },
+      { name:"_rels/.rels", data:utf8(
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'+
+        '</Relationships>') },
+      { name:"xl/workbook.xml", data:utf8(
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+        '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'+
+        '<sheets><sheet name="'+xesc(String(sheetName)).slice(0,31)+'" sheetId="1" r:id="rId1"/></sheets>'+
+        '</workbook>') },
+      { name:"xl/_rels/workbook.xml.rels", data:utf8(
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'+
+        '</Relationships>') },
+      { name:"xl/worksheets/sheet1.xml", data:utf8(buildSheetXml(rows)) }
+    ];
+  }
+  function makeXlsxBytes(sheetName, rows){ return zipStore(xlsxParts(sheetName, rows)); }
+  /* Build a multi-tab workbook. sheets = [{name, rows}] where rows are arrays of cells. */
+  function uniqueSheetName(name, used){
+    var base = String(name == null ? "Sheet" : name).replace(/[\[\]\:\*\?\/\\]+/g, "_").slice(0, 31) || "Sheet";
+    var nm = base, k = 2;
+    while(used[nm.toLowerCase()]){ var suf = "_" + k; nm = base.slice(0, 31 - suf.length) + suf; k++; }
+    used[nm.toLowerCase()] = 1;
+    return nm;
+  }
+  function makeMultiSheetXlsxBytes(sheets, borderCols){
+    var used = {};
+    var names = sheets.map(function(s){ return uniqueSheetName(s.name, used); });
+    var overrides = sheets.map(function(_, i){
+      return '<Override PartName="/xl/worksheets/sheet' + (i+1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>';
+    }).join("");
+    var sheetTags = sheets.map(function(_, i){
+      return '<sheet name="' + xesc(names[i]) + '" sheetId="' + (i+1) + '" r:id="rId' + (i+1) + '"/>';
+    }).join("");
+    var stylesRid = "rId" + (sheets.length + 1);
+    var relTags = sheets.map(function(_, i){
+      return '<Relationship Id="rId' + (i+1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (i+1) + '.xml"/>';
+    }).join("") +
+      '<Relationship Id="' + stylesRid + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>';
+    var entries = [
+      { name:"[Content_Types].xml", data:utf8(
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'+
+        '<Default Extension="xml" ContentType="application/xml"/>'+
+        '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'+
+        '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'+
+        overrides + '</Types>') },
+      { name:"_rels/.rels", data:utf8(
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'+
+        '</Relationships>') },
+      { name:"xl/workbook.xml", data:utf8(
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+        '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'+
+        '<sheets>' + sheetTags + '</sheets></workbook>') },
+      { name:"xl/_rels/workbook.xml.rels", data:utf8(
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+        relTags + '</Relationships>') },
+      { name:"xl/styles.xml", data:utf8(STYLES_XML) }
+    ];
+    sheets.forEach(function(s, i){
+      var o = s.opts || { borderCols: borderCols || [] };
+      entries.push({ name:"xl/worksheets/sheet" + (i+1) + ".xml", data:utf8(buildSheetXml(s.rows, o)) });
+    });
+    return zipStore(entries);
+  }
+  function makeXlsxBlob(sheetName, rows){
+    return new Blob([makeXlsxBytes(sheetName, rows)], { type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  }
+  function downloadBlob(blob, name){
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1200);
+  }
+
+  /* ============ minimal XLSX reader (unzip + raw inflate + parse) ============ */
+  function inflateRaw(source){
+    function Tree(){ this.table=new Uint16Array(16); this.trans=new Uint16Array(288); }
+    function Data(src){ this.s=src; this.i=0; this.tag=0; this.bitcount=0; this.dest=[]; this.destLen=0; this.ltree=new Tree(); this.dtree=new Tree(); }
+    var sltree=new Tree(), sdtree=new Tree();
+    var length_bits=new Uint8Array(30), length_base=new Uint16Array(30);
+    var dist_bits=new Uint8Array(30), dist_base=new Uint16Array(30);
+    var clcidx=new Uint8Array([16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15]);
+    var code_tree=new Tree(), lengths=new Uint8Array(288+32);
+    function build_bits_base(bits,base,delta,first){ var i,sum; for(i=0;i<delta;++i) bits[i]=0; for(i=0;i<30-delta;++i) bits[i+delta]=(i/delta)|0; for(sum=first,i=0;i<30;++i){ base[i]=sum; sum+=1<<bits[i]; } }
+    function build_fixed_trees(lt,dt){ var i; for(i=0;i<7;++i) lt.table[i]=0; lt.table[7]=24; lt.table[8]=152; lt.table[9]=112; for(i=0;i<24;++i) lt.trans[i]=256+i; for(i=0;i<144;++i) lt.trans[24+i]=i; for(i=0;i<8;++i) lt.trans[24+144+i]=280+i; for(i=0;i<112;++i) lt.trans[24+144+8+i]=144+i; for(i=0;i<5;++i) dt.table[i]=0; dt.table[5]=32; for(i=0;i<32;++i) dt.trans[i]=i; }
+    function build_tree(t,lengths,off,num){ var i,sum,offs=new Uint16Array(16); for(i=0;i<16;++i) t.table[i]=0; for(i=0;i<num;++i) t.table[lengths[off+i]]++; t.table[0]=0; for(sum=0,i=0;i<16;++i){ offs[i]=sum; sum+=t.table[i]; } for(i=0;i<num;++i) if(lengths[off+i]) t.trans[offs[lengths[off+i]]++]=i; }
+    function getbit(d){ if(!d.bitcount--){ d.tag=d.s[d.i++]; d.bitcount=7; } var bit=d.tag&1; d.tag>>>=1; return bit; }
+    function read_bits(d,num,base){ if(!num) return base; while(d.bitcount<24){ d.tag|=d.s[d.i++]<<d.bitcount; d.bitcount+=8; } var val=d.tag&(0xffff>>>(16-num)); d.tag>>>=num; d.bitcount-=num; return val+base; }
+    function decode_symbol(d,t){ while(d.bitcount<24){ d.tag|=d.s[d.i++]<<d.bitcount; d.bitcount+=8; } var sum=0,cur=0,len=0,tag=d.tag; do{ cur=2*cur+(tag&1); tag>>>=1; ++len; sum+=t.table[len]; cur-=t.table[len]; }while(cur>=0); d.tag=tag; d.bitcount-=len; return t.trans[sum+cur]; }
+    function decode_trees(d,lt,dt){ var hlit,hdist,hclen,i,num,length; hlit=read_bits(d,5,257); hdist=read_bits(d,5,1); hclen=read_bits(d,4,4); for(i=0;i<19;++i) lengths[i]=0; for(i=0;i<hclen;++i){ var clen=read_bits(d,3,0); lengths[clcidx[i]]=clen; } build_tree(code_tree,lengths,0,19); for(num=0;num<hlit+hdist;){ var sym=decode_symbol(d,code_tree); switch(sym){ case 16: var prev=lengths[num-1]; for(length=read_bits(d,2,3);length;--length) lengths[num++]=prev; break; case 17: for(length=read_bits(d,3,3);length;--length) lengths[num++]=0; break; case 18: for(length=read_bits(d,7,11);length;--length) lengths[num++]=0; break; default: lengths[num++]=sym; break; } } build_tree(lt,lengths,0,hlit); build_tree(dt,lengths,hlit,hdist); }
+    function inflate_block_data(d,lt,dt){ for(;;){ var sym=decode_symbol(d,lt); if(sym===256) return; if(sym<256){ d.dest.push(sym); d.destLen++; } else { var length,dist,offs,i; sym-=257; length=read_bits(d,length_bits[sym],length_base[sym]); dist=decode_symbol(d,dt); offs=d.destLen-read_bits(d,dist_bits[dist],dist_base[dist]); for(i=offs;i<offs+length;++i){ d.dest.push(d.dest[i]); d.destLen++; } } } }
+    function inflate_uncompressed_block(d){ var length; while(d.bitcount>8){ d.i--; d.bitcount-=8; } length=d.s[d.i+1]; length=256*length+d.s[d.i]; d.i+=4; for(var i=length;i;--i){ d.dest.push(d.s[d.i++]); d.destLen++; } d.bitcount=0; }
+    build_bits_base(length_bits,length_base,4,3); build_bits_base(dist_bits,dist_base,2,1);
+    length_bits[28]=0; length_base[28]=258; build_fixed_trees(sltree,sdtree);
+    var d=new Data(source), bfinal, btype;
+    do{ bfinal=getbit(d); btype=read_bits(d,2,0);
+      if(btype===0) inflate_uncompressed_block(d);
+      else if(btype===1) inflate_block_data(d,sltree,sdtree);
+      else if(btype===2){ decode_trees(d,d.ltree,d.dtree); inflate_block_data(d,d.ltree,d.dtree); }
+      else throw new Error("bad block type");
+    }while(!bfinal);
+    return Uint8Array.from(d.dest);
+  }
+  function utf8dec(u8){ return new TextDecoder("utf-8").decode(u8); }
+  function inflateBytes(raw){
+    if(typeof DecompressionStream!=="undefined"){
+      var ds=new DecompressionStream("deflate-raw");
+      var stream=new Blob([raw]).stream().pipeThrough(ds);
+      return new Response(stream).arrayBuffer().then(function(ab){ return new Uint8Array(ab); });
+    }
+    return Promise.resolve(inflateRaw(raw));
+  }
+  function zipEntries(buf){
+    var dv=new DataView(buf), bytes=new Uint8Array(buf);
+    var i=bytes.length-22;
+    for(; i>=0; i--){ if(dv.getUint32(i,true)===0x06054b50) break; }
+    if(i<0) throw new Error("not a zip / xlsx file");
+    var cdCount=dv.getUint16(i+10,true), cdOffset=dv.getUint32(i+16,true);
+    var entries=[], p=cdOffset;
+    for(var n=0;n<cdCount;n++){
+      if(dv.getUint32(p,true)!==0x02014b50) break;
+      var method=dv.getUint16(p+10,true), compSize=dv.getUint32(p+20,true);
+      var nameLen=dv.getUint16(p+28,true), extraLen=dv.getUint16(p+30,true), commentLen=dv.getUint16(p+32,true);
+      var localOff=dv.getUint32(p+42,true);
+      var name=utf8dec(bytes.subarray(p+46,p+46+nameLen));
+      var lNameLen=dv.getUint16(localOff+26,true), lExtraLen=dv.getUint16(localOff+28,true);
+      var dataStart=localOff+30+lNameLen+lExtraLen;
+      entries.push({name:name, method:method, raw:bytes.subarray(dataStart,dataStart+compSize)});
+      p+=46+nameLen+extraLen+commentLen;
+    }
+    return entries;
+  }
+  function unzipAll(buf){
+    var entries=zipEntries(buf), map={};
+    var chain=Promise.resolve();
+    entries.forEach(function(e){
+      chain=chain.then(function(){
+        if(e.method===0){ map[e.name]=e.raw; return; }
+        return inflateBytes(e.raw).then(function(u8){ map[e.name]=u8; });
+      });
+    });
+    return chain.then(function(){ return map; });
+  }
+  function textFrom(map, name){ return map[name] ? utf8dec(map[name]) : null; }
+  function unescXml(s){
+    return s.replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&apos;/g,"'")
+            .replace(/&#(\d+);/g,function(_,d){return String.fromCharCode(+d);})
+            .replace(/&#x([0-9a-fA-F]+);/g,function(_,h){return String.fromCharCode(parseInt(h,16));})
+            .replace(/&amp;/g,"&");
+  }
+  function tRuns(xml){ var t="", re=/<([a-z0-9]*:)?t(\s[^>]*)?>([\s\S]*?)<\/([a-z0-9]*:)?t>/gi, m; while((m=re.exec(xml))) t+=unescXml(m[3]); return t; }
+  function colIdx(ref){ var m=/^([A-Z]+)/.exec(ref); if(!m) return 0; var s=m[1], n=0; for(var i=0;i<s.length;i++) n=n*26+(s.charCodeAt(i)-64); return n-1; }
+  function parseSheetXml(xml, shared){
+    var rows=[], maxCol=0;
+    var rowRe=/<([a-z0-9]*:)?row(\s[^>]*)?>([\s\S]*?)<\/([a-z0-9]*:)?row>|<([a-z0-9]*:)?row(\s[^>]*)?\/>/gi, rm;
+    while((rm=rowRe.exec(xml))){
+      var body=rm[3]||"", cells=[], cellRe=/<([a-z0-9]*:)?c\s([^>]*?)(?:\/>|>([\s\S]*?)<\/([a-z0-9]*:)?c>)/gi, cm;
+      while((cm=cellRe.exec(body))){
+        var attrs=cm[2]||"", inner=cm[3]||"";
+        var refM=/r="([A-Z]+\d+)"/.exec(attrs);
+        var ci=refM?colIdx(refM[1]):cells.length;
+        var tM=/t="([^"]+)"/.exec(attrs), type=tM?tM[1]:null, val="";
+        var vM=/<([a-z0-9]*:)?v(\s[^>]*)?>([\s\S]*?)<\/([a-z0-9]*:)?v>/i.exec(inner);
+        if(type==="inlineStr") val=tRuns(inner);
+        else if(type==="s"){ if(vM) val=shared[parseInt(vM[3],10)]||""; }
+        else if(vM) val=unescXml(vM[3]);
+        cells[ci]=val;
+        if(ci+1>maxCol) maxCol=ci+1;
+      }
+      for(var k=0;k<cells.length;k++) if(cells[k]===undefined) cells[k]="";
+      rows.push(cells);
+    }
+    rows.forEach(function(r){ for(var j=0;j<maxCol;j++) if(r[j]===undefined) r[j]=""; });
+    return rows;
+  }
+  function readXlsx(buf){
+    return unzipAll(buf).then(function(map){
+      var wb=textFrom(map,"xl/workbook.xml");
+      if(!wb) throw new Error("not an xlsx (no workbook.xml)");
+      var rels=textFrom(map,"xl/_rels/workbook.xml.rels")||"", relMap={};
+      var relRe=/<Relationship\s[^>]*\/>/g, rr;
+      while((rr=relRe.exec(rels))){
+        var tag=rr[0], idM=/Id="([^"]+)"/.exec(tag), tgtM=/Target="([^"]+)"/.exec(tag);
+        if(idM&&tgtM) relMap[idM[1]]=tgtM[1].replace(/^\//,"").replace(/^xl\//,"");
+      }
+      var shared=[]; var ss=textFrom(map,"xl/sharedStrings.xml");
+      if(ss){ var sr=/<([a-z0-9]*:)?si(\s[^>]*)?>([\s\S]*?)<\/([a-z0-9]*:)?si>/gi, sm; while((sm=sr.exec(ss))) shared.push(tRuns(sm[3])); }
+      var sheets=[], sre=/<([a-z0-9]*:)?sheet\s([^>]*?)\/?>/gi, sm2;
+      while((sm2=sre.exec(wb))){
+        var a=sm2[2], nameM=/name="([^"]*)"/.exec(a);
+        var ridM=/r:id="([^"]+)"/.exec(a)||/:id="([^"]+)"/.exec(a)||/\sid="([^"]+)"/.exec(a);
+        if(!nameM) continue;
+        var target=ridM?relMap[ridM[1]]:null;
+        sheets.push({ name:unescXml(nameM[1]), path:target?("xl/"+target.replace(/^xl\//,"")):null });
+      }
+      return {
+        names: sheets.map(function(s){ return s.name; }),
+        rowsOf: function(name){ var s=sheets.find(function(x){return x.name===name;}); if(!s||!s.path) return []; var xml=textFrom(map,s.path); return xml?parseSheetXml(xml,shared):[]; }
+      };
+    });
+  }
+
+  /* ============ export ============ */
+  function baseName(){
+    var l = activeLocale();
+    var n = ((l && l.file) || "locale").replace(/\.[^.]+$/, "");
+    var loc = (l && l.code) || "";
+    return n + (loc && n.indexOf(loc) === -1 ? "_" + loc : "");
+  }
+  function download(text, name, mime){
+    var blob = new Blob([text], { type: mime + ";charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1200);
+  }
+  function exportRows(){
+    // exports what is currently in view, so a filter doubles as a work list
+    return visible();
+  }
+  $("#jsonBtn").addEventListener("click", function(){
+    if(state.active === -1){ toast("Add a locale first"); return; }
+    var rows = exportRows();
+    if(!rows.length){ toast("Nothing to export"); return; }
+    var out = rows.map(function(r){
+      return { term:r.term, definition:r.definition, context:r.context,
+               term_plural:r.term_plural, reference:r.reference, comment:r.comment, fuzzy:r.fuzzy };
+    });
+    download(JSON.stringify(out, null, 2), baseName() + ".json", "application/json");
+    toast("Exported " + rows.length + " strings as JSON");
+  });
+  $("#csvBtn").addEventListener("click", function(){
+    if(state.active === -1){ toast("Add a locale first"); return; }
+    var rows = exportRows();
+    if(!rows.length){ toast("Nothing to export"); return; }
+    var cols = ["term","definition","context","term_plural","reference","comment","fuzzy","status"];
+    var lines = [cols.join(",")];
+    rows.forEach(function(r){
+      lines.push(cols.map(function(c){
+        return csvCell(c === "status" ? STATUS[statusOf(r)].label : r[c]);
+      }).join(","));
+    });
+    download("\uFEFF" + lines.join("\r\n"), baseName() + ".csv", "text/csv");
+    toast("Exported " + rows.length + " strings as CSV");
+  });
+
+  /* ---- selection + Export Selected (xlsx) ---- */
+  function selMap(){ var l = activeLocale(); return l ? l.selected : {}; }
+  function selCount(){ var m = selMap(), n = 0; for(var k in m){ if(m[k]) n++; } return n; }
+  function isSel(term){ return !!selMap()[term]; }
+  function setSel(term, on){ var m = selMap(); if(on) m[term] = 1; else delete m[term]; }
+  function clearSel(){ var l = activeLocale(); if(l) l.selected = {}; }
+
+  // English source lookup, so column F mirrors the sample (Arabic → English)
+  function sourceLookup(){
+    var src = state.locales.find(function(l){ return /^en(\b|[-_])/i.test(l.code); });
+    var active = activeLocale();
+    if(!src || (active && src.id === active.id)) src = active; // fall back to self
+    var map = {};
+    if(src) src.rows.forEach(function(r){ map[r.term] = r.definition; });
+    return map;
+  }
+  // English source for a row: its own stored source, else the English locale's text, else its comment.
+  function sourceText(r, enMap){
+    if(r.source) return r.source;
+    if(enMap && enMap[r.term] != null && enMap[r.term] !== "") return enMap[r.term];
+    return r.comment || "";
+  }
+  function updateSelUI(){
+    var n = selCount();
+    var btn = $("#xlsxBtn"), lab = $("#xlsxLabel");
+    btn.disabled = n === 0;
+    if(lab) lab.textContent = n ? "Export Selected (" + n + ")" : "Export Selected";
+    btn.title = n ? "Export " + n + " checked string" + (n>1?"s":"") + " as Excel" : "Check some strings first";
+    // select-all reflects the currently shown rows
+    var shown = visible(), sa = $("#selectAll");
+    if(sa){
+      var selShown = shown.filter(function(r){ return isSel(r.term); }).length;
+      sa.checked = shown.length > 0 && selShown === shown.length;
+      sa.indeterminate = selShown > 0 && selShown < shown.length;
+      sa.disabled = shown.length === 0;
+    }
+  }
+  $("#selectAll").addEventListener("change", function(){
+    var shown = visible(), on = this.checked;
+    shown.forEach(function(r){ setSel(r.term, on); });
+    render();
+  });
+  $("#xlsxBtn").addEventListener("click", function(){
+    if(state.active === -1){ toast("Add a locale first"); return; }
+    var m = selMap();
+    // export in file order, only checked rows
+    var chosen = activeRows().filter(function(r){ return m[r.term]; });
+    if(!chosen.length){ toast("No strings selected"); return; }
+    var enMap = sourceLookup();
+    var rows = chosen.map(function(r){
+      return [ r.term, r.definition, r.context || "", r.term_plural || "",
+               r.reference || "", sourceText(r, enMap) ];
+    });
+    var blob = makeXlsxBlob("POEditor.com", rows);
+    downloadBlob(blob, baseName() + "_selected.xlsx");
+    toast("Exported " + chosen.length + " selected string" + (chosen.length>1?"s":"") + " to Excel");
+  });
+
+  /* ---- approve (clear review flag) ---- */
+  function approve(rows, label){
+    var flagged = rows.filter(function(r){ return r.fuzzy; });
+    if(!flagged.length){ toast("Nothing to approve"); return; }
+    snapshot();
+    flagged.forEach(function(r){ r.fuzzy = 0; });
+    render();
+    toast("Approved " + flagged.length + " string" + (flagged.length>1?"s":"") + label);
+  }
+  function updateReviewBar(){
+    var bar = $("#reviewBar");
+    var show = state.view === "translate" && state.active !== -1 && state.filter === "review";
+    bar.hidden = !show;
+    if(!show) return;
+    var shown = visible();                                   // review rows (respecting search/section)
+    var shownFlagged = shown.filter(function(r){ return r.fuzzy; }).length;
+    var m = selMap();
+    var selFlagged = activeRows().filter(function(r){ return m[r.term] && r.fuzzy; }).length;
+    $("#reviewBarLabel").textContent = shownFlagged + " flagged for review" +
+      (selFlagged ? " · " + selFlagged + " selected" : "");
+    var selBtn = $("#approveSelBtn"), allBtn = $("#approveAllBtn");
+    selBtn.disabled = selFlagged === 0;
+    selBtn.textContent = "Approve Selected" + (selFlagged ? " (" + selFlagged + ")" : "");
+    allBtn.disabled = shownFlagged === 0;
+    allBtn.textContent = "Approve All" + (shownFlagged ? " (" + shownFlagged + ")" : "");
+  }
+  $("#approveSelBtn").addEventListener("click", function(){
+    var m = selMap();
+    approve(activeRows().filter(function(r){ return m[r.term] && r.fuzzy; }), " (selected)");
+  });
+  $("#approveAllBtn").addEventListener("click", function(){
+    approve(visible().filter(function(r){ return r.fuzzy; }), "");
+  });
+
+  /* ============ filtering ============ */
+  function visible(){
+    var q = state.q.toLowerCase();
+    var out = activeRows().filter(function(r){
+      if(state.filter !== "all" && statusOf(r) !== state.filter) return false;
+      if(state.section !== "all" && (r.term.split(".")[0] || "—") !== state.section) return false;
+      if(q && (r.term + " " + r.definition).toLowerCase().indexOf(q) === -1) return false;
+      return true;
+    });
+    if(state.sort === "key") out.sort(function(a,b){ return a.term.localeCompare(b.term); });
+    if(state.sort === "status"){
+      var w = { missing:0, review:1, done:2 };
+      out.sort(function(a,b){ return w[statusOf(a)] - w[statusOf(b)] || a.term.localeCompare(b.term); });
+    }
+    return out;
+  }
+  function setFilter(f){
+    state.filter = f; state.limit = 120;
+    render();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("#filters button, .stat"), function(b){
+    b.addEventListener("click", function(){ setFilter(b.dataset.f); });
+  });
+  $("#q").addEventListener("input", function(e){ state.q = e.target.value; state.limit = 120; render(); });
+  $("#sectionSel").addEventListener("change", function(e){ state.section = e.target.value; state.limit = 120; render(); });
+  $("#sortSel").addEventListener("change", function(e){ state.sort = e.target.value; render(); });
+  Array.prototype.forEach.call(document.querySelectorAll(".sortable"), function(b){
+    b.addEventListener("click", function(){
+      var v = b.dataset.sort === "key" ? "key" : "status";
+      state.sort = state.sort === v ? "file" : v;
+      $("#sortSel").value = state.sort; render();
+    });
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.key === "/" && document.activeElement.tagName !== "INPUT" && document.activeElement.tagName !== "TEXTAREA"){
+      e.preventDefault(); $("#q").focus();
+    }
+  });
+
+  /* ============ tooltip ============ */
+  var tip = $("#tip");
+  function showTip(text, x, y){
+    tip.textContent = text; tip.classList.add("show");
+    var w = tip.offsetWidth, h = tip.offsetHeight;
+    tip.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, x - w / 2)) + "px";
+    tip.style.top = Math.max(8, y - h - 12) + "px";
+  }
+  function hideTip(){ tip.classList.remove("show"); }
+
+  /* ============ render ============ */
+  function counts(){
+    var rows = activeRows();
+    var c = { all: rows.length, done: 0, review: 0, missing: 0 };
+    rows.forEach(function(r){ c[statusOf(r)]++; });
+    return c;
+  }
+  function renderStats(c){
+    $("#cTotal").textContent = c.all;
+    $("#cDone").textContent = c.done;
+    $("#cReview").textContent = c.review;
+    $("#cMissing").textContent = c.missing;
+    Array.prototype.forEach.call(document.querySelectorAll("[data-c]"), function(el){
+      el.textContent = c[el.dataset.c];
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("#filters button, .stat"), function(b){
+      b.setAttribute("aria-pressed", b.dataset.f === state.filter ? "true" : "false");
+    });
+    var pct = c.all ? (c.done / c.all) * 100 : 0;
+    $("#coverage").textContent = c.all
+      ? (Math.round(pct * 10) / 10) + "% translated" + (c.review ? " · " + c.review + " flagged for review" : "")
+      : "—";
+  }
+  function renderRibbon(){
+    var rib = $("#ribbon");
+    rib.textContent = "";
+    var rows = activeRows();
+    var n = rows.length;
+    if(!n) return;
+    var perTick = n > 900 ? Math.ceil(n / 900) : 1;
+    var frag = document.createDocumentFragment();
+    for(var i = 0; i < n; i += perTick){
+      var bucket = rows.slice(i, i + perTick);
+      var st = "done", label;
+      bucket.forEach(function(r){
+        var s = statusOf(r);
+        if(s === "missing") st = "missing";
+        else if(s === "review" && st !== "missing") st = "review";
+      });
+      var t = document.createElement("i");
+      t.className = "tick " + st;
+      if(state.filter !== "all" && st !== state.filter) t.classList.add("dim");
+      label = perTick === 1
+        ? bucket[0].term + "\n" + STATUS[st].label
+        : bucket.length + " strings · " + STATUS[st].label;
+      t.dataset.tip = label;
+      t.dataset.term = bucket[0].term;
+      frag.appendChild(t);
+    }
+    rib.appendChild(frag);
+  }
+  $("#ribbon").addEventListener("mousemove", function(e){
+    var t = e.target.closest(".tick");
+    if(t) showTip(t.dataset.tip, e.clientX, e.clientY); else hideTip();
+  });
+  $("#ribbon").addEventListener("mouseleave", hideTip);
+  $("#ribbon").addEventListener("click", function(e){
+    var t = e.target.closest(".tick");
+    if(!t) return;
+    jumpTo(t.dataset.term);
+  });
+  function jumpTo(term){
+    var row = document.querySelector('.row[data-term="' + (window.CSS && CSS.escape ? CSS.escape(term) : term) + '"]');
+    if(!row){
+      // clear filters that hide it, then retry
+      state.filter = "all"; state.section = "all"; state.q = "";
+      $("#q").value = ""; $("#sectionSel").value = "all";
+      var idx = activeRows().findIndex(function(r){ return r.term === term; });
+      state.limit = Math.max(120, idx + 40);
+      render();
+      row = document.querySelector('.row[data-term="' + (window.CSS && CSS.escape ? CSS.escape(term) : term) + '"]');
+    }
+    if(row){
+      row.scrollIntoView({ behavior: "smooth", block: "center" });
+      row.classList.remove("flash");
+      void row.offsetWidth;
+      row.classList.add("flash");
+    }
+  }
+  function renderSections(){
+    var sel = $("#sectionSel"), map = {};
+    activeRows().forEach(function(r){
+      var s = r.term.indexOf(".") !== -1 ? r.term.split(".")[0] : "—";
+      map[s] = (map[s] || 0) + 1;
+    });
+    var keys = Object.keys(map).sort();
+    var html = '<option value="all">All sections (' + keys.length + ')</option>';
+    keys.forEach(function(k){ html += '<option value="' + k + '">' + k + " (" + map[k] + ")</option>"; });
+    sel.innerHTML = html;
+    sel.value = state.section;
+  }
+  var FLAG = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 21V4.5h13l-2.4 4.2L18 13H5"/></svg>';
+
+  function renderRows(list){
+    var host = $("#rows"), foot = $("#foot");
+    host.textContent = ""; foot.textContent = "";
+    if(state.active === -1){
+      host.innerHTML = '<div class="empty"><h3>No locales yet</h3>' +
+        '<p>Add a JSON or CSV export of your system text to see coverage, filter untranslated strings, and export it back out. Each file you add appears in the sidebar as its own locale.</p>' +
+        '<div class="cta"><button class="primary" id="emptyImport">Add locale</button></div></div>';
+      var eb = $("#emptyImport");
+      if(eb) eb.addEventListener("click", function(){ $("#addLocaleInput").click(); });
+      return;
+    }
+    if(!list.length){
+      var head = "No strings match", body = "Widen the filter, clear the search, or pick another section.";
+      var plain = !state.q && state.section === "all";
+      if(plain && state.filter === "missing"){
+        head = "Nothing left untranslated";
+        body = "All " + activeRows().length + " strings in this locale have text.";
+      } else if(plain && state.filter === "review"){
+        head = "Nothing flagged for review";
+        body = "No string in this locale is marked as needing a second look.";
+      } else if(plain && state.filter === "done"){
+        head = "No finished strings yet";
+        body = "Every string is either untranslated or flagged for review.";
+      }
+      host.innerHTML = '<div class="empty"><h3>' + head + "</h3><p>" + body + "</p></div>";
+      return;
+    }
+    var active = activeLocale();
+    var rtl = active ? isRTL(active.code) : false;
+    var enMap = sourceLookup();
+    var isEnLocale = active && /^en(\b|[-_])/i.test(active.code);
+    var slice = list.slice(0, state.limit);
+    var frag = document.createDocumentFragment();
+    slice.forEach(function(r){
+      var st = statusOf(r);
+      var row = document.createElement("div");
+      row.className = "row" + (isSel(r.term) ? " sel" : "");
+      row.dataset.term = r.term;
+
+      var pcell = document.createElement("div");
+      pcell.className = "pick";
+      var cb = document.createElement("input");
+      cb.type = "checkbox"; cb.checked = isSel(r.term);
+      cb.setAttribute("aria-label", "Select " + r.term);
+      cb.addEventListener("change", function(){ setSel(r.term, cb.checked); render(); });
+      pcell.appendChild(cb);
+
+      var kcell = document.createElement("div");
+      var dot = r.term.indexOf(".");
+      kcell.innerHTML = '<div class="key">' +
+        (dot > -1 ? '<span class="ns">' + esc(r.term.slice(0, dot + 1)) + "</span>" + esc(r.term.slice(dot + 1)) : esc(r.term)) +
+        "</div>" +
+        (r.context || r.comment ? '<div class="meta">' + esc(r.context || r.comment) + "</div>" : "");
+
+      var vcell = document.createElement("div");
+      vcell.className = "val" + (st === "missing" ? " empty" : "");
+      vcell.tabIndex = 0;
+      if(rtl){ vcell.dir = "rtl"; vcell.style.textAlign = "right"; }
+      vcell.textContent = st === "missing" ? "Add translation" : r.definition;
+      vcell.title = "Click to edit";
+      function edit(){
+        if(vcell.querySelector("textarea")) return;
+        var ta = document.createElement("textarea");
+        ta.value = r.definition;
+        if(rtl){ ta.dir = "rtl"; }
+        vcell.textContent = ""; vcell.classList.remove("empty");
+        vcell.appendChild(ta);
+        ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+        function commit(){
+          var next = ta.value;
+          if(next !== r.definition){
+            snapshot();
+            var wasEmpty = !String(r.definition).trim();
+            var nowHasText = !!String(next).trim();
+            r.definition = next;
+            var autoFlagged = false;
+            if(wasEmpty && nowHasText){
+              addTag(r, TAG_NEW);       // mark a freshly added translation …
+              if(!r.fuzzy) r.fuzzy = 1; // … and flag it for review
+              autoFlagged = true;
+            }
+            render();
+            if(autoFlagged) toast("New translation flagged for review");
+          } else { render(); }
+        }
+        ta.addEventListener("blur", commit);
+        ta.addEventListener("keydown", function(ev){
+          if(ev.key === "Escape"){ ta.value = r.definition; ta.blur(); }
+          if(ev.key === "Enter" && (ev.metaKey || ev.ctrlKey)) ta.blur();
+        });
+      }
+      vcell.addEventListener("click", edit);
+      vcell.addEventListener("keydown", function(ev){ if(ev.key === "Enter"){ ev.preventDefault(); edit(); } });
+
+      // English source text (POEditor col F): row's own source, else the English locale's text.
+      var srcVal = r.source || (enMap[r.term] != null ? enMap[r.term] : "");
+      if(!srcVal && isEnLocale) srcVal = r.definition;   // this IS the English locale
+      var srccell = document.createElement("div");
+      srccell.className = "src" + (srcVal ? "" : " none");
+      srccell.textContent = srcVal || "—";
+      if(srcVal) srccell.title = srcVal;
+
+      var scell = document.createElement("div");
+      scell.innerHTML = '<span class="pill ' + st + '"><i class="dot"></i>' + STATUS[st].label + "</span>";
+
+      var tcell = document.createElement("div");
+      var tags = normTags(r.tags);
+      tcell.className = "tags" + (tags.length ? "" : " empty");
+      if(!tags.length){
+        tcell.innerHTML = '<span class="notag">—</span>';
+      } else {
+        tags.forEach(function(tg){
+          var chip = document.createElement("span");
+          chip.className = "tag t-" + tagSlug(tg);
+          var lbl = document.createElement("span");
+          lbl.textContent = tg;
+          chip.appendChild(lbl);
+          var x = document.createElement("button");
+          x.type = "button"; x.className = "tagx"; x.innerHTML = "&times;";
+          x.title = "Remove tag"; x.setAttribute("aria-label", "Remove tag " + tg);
+          x.addEventListener("click", function(ev){
+            ev.stopPropagation();
+            snapshot();
+            removeTag(r, tg);
+            if(!r.tags.length) r.fuzzy = 0;   // last tag gone → clear the Needs review flag
+            render();
+          });
+          chip.appendChild(x);
+          tcell.appendChild(chip);
+        });
+      }
+
+      var fcell = document.createElement("div");
+      var fb = document.createElement("button");
+      fb.className = "flag" + (r.fuzzy ? " on" : "");
+      fb.innerHTML = FLAG;
+      fb.title = r.fuzzy ? "Clear review flag" : "Flag for review";
+      fb.setAttribute("aria-label", fb.title);
+      fb.addEventListener("click", function(){ snapshot(); r.fuzzy = r.fuzzy ? 0 : 1; render(); });
+      fcell.appendChild(fb);
+
+      row.appendChild(pcell); row.appendChild(kcell); row.appendChild(vcell); row.appendChild(srccell); row.appendChild(tcell); row.appendChild(scell); row.appendChild(fcell);
+      frag.appendChild(row);
+    });
+    host.appendChild(frag);
+
+    if(list.length > slice.length){
+      var more = document.createElement("button");
+      more.textContent = "Show more — " + (list.length - slice.length) + " remaining";
+      more.addEventListener("click", function(){ state.limit += 200; render(); });
+      foot.appendChild(more);
+    } else {
+      var note = document.createElement("span");
+      note.className = "filemeta";
+      note.textContent = "Showing all " + list.length + " of " + activeRows().length + " strings";
+      foot.appendChild(note);
+    }
+  }
+  function esc(s){
+    return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){
+      return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c];
+    });
+  }
+  function renderHeader(){
+    var l = activeLocale();
+    var keys = state.view === "keys", xl = state.view === "excel";
+    var input = $("#localeInput");
+    input.value = l ? l.code : "";
+    input.disabled = !l;
+    var mb = $("#mergeBtn"); if(mb) mb.disabled = !l;
+    var mm = $("#mergeMissingBtn"); if(mm) mm.disabled = !l;
+    var mn = $("#mergeNewBtn"); if(mn) mn.disabled = !l;
+    var cb2 = $("#csvBtn"); if(cb2) cb2.disabled = !l;
+    var jb2 = $("#jsonBtn"); if(jb2) jb2.disabled = !l;
+    $("#fileMeta").textContent = l
+      ? (l.file || l.name || "locale") + " · " + l.rows.length + " strings"
+      : "no locale loaded";
+    $("#valHead").textContent = "Translation" + (l ? " — " + l.code : "");
+
+    var global = keys || xl;
+    $("#appName").textContent = keys ? "Manage Keys" : (xl ? "Excel Tool" : "Translation Manager");
+    $("#localeChip").hidden = global;
+    $("#fileMeta").hidden = global;
+    $("#keysMeta").hidden = !keys;
+    $("#eyebrow").textContent = keys ? "Translation Manager · global view"
+      : (xl ? "Translation Manager · excel tool" : "Translation Manager");
+    if(keys){
+      var n = state.locales.length;
+      var uniq = keyIndex().order.length;
+      var mm = mismatchCount();
+      $("#keysMeta").textContent = n + " locale" + (n!==1?"s":"") + " · " + uniq +
+        " unique key" + (uniq!==1?"s":"") + (mm ? " · " + mm + " mismatched" : " · all in sync");
+    }
+  }
+  // count keys missing from at least one locale (project-wide consistency)
+  function mismatchCount(){
+    if(state.locales.length < 2) return 0;
+    var ki = keyIndex(), n = state.locales.length, m = 0;
+    ki.order.forEach(function(t){ if(ki.presence[t].count < n) m++; });
+    return m;
+  }
+  function render(){
+    renderSidebar();
+    renderHeader();
+    updateUndo();
+    var keys = state.view === "keys", xl = state.view === "excel";
+    $("#translateView").hidden = keys || xl;
+    $("#keysView").hidden = !keys;
+    $("#excelView").hidden = !xl;
+    var vb = $("#viewBtn"), vl = $("#viewBtnLabel");
+    vb.classList.toggle("on", keys);
+    if(vl) vl.textContent = keys ? "Back to Translations" : "Manage Keys";
+    vb.title = keys ? "Back to the translation table" : "Manage keys across all locales";
+    var xb = $("#excelBtn"); if(xb) xb.classList.toggle("on", xl);
+    // mismatch badge — visible even from the translation view
+    var mm = mismatchCount(), badge = $("#mismatchBadge");
+    if(badge){
+      badge.hidden = mm === 0;
+      badge.textContent = mm;
+      badge.title = mm + " key" + (mm!==1?"s":"") + " missing from at least one locale";
+    }
+    if(keys){
+      renderKeys();
+    } else if(xl){
+      renderExcel();
+    } else {
+      renderStats(counts());
+      renderSections();
+      renderRibbon();
+      renderRows(visible());
+      updateSelUI();
+      updateReviewBar();
+    }
+    // In the global views (Manage Keys / Excel Tool) the header actions don't apply to a
+    // single locale, so disable them all (the theme toggle stays active). Runs last so it
+    // overrides updateUndo()/updateSelUI(); translate view keeps each button's normal state.
+    if(keys || xl){
+      ["#undoBtn","#mergeBtn","#mergeMissingBtn","#mergeNewBtn","#xlsxBtn","#csvBtn","#jsonBtn"]
+        .forEach(function(sel){ var b = $(sel); if(b) b.disabled = true; });
+    }
+  }
+
+  /* ============ Excel Tool ============ */
+  var excel = { name:"", base:"", sheets:[], active:"", include:{}, page:"home" };  // sheets: [{name, rows}]; page: home|import|export
+  function looksLikeLocale(name, rows){
+    var deny = /^(summary|overview|readme|index|contents|table of contents|toc|matrix|string-language matrix|notes?|instructions?)$/i;
+    if(deny.test(String(name).trim())) return false;
+    if(!rows.length) return false;
+    var sample = rows.slice(0, 12), keyed = 0, hasVal = 0;
+    sample.forEach(function(r){
+      if(r[0] && String(r[0]).trim()){ keyed++; if((r[1] && String(r[1]).trim()) || (r[5] && String(r[5]).trim())) hasVal++; }
+    });
+    return keyed >= Math.min(3, sample.length) && hasVal >= 1;
+  }
+  function loadWorkbook(buf, fileName){
+    var btn=$("#importXlsxBtn"); btn.disabled=true;
+    var meta=$("#xlsxMeta"); meta.textContent="Reading "+(fileName||"workbook")+"…";
+    readXlsx(buf).then(function(wb){
+      if(!wb.names.length){ toast("No sheets found in that workbook"); btn.disabled=false; meta.textContent=""; return; }
+      excel.name = fileName || "workbook.xlsx";
+      excel.base = (fileName || "workbook").replace(/\.[^.]+$/, "");
+      excel.sheets = wb.names.map(function(nm){ return { name:nm, rows:wb.rowsOf(nm) }; });
+      excel.active = excel.sheets[0].name;
+      excel.include = {};
+      excel.sheets.forEach(function(s){ excel.include[s.name] = looksLikeLocale(s.name, s.rows); });
+      btn.disabled=false;
+      render();
+      var n = excel.sheets.length, inc = includedNames().length;
+      toast("Loaded " + n + " tab" + (n>1?"s":"") + " · " + inc + " look like locales");
+    }).catch(function(err){
+      btn.disabled=false; meta.textContent="";
+      toast("Could not read that workbook — " + (err && err.message ? err.message : "unknown error"));
+    });
+  }
+  $("#importXlsxBtn").addEventListener("click", function(){ $("#xlsxInput").click(); });
+  $("#xlsxInput").addEventListener("change", function(e){
+    var input = e.target;
+    var file = input.files && input.files[0];
+    if(!file) return;
+    readBufferRobust(file).then(function(buf){ loadWorkbook(buf, file.name); })
+      .catch(function(){ toast("Could not read that file"); })
+      .then(function(){ input.value = ""; });
+  });
+  function sheetByName(nm){ return excel.sheets.find(function(s){ return s.name === nm; }); }
+  function includedNames(){ return excel.sheets.filter(function(s){ return excel.include[s.name]; }).map(function(s){ return s.name; }); }
+  $("#tabAllBtn").addEventListener("click", function(){ excel.sheets.forEach(function(s){ excel.include[s.name]=true; }); render(); });
+  $("#tabNoneBtn").addEventListener("click", function(){ excel.sheets.forEach(function(s){ excel.include[s.name]=false; }); render(); });
+
+  function sanitizeName(s){ return String(s).replace(/[\\\/:*?"<>|]+/g,"_").replace(/\s+/g,"_").replace(/_+/g,"_").replace(/^_|_$/g,""); }
+  function tabToPoRows(rows){
+    // POEditor 6-col: term, translation, context, term_plural, reference, english source
+    var out = [];
+    rows.forEach(function(r){
+      var term = r[0] == null ? "" : String(r[0]).trim();
+      if(!term) return;
+      out.push([ term, r[1]||"", r[2]||"", r[3]||"", r[4]||"", r[5]||"" ]);
+    });
+    return out;
+  }
+  function tabToPoJson(rows){
+    // matches POEditor locale JSON: term, definition, context, term_plural, reference, comment, fuzzy
+    var out = [];
+    rows.forEach(function(r){
+      var term = r[0] == null ? "" : String(r[0]).trim();
+      if(!term) return;
+      out.push({ term:term, definition:r[1]||"", context:r[2]||"", term_plural:r[3]||"",
+                 reference:r[4]||"", comment:"", fuzzy:0 });
+    });
+    return out;
+  }
+  function extractLocales(){
+    var names = includedNames();
+    if(!names.length){ toast("Tick at least one tab to extract"); return; }
+    var entries = names.map(function(nm){
+      var s = sheetByName(nm), poRows = tabToPoRows(s.rows);
+      return { name: sanitizeName(excel.base + "_" + nm) + ".xlsx", data: makeXlsxBytes("POEditor.com", poRows), count: poRows.length };
+    });
+    if(entries.length === 1){
+      var one = entries[0];
+      downloadBlob(new Blob([one.data], { type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), one.name);
+      toast("Extracted " + one.name + " · " + one.count + " strings");
+      return;
+    }
+    var zipBytes = zipStore(entries.map(function(e){ return { name:e.name, data:e.data }; }));
+    downloadBlob(new Blob([zipBytes], { type:"application/zip" }), sanitizeName(excel.base) + "_locales.zip");
+    toast("Extracted " + entries.length + " locale files to .xlsx (in a .zip)");
+  }
+  function extractLocalesJson(){
+    var names = includedNames();
+    if(!names.length){ toast("Tick at least one tab to extract"); return; }
+    var entries = names.map(function(nm){
+      var s = sheetByName(nm), arr = tabToPoJson(s.rows);
+      var json = JSON.stringify(arr, null, 2);
+      return { name: sanitizeName(excel.base + "_" + nm) + ".json", data: utf8(json), count: arr.length };
+    });
+    if(entries.length === 1){
+      var one = entries[0];
+      downloadBlob(new Blob([one.data], { type:"application/json" }), one.name);
+      toast("Extracted " + one.name + " · " + one.count + " strings");
+      return;
+    }
+    var zipBytes = zipStore(entries.map(function(e){ return { name:e.name, data:e.data }; }));
+    downloadBlob(new Blob([zipBytes], { type:"application/zip" }), sanitizeName(excel.base) + "_locales_json.zip");
+    toast("Extracted " + entries.length + " locale files to .json (in a .zip)");
+  }
+  $("#extractBtn").addEventListener("click", extractLocales);
+  $("#extractJsonBtn").addEventListener("click", extractLocalesJson);
+
+  /* Build the app's internal row model from a raw tab (POEditor A–F column order). */
+  function tabToLocaleRows(rows){
+    var out = [];
+    rows.forEach(function(r){
+      var term = r[0] == null ? "" : String(r[0]).trim();
+      if(!term) return;
+      out.push(makeRow({
+        term: term, definition: r[1]||"", context: r[2]||"", term_plural: r[3]||"",
+        reference: r[4]||"", source: r[5]||"", comment: "", fuzzy: 0
+      }));
+    });
+    return out;
+  }
+  /* Add every ticked tab straight into the locale list on the left (one undoable action). */
+  function importSelectedAsLocales(){
+    var names = includedNames();
+    if(!names.length){ toast("Tick at least one tab to import"); return; }
+    snapshot();
+    var added = 0, skipped = 0, first = -1;
+    names.forEach(function(nm){
+      var s = sheetByName(nm); if(!s) return;
+      var rows = tabToLocaleRows(s.rows);
+      if(!rows.length){ skipped++; return; }
+      var loc = {
+        id: ++uid,
+        code: uniqueCode(guessLocale(nm) || sanitizeName(nm) || "locale"),
+        name: prettyName(nm) || nm || "Locale",
+        file: excel.name || nm,
+        rows: rows, selected: {}
+      };
+      state.locales.push(loc);
+      if(first < 0) first = state.locales.length - 1;
+      added++;
+    });
+    if(!added){ history.pop(); updateUndo(); toast("No strings found in the selected tabs"); return; }
+    if(state.active < 0 && first >= 0) state.active = first;
+    render();
+    toast("Imported " + added + " locale" + (added>1?"s":"") + " into the sidebar" +
+          (skipped ? " (" + skipped + " empty tab" + (skipped>1?"s":"") + " skipped)" : ""));
+  }
+  $("#importLocalesBtn").addEventListener("click", importSelectedAsLocales);
+  function clearWorkbook(){
+    excel = { name:"", base:"", sheets:[], active:"", include:{}, page:"import" };
+    $("#xlsxMeta").textContent = "";
+    render();
+    toast("Cleared imported workbook");
+  }
+  $("#clearXlsxBtn").addEventListener("click", clearWorkbook);
+  $("#excelGoImport").addEventListener("click", function(){ excel.page = "import"; render(); });
+  $("#excelGoExport").addEventListener("click", function(){ excel.page = "export"; render(); });
+  $("#excelImportBack").addEventListener("click", function(){ excel.page = "home"; render(); });
+  $("#excelExportBack").addEventListener("click", function(){ excel.page = "home"; render(); });
+
+  /* ============ Excel Tool · Export page ============ */
+  var exp = { cat:"locales", include:{}, active:-1, excludeKeys:{}, keyQ:"" };   // include: {localeId:bool}; excludeKeys: {term:true}; cat: locales|strings|translated|untranslated|review
+  function localeStats(l){
+    var done = 0, miss = 0, review = 0;
+    l.rows.forEach(function(r){ var s = statusOf(r); if(s === "done") done++; else if(s === "missing") miss++; else review++; });
+    return { all:l.rows.length, done:done, miss:miss, review:review };
+  }
+  function catCount(s, cat){
+    return cat === "translated" ? s.done : cat === "untranslated" ? s.miss : cat === "review" ? s.review : s.all;
+  }
+  function catRelevant(s, cat){
+    return (cat === "locales" || cat === "strings") ? true : catCount(s, cat) > 0;
+  }
+  function catRows(l, cat){
+    return l.rows.filter(function(r){
+      var s = statusOf(r);
+      if(cat === "translated") return s === "done";
+      if(cat === "untranslated") return s === "missing";
+      if(cat === "review") return s === "review";
+      return true;   // locales / strings → every row
+    });
+  }
+  var CATHEAD = { locales:"Locales to export", strings:"Locales to export",
+                  translated:"Locales with translated strings", untranslated:"Locales with untranslated strings",
+                  review:"Locales with strings needing review" };
+  var CATSHORT = { locales:"all strings", strings:"all strings", translated:"translated",
+                   untranslated:"untranslated", review:"needs review" };
+
+  // locales shown for the active category that are ticked — the export scope
+  function exportScope(){
+    var cat = exp.cat || "locales", out = [];
+    state.locales.forEach(function(l){
+      var s = localeStats(l);
+      if(catRelevant(s, cat) && exp.include[l.id] !== false) out.push(l);
+    });
+    return out;
+  }
+
+  function renderExport(){
+    var locs = state.locales, cat = exp.cat || "locales";
+    var T = { all:0, done:0, miss:0, review:0 };
+    var per = locs.map(function(l){ var s = localeStats(l); T.all += s.all; T.done += s.done; T.miss += s.miss; T.review += s.review; return s; });
+    $("#xLocales").textContent = locs.length;
+    $("#xStrings").textContent = T.all;
+    $("#xDone").textContent = T.done;
+    $("#xMiss").textContent = T.miss;
+    $("#xReview").textContent = T.review;
+    Array.prototype.forEach.call($("#expStats").children, function(b){ b.setAttribute("aria-pressed", b.dataset.cat === cat ? "true" : "false"); });
+
+    var empty = locs.length === 0;
+    $("#expEmpty").hidden = !empty;
+    $("#expActions").hidden = empty;
+    if(empty){ $("#expPreviewPanel").hidden = true; $("#expKeysPanel").hidden = true; return; }
+
+    // locales relevant to the active category
+    var shown = [];
+    locs.forEach(function(l, i){
+      var s = per[i];
+      if(catRelevant(s, cat)){
+        if(exp.include[l.id] === undefined) exp.include[l.id] = true;
+        shown.push({ l:l, cnt:catCount(s, cat) });
+      }
+    });
+    var chosen = shown.filter(function(o){ return exp.include[o.l.id] !== false; });
+
+    $("#expTabHead").textContent = CATHEAD[cat] + " — " + chosen.length + " of " + shown.length + " selected";
+    var chips = $("#expChips"); chips.textContent = "";
+    if(exp.active === -1 || !shown.some(function(o){ return o.l.id === exp.active; })) exp.active = shown.length ? shown[0].l.id : -1;
+    shown.forEach(function(o){
+      var on = exp.include[o.l.id] !== false;
+      var chip = document.createElement("div");
+      chip.className = "tabchip" + (on ? " on" : "") + (o.l.id === exp.active ? " active" : "");
+      var cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = on;
+      cb.addEventListener("click", function(e){ e.stopPropagation(); exp.include[o.l.id] = cb.checked; render(); });
+      var nm = document.createElement("span"); nm.className = "name"; nm.textContent = o.l.code;
+      var cnt = document.createElement("span"); cnt.className = "cnt"; cnt.textContent = o.cnt;
+      chip.appendChild(cb); chip.appendChild(nm); chip.appendChild(cnt);
+      chip.addEventListener("click", function(e){ if(e.target === cb) return; exp.active = o.l.id; render(); });
+      chips.appendChild(chip);
+    });
+
+    var nSel = chosen.length;
+    var ab = $("#exportAllBtn"), al = $("#exportAllLabel");
+    ab.disabled = nSel === 0; if(al) al.textContent = "Export ALL to XLSX" + (nSel ? " · " + nSel : "");
+    var ub = $("#exportUntransBtn"), ul = $("#exportUntransLabel");
+    ub.disabled = nSel === 0; if(ul) ul.textContent = "Export Untranslated to XLSX" + (nSel ? " · " + nSel : "");
+    $("#expMeta").textContent = locs.length + " locale" + (locs.length !== 1 ? "s" : "") + " · " + T.all + " strings";
+
+    var act = shown.filter(function(o){ return o.l.id === exp.active; })[0];
+    if(act){ renderExpPreview(act.l, cat); $("#expPreviewPanel").hidden = false; }
+    else { $("#expPreviewPanel").hidden = true; }
+
+    renderExpKeys();
+  }
+  /* Union of keys that would be exported (selected locales, active category). */
+  function exportKeyList(){
+    var cat = exp.cat || "locales", scope = exportScope();
+    var seen = {}, order = [];
+    scope.forEach(function(l){
+      catRows(l, cat).forEach(function(r){
+        if(seen[r.term] === undefined){ seen[r.term] = order.length; order.push({ key:r.term, count:0 }); }
+        order[seen[r.term]].count++;
+      });
+    });
+    return order;
+  }
+  function updateExpKeysHead(list){
+    var inc = 0; list.forEach(function(o){ if(!exp.excludeKeys[o.key]) inc++; });
+    $("#expKeysHead").textContent = "Keys — " + inc + " of " + list.length + " included";
+  }
+  function renderExpKeys(){
+    var list = exportKeyList(), panel = $("#expKeysPanel");
+    if(!list.length){ panel.hidden = true; return; }
+    panel.hidden = false;
+    updateExpKeysHead(list);
+    var q = (exp.keyQ || "").trim().toLowerCase();
+    var filtered = q ? list.filter(function(o){ return o.key.toLowerCase().indexOf(q) > -1; }) : list;
+    var host = $("#expKeyList"); host.textContent = "";
+    var CAP = 500;
+    filtered.slice(0, CAP).forEach(function(o){
+      var row = document.createElement("label");
+      row.className = "keyrow" + (exp.excludeKeys[o.key] ? " off" : "");
+      var cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = !exp.excludeKeys[o.key];
+      cb.addEventListener("change", function(){
+        if(cb.checked) delete exp.excludeKeys[o.key]; else exp.excludeKeys[o.key] = true;
+        row.classList.toggle("off", !cb.checked);
+        updateExpKeysHead(list);   // light update — keeps scroll position
+      });
+      var nm = document.createElement("span"); nm.className = "kname"; nm.textContent = o.key; nm.title = o.key;
+      var cnt = document.createElement("span"); cnt.className = "kcnt"; cnt.textContent = "×" + o.count;
+      cnt.title = o.count + " selected locale" + (o.count !== 1 ? "s" : "") + " have this key";
+      row.appendChild(cb); row.appendChild(nm); row.appendChild(cnt);
+      host.appendChild(row);
+    });
+    if(filtered.length > CAP){
+      var more = document.createElement("div"); more.className = "keymore";
+      more.textContent = "…and " + (filtered.length - CAP) + " more — use search to narrow";
+      host.appendChild(more);
+    }
+  }
+  function renderExpPreview(l, cat){
+    var rows = catRows(l, cat), enMap = sourceLookup();
+    $("#expPreviewName").textContent = "Preview · " + l.code + " · " + CATSHORT[cat];
+    var show = Math.min(rows.length, 60);
+    $("#expPreviewMeta").textContent = rows.length + " string" + (rows.length !== 1 ? "s" : "") + (show < rows.length ? " · showing " + show : "");
+    var tbl = $("#expPreviewTable"); tbl.textContent = "";
+    var head = document.createElement("tr");
+    ["Key","Translation","English source","Status"].forEach(function(h){ var th = document.createElement("th"); th.textContent = h; head.appendChild(th); });
+    tbl.appendChild(head);
+    for(var i = 0; i < show; i++){
+      var r = rows[i], tr = document.createElement("tr");
+      var st = statusOf(r);
+      [r.term, r.definition, sourceText(r, enMap), STATUS[st].label].forEach(function(v){
+        var td = document.createElement("td"); td.textContent = v == null ? "" : String(v); tr.appendChild(td);
+      });
+      tbl.appendChild(tr);
+    }
+  }
+  /* Rows of a locale that go into its exported tab (category + key exclusions applied). */
+  function exportRowsOf(l, onlyUntranslated){
+    return l.rows.filter(function(r){
+      if(onlyUntranslated && statusOf(r) !== "missing") return false;
+      if(exp.excludeKeys[r.term]) return false;   // key unticked in the Keys section → omit from every locale
+      return true;
+    });
+  }
+  function localeToPoRows(l, onlyUntranslated){
+    var enMap = sourceLookup();
+    return exportRowsOf(l, onlyUntranslated).map(function(r){
+      return [ r.term, r.definition, r.context || "", r.term_plural || "", r.reference || "", sourceText(r, enMap) ];
+    });
+  }
+  /* Sheet-name reference for an internal hyperlink: 'Name'!A1 (single quotes doubled). */
+  function sheetRef(name){ return "'" + String(name).replace(/'/g, "''") + "'!A1"; }
+
+  /* The first "Contents" tab: one row per exported locale with counts and a link to its tab. */
+  function buildContentsSheet(entries, onlyUntranslated){
+    var rows = [], links = [];
+    var date = new Date().toISOString().slice(0, 10);
+    rows.push([ { v:"Translation export — contents", s:XS.title } ]);
+    rows.push([ (onlyUntranslated ? "Untranslated strings" : "All strings") + " · " +
+                entries.length + " locale" + (entries.length !== 1 ? "s" : "") + " · exported " + date ]);
+    rows.push([ "Click a locale to jump to its tab." ]);
+    rows.push([]);
+    rows.push([ { v:"Locale", s:XS.head }, { v:"Terms", s:XS.head }, { v:"Translated", s:XS.head },
+                { v:"Untranslated", s:XS.head }, { v:"Needs review", s:XS.head }, { v:"Coverage", s:XS.head } ]);
+    var T = { terms:0, done:0, miss:0, review:0 };
+    entries.forEach(function(e){
+      var done = 0, miss = 0, review = 0;
+      e.rows.forEach(function(r){ var st = statusOf(r); if(st === "done") done++; else if(st === "missing") miss++; else review++; });
+      var terms = e.rows.length;
+      T.terms += terms; T.done += done; T.miss += miss; T.review += review;
+      rows.push([ { v:e.code, s:XS.link }, terms, done, miss, review, { v: terms ? done / terms : 0, s:XS.pct } ]);
+      links.push({ ref:"A" + rows.length, location:sheetRef(e.sheet), display:e.code });
+    });
+    rows.push([ { v:"Total", s:XS.bold }, { v:T.terms, s:XS.bold }, { v:T.done, s:XS.bold },
+                { v:T.miss, s:XS.bold }, { v:T.review, s:XS.bold }, { v: T.terms ? T.done / T.terms : 0, s:XS.boldPct } ]);
+    var codeW = entries.reduce(function(m, e){ return Math.max(m, String(e.code).length); }, 6);
+    return {
+      name: "Contents", rows: rows,
+      opts: { colWidths:[ Math.max(codeW + 4, 14), 10, 12, 14, 14, 11 ], hyperlinks: links, widthSkipRows:[0,1,2] }
+    };
+  }
+
+  function exportToXlsx(onlyUntranslated){
+    var scope = exportScope();
+    if(!scope.length){ toast("Tick at least one locale to export"); return; }
+    var used = { contents:1 }, entries = [], skipped = 0;
+    scope.forEach(function(l){
+      var rows = exportRowsOf(l, onlyUntranslated);
+      if(!rows.length){ skipped++; return; }   // e.g. a locale with no untranslated strings
+      entries.push({ code:l.code, sheet:uniqueSheetName(l.code, used), rows:rows, locale:l });
+    });
+    if(!entries.length){ toast(onlyUntranslated ? "No untranslated strings in the selected locales" : "Nothing to export"); return; }
+    // For the untranslated export, box the empty translation column (B) so translators see where to type.
+    var localeOpts = { borderCols: onlyUntranslated ? [1] : [] };
+    var sheets = [ buildContentsSheet(entries, onlyUntranslated) ].concat(entries.map(function(e){
+      return { name:e.sheet, rows:localeToPoRows(e.locale, onlyUntranslated), opts:localeOpts };
+    }));
+    var bytes = makeMultiSheetXlsxBytes(sheets);
+    var fname = (onlyUntranslated ? "translations_untranslated" : "translations_all") + ".xlsx";
+    downloadBlob(new Blob([bytes], { type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), fname);
+    toast("Exported " + entries.length + " locale" + (entries.length !== 1 ? "s" : "") + " to " + fname +
+          " with a Contents tab" + (skipped ? " (" + skipped + " with nothing to export skipped)" : ""));
+  }
+  $("#expStats").addEventListener("click", function(e){
+    var card = e.target.closest("[data-cat]"); if(!card) return;
+    exp.cat = card.dataset.cat; exp.active = -1; render();
+  });
+  $("#expAllBtn").addEventListener("click", function(){
+    exportScopeShown().forEach(function(l){ exp.include[l.id] = true; }); render();
+  });
+  $("#expNoneBtn").addEventListener("click", function(){
+    exportScopeShown().forEach(function(l){ exp.include[l.id] = false; }); render();
+  });
+  // locales currently shown for the active category (ignores ticked state) — for Select all/none
+  function exportScopeShown(){
+    var cat = exp.cat || "locales";
+    return state.locales.filter(function(l){ return catRelevant(localeStats(l), cat); });
+  }
+  $("#exportAllBtn").addEventListener("click", function(){ exportToXlsx(false); });
+  $("#exportUntransBtn").addEventListener("click", function(){ exportToXlsx(true); });
+  $("#expKeySearch").addEventListener("input", function(){ exp.keyQ = this.value; renderExpKeys(); });
+  $("#expKeysAll").addEventListener("click", function(){ exp.excludeKeys = {}; renderExpKeys(); });
+  $("#expKeysNone").addEventListener("click", function(){
+    exportKeyList().forEach(function(o){ exp.excludeKeys[o.key] = true; }); renderExpKeys();
+  });
+  $("#excelBtn").addEventListener("click", function(){
+    if(state.view !== "excel"){ excel.page = "home"; }   // always land on the Excel Tool home
+    setView(state.view === "excel" ? "translate" : "excel");
+  });
+
+  function renderExcel(){
+    var page = excel.page || "home";
+    $("#excelHome").hidden = page !== "home";
+    $("#excelImport").hidden = page !== "import";
+    $("#excelExport").hidden = page !== "export";
+    if(page === "export"){ renderExport(); return; }
+    if(page !== "import") return;   // home page has no dynamic content to render yet
+
+    var loaded = excel.sheets.length > 0;
+    $("#xlsxMeta").textContent = loaded ? (excel.name + " · " + excel.sheets.length + " tabs") : "";
+    $("#tabSelect").hidden = !loaded;
+    $("#previewPanel").hidden = !loaded;
+    $("#excelEmpty").hidden = loaded;
+    var clr = $("#clearXlsxBtn"); if(clr) clr.hidden = !loaded;
+    var inc = includedNames().length;
+    var eb = $("#extractBtn"), el = $("#extractLabel");
+    eb.disabled = inc === 0;
+    if(el) el.textContent = "Extract Locales (XLSX)" + (inc ? " · " + inc : "");
+    var jb = $("#extractJsonBtn"), jl = $("#extractJsonLabel");
+    if(jb) jb.disabled = inc === 0;
+    if(jl) jl.textContent = "Extract Locales (JSON)" + (inc ? " · " + inc : "");
+    var ib = $("#importLocalesBtn"), il = $("#importLocalesLabel");
+    if(ib) ib.disabled = inc === 0;
+    if(il) il.textContent = "Import Selected as Locales" + (inc ? " · " + inc : "");
+    if(!loaded) return;
+
+    $("#tabSelectHead").textContent = "Tabs to extract — " + inc + " of " + excel.sheets.length + " selected";
+    var chips = $("#tabChips"); chips.textContent = "";
+    excel.sheets.forEach(function(s){
+      var dataRows = s.rows.filter(function(r){ return r[0] && String(r[0]).trim(); }).length;
+      var chip = document.createElement("div");
+      chip.className = "tabchip" + (excel.include[s.name] ? " on" : "") + (s.name === excel.active ? " active" : "");
+      var cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = !!excel.include[s.name];
+      cb.addEventListener("click", function(e){ e.stopPropagation(); excel.include[s.name] = cb.checked; render(); });
+      var nm = document.createElement("span"); nm.className = "name"; nm.textContent = s.name;
+      var cnt = document.createElement("span"); cnt.className = "cnt"; cnt.textContent = dataRows;
+      chip.appendChild(cb); chip.appendChild(nm); chip.appendChild(cnt);
+      chip.addEventListener("click", function(e){ if(e.target === cb) return; excel.active = s.name; render(); });
+      chips.appendChild(chip);
+    });
+
+    var s = sheetByName(excel.active) || excel.sheets[0];
+    $("#previewTabName").textContent = "Preview · " + s.name;
+    var totalRows = s.rows.length, cols = s.rows.reduce(function(m,r){ return Math.max(m, r.length); }, 0);
+    var showRows = Math.min(totalRows, 60), showCols = Math.min(Math.max(cols,1), 8);
+    $("#previewMeta").textContent = totalRows + " rows × " + cols + " cols" +
+      ((showRows<totalRows||showCols<cols) ? " · showing " + showRows + "×" + showCols : "");
+    var tbl = $("#previewTable"); tbl.textContent = "";
+    var head = document.createElement("tr");
+    head.appendChild(document.createElement("th"));
+    var AZ = "ABCDEFGH";
+    for(var c=0;c<showCols;c++){ var th=document.createElement("th"); th.textContent = AZ[c]; head.appendChild(th); }
+    tbl.appendChild(head);
+    for(var i=0;i<showRows;i++){
+      var tr=document.createElement("tr");
+      var rh=document.createElement("td"); rh.textContent = (i+1); tr.appendChild(rh);
+      for(var j=0;j<showCols;j++){
+        var td=document.createElement("td");
+        var v = s.rows[i][j] == null ? "" : String(s.rows[i][j]);
+        td.textContent = v; if(v) td.title = v;
+        tr.appendChild(td);
+      }
+      tbl.appendChild(tr);
+    }
+  }
+
+  /* undo wiring */
+  $("#undoBtn").addEventListener("click", undo);
+  document.addEventListener("keydown", function(e){
+    if((e.metaKey || e.ctrlKey) && !e.shiftKey && (e.key === "z" || e.key === "Z")){
+      var t = document.activeElement.tagName;
+      if(t === "TEXTAREA" || t === "INPUT") return; // let fields do their own undo
+      e.preventDefault(); undo();
+    }
+  });
+
+  /* ============ boot ============ */
+  render();     // start as a blank slate — no locale is auto-loaded
+})();
+</script>
+</body>
+</html>
