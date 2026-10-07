@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="light" class="gated">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -722,13 +722,73 @@
   }
   .acct-head h2{align-self:center}
   .warn-msg{white-space:pre-line}
-  button.danger{background:var(--rose); border-color:var(--rose); color:#fff}
-  html[data-theme="dark"] button.danger{color:#0A0E13}
-  button.danger:hover{filter:brightness(1.06); background:var(--rose)}
+  .acct-btns button.danger{background:var(--rose); border-color:var(--rose); color:#fff}
+  html[data-theme="dark"] .acct-btns button.danger{color:#0A0E13}
+  .acct-btns button.danger:hover{filter:brightness(1.06); background:var(--rose)}
+
+  /* ---------- sign-in gate: nothing else is visible until signed in ---------- */
+  .gate{
+    position:fixed; inset:0; z-index:90; display:none; place-items:center;
+    padding:24px 16px; background:var(--bg); overflow:auto;
+  }
+  html.gated .gate{display:grid}
+  html.gated #app,html.gated .toast{visibility:hidden}
+  .gate-card{
+    width:100%; max-width:400px; background:var(--surface); border:1px solid var(--line);
+    border-radius:16px; box-shadow:var(--shadow); padding:32px 28px 24px; text-align:center;
+  }
+  .gate-logo{display:block; margin:0 auto 18px}
+  .gate-card h1{margin:4px 0 8px}
+  .gate-card p{margin:0 0 18px; font-size:13.5px; color:var(--ink-2); line-height:1.55}
+  .gate-card form{text-align:left}
+  .gate-card label{display:block; font-size:12px; font-weight:500; color:var(--ink-2); margin-bottom:6px}
+  .gate-card input[type=email]{
+    width:100%; font:inherit; font-size:14px; color:var(--ink); background:var(--surface-2);
+    border:1px solid var(--line); border-radius:10px; padding:11px 12px; margin-bottom:12px;
+  }
+  .gate-card input[type=email]:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
+  .gate-card button.primary{width:100%; justify-content:center; padding:11px 14px; font-size:13.5px}
+  .gate-busy{font-size:13px; color:var(--ink-3); padding:8px 0 4px}
+  .gate-sent{background:var(--jade-soft); color:var(--jade); border-radius:10px; padding:12px 14px; font-size:13px; line-height:1.5; text-align:left}
+  .gate-sent strong{overflow-wrap:anywhere}
+  .gate-link{all:unset; cursor:pointer; color:var(--accent); font-size:12.5px; margin-top:12px; display:inline-block}
+  .gate-link:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
+  .gate-msg{min-height:1.2em; font-size:12.5px; color:var(--rose); margin:12px 0 0 !important}
+  .gate-foot{font-size:11.5px !important; color:var(--ink-3) !important; margin:18px 0 0 !important; padding-top:14px; border-top:1px solid var(--line)}
   @media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
 </style>
 </head>
 <body>
+<div class="gate" id="gate">
+  <main class="gate-card">
+    <svg class="gate-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="64" height="64" aria-hidden="true">
+      <rect width="512" height="512" rx="112" fill="#2340C4"/>
+      <g transform="translate(256 256) scale(1.27) translate(-259.5 -280.5)">
+      <path d="M138 123h162a36 36 0 0 1 36 36v100a36 36 0 0 1-36 36H205l-62 46 6-46h-11a36 36 0 0 1-36-36V159a36 36 0 0 1 36-36Z" fill="#FFFFFF"/>
+      <rect x="143" y="171" width="150" height="22" rx="11" fill="#2340C4"/>
+      <rect x="143" y="217" width="104" height="22" rx="11" fill="#2340C4"/>
+      <path d="M248 236h126a36 36 0 0 1 36 36v88a36 36 0 0 1-36 36h-7l6 42-58-42h-67a36 36 0 0 1-36-36v-88a36 36 0 0 1 36-36Z" fill="#9DB0FF" stroke="#2340C4" stroke-width="14" stroke-linejoin="round"/>
+      <rect x="254" y="282" width="122" height="20" rx="10" fill="#2340C4"/>
+      <rect x="254" y="324" width="84" height="20" rx="10" fill="#2340C4"/>
+      </g>
+    </svg>
+    <div class="eyebrow">Translation Manager</div>
+    <h1>Sign in</h1>
+    <p>Enter your work email and we'll send you a one-time sign-in link.</p>
+    <div class="gate-busy" id="gateBusy">Checking your session…</div>
+    <form id="gateForm" hidden>
+      <label for="gateEmail">Email</label>
+      <input type="email" id="gateEmail" placeholder="you@company.com" autocomplete="email" required>
+      <button class="primary" type="submit" id="gateSend">Email me a sign-in link</button>
+    </form>
+    <div id="gateSent" hidden>
+      <div class="gate-sent">Check your inbox — we sent a sign-in link to <strong id="gateSentTo"></strong>. Open it on this device to continue.</div>
+      <button type="button" class="gate-link" id="gateAgain">Use a different email</button>
+    </div>
+    <p class="gate-msg" id="gateMsg" role="status"></p>
+    <p class="gate-foot">Access is by invitation only — ask the owner if you need an account.</p>
+  </main>
+</div>
 <div class="app" id="app">
 
   <aside class="sidebar" id="sidebar">
@@ -774,6 +834,10 @@
       <button class="sbfootBtn danger" id="clearAllBtn" title="Remove every loaded locale and start from a blank slate (undoable)">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 5v6m6-6v6"/></svg>
         <span>Clear All (big JSON)</span>
+      </button>
+      <button class="sbfootBtn" id="sbSignOut" title="Sign out" style="display:none">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        <span>Sign out</span>
       </button>
     </div>
     <input type="file" id="addLocaleInput" accept=".json,.xlsx,application/json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
@@ -2395,11 +2459,12 @@
 
   /* drag & drop */
   var dz = $("#drop"), depth = 0;
-  window.addEventListener("dragenter", function(e){ e.preventDefault(); depth++; dz.classList.add("on"); });
+  window.addEventListener("dragenter", function(e){ e.preventDefault(); if(!cloud.user) return; depth++; dz.classList.add("on"); });
   window.addEventListener("dragover", function(e){ e.preventDefault(); });
   window.addEventListener("dragleave", function(){ if(--depth <= 0){ depth = 0; dz.classList.remove("on"); } });
   window.addEventListener("drop", function(e){
     e.preventDefault(); depth = 0; dz.classList.remove("on");
+    if(!cloud.user) return;                       // nothing loads behind the sign-in page
     var f = e.dataTransfer.files && e.dataTransfer.files[0];
     if(!f) return;
     // dropping a file adds it as a new locale (or seeds the first one)
@@ -3811,6 +3876,7 @@
   var cloud = {
     client: null, user: null,
     isOwner: false,   // from the is_owner() database function; gates Open File
+    authKnown: false, // true once Supabase has reported the initial session (sign-in gate)
     ready: false,     // true once the cloud copy has been loaded for this user
     busy: false,      // a save, load or sync is in flight
     synced: {},       // cloudId -> { sig, version } as last written / read
@@ -4004,7 +4070,7 @@
       cloud.client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
       cloud.client.auth.onAuthStateChange(function(event, session){
         var u = session ? session.user : null;
-        setTimeout(function(){ cloudSetUser(u); }, 0);   // never call Supabase inside this callback
+        setTimeout(function(){ cloud.authKnown = true; cloudSetUser(u); }, 0);   // never call Supabase inside this callback
       });
     }
     cloudSetStatus();
@@ -4039,6 +4105,7 @@
     $("#acctSync").disabled = cloud.busy;
     $("#logBtn").style.display = cloud.user ? "" : "none";
     if(!cloud.user) closeLog();
+    gateUpdate();
     $("#acctOff").hidden = !!cloud.client;
     $("#acctOut").hidden = !cloud.client || !!cloud.user;
     $("#acctIn").hidden = !cloud.user;
@@ -4066,8 +4133,10 @@
     if(e.key === "Escape" && $("#acctOv").classList.contains("show")) closeAcct();
   });
   $("#acctSync").addEventListener("click", cloudSync);
-  $("#acctSignOut").addEventListener("click", function(){
-    var btn = this;
+  $("#acctSignOut").addEventListener("click", function(){ signOut(this); });
+  $("#sbSignOut").addEventListener("click", function(){ signOut(this); });
+  function signOut(btn){
+    if(!cloud.client || !cloud.user) return;
     btn.disabled = true;
     cloudFlush().then(function(){
       if(!(cloud.err || cloudDirty())) return true;
@@ -4085,24 +4154,85 @@
     }).catch(function(err){
       toast("Could not sign out — " + ((err && err.message) || "network error"));
     }).then(function(){ btn.disabled = false; });
-  });
-  $("#acctOut").addEventListener("submit", function(e){
-    e.preventDefault();
-    var email = $("#acctEmail").value.trim(), btn = $("#acctSend"), msg = $("#acctOutMsg");
-    if(!email || !cloud.client) return;
-    btn.disabled = true; msg.textContent = "Sending…";
-    cloud.client.auth.signInWithOtp({
+  }
+
+  /* Email a one-time sign-in link. Resolves to "" on success or a readable error. */
+  function sendSignInLink(email){
+    if(!cloud.client) return Promise.resolve("The sign-in service isn't available — check your connection and reload.");
+    return cloud.client.auth.signInWithOtp({
       email: email,
       options: { shouldCreateUser: false, emailRedirectTo: location.origin + location.pathname }
     }).then(function(res){
       if(res.error) throw res.error;
-      msg.textContent = "Check your inbox — we sent you a sign-in link.";
+      try{ localStorage.setItem("tm.lastEmail", email); }catch(e){}
+      return "";
     }).catch(function(err){
       var m = (err && err.message) || "";
-      msg.textContent = /signup|not allowed|not found/i.test(m)
-        ? "This email hasn't been invited yet. Ask an admin to invite you."
-        : "Could not send the link — " + (m || "network error");
-    }).then(function(){ btn.disabled = false; });
+      if(/signup|not allowed|not found/i.test(m)) return "This email hasn't been invited yet. Ask the owner to invite you.";
+      if(/rate|too many|seconds/i.test(m)) return "Too many sign-in emails were requested. Wait a minute and try again.";
+      return "Could not send the link — " + (m || "network error");
+    });
+  }
+  $("#acctOut").addEventListener("submit", function(e){
+    e.preventDefault();
+    var email = $("#acctEmail").value.trim(), btn = $("#acctSend"), msg = $("#acctOutMsg");
+    if(!email) return;
+    btn.disabled = true; msg.textContent = "Sending…";
+    sendSignInLink(email).then(function(err){
+      msg.textContent = err || "Check your inbox — we sent you a sign-in link.";
+      btn.disabled = false;
+    });
+  });
+
+  /* ============ sign-in gate ============
+     The whole app stays hidden (html.gated) until Supabase reports a signed-in user. */
+  var gateMsgFromUrl = (function(){
+    // a used or expired magic link comes back as #error=…&error_description=…
+    var h = new URLSearchParams(location.hash.replace(/^#/, ""));
+    var d = h.get("error_description") || "";
+    if(!h.get("error")) return "";
+    return /expired|invalid/i.test(d) ? "That sign-in link has expired or was already used. Request a new one below."
+                                     : "Sign-in failed — " + d.replace(/\+/g, " ");
+  })();
+  function gateUpdate(){
+    var gated = !cloud.user;
+    var root = document.documentElement, wasGated = root.classList.contains("gated");
+    root.classList.toggle("gated", gated);
+    if(gated) $("#app").setAttribute("inert", ""); else $("#app").removeAttribute("inert");
+    $("#sbSignOut").style.display = cloud.user ? "" : "none";
+    if(cloud.user) $("#sbSignOut").title = "Sign out " + (cloud.user.email || "");
+    if(!gated) return;
+    var known = cloud.authKnown || !cloud.client;
+    $("#gateBusy").hidden = known;
+    if(!cloud.client){
+      $("#gateForm").hidden = true; $("#gateSent").hidden = true;
+      $("#gateMsg").textContent = "Couldn't load the sign-in service. Check your connection and reload the page.";
+      return;
+    }
+    if(!known) return;
+    if($("#gateSent").hidden){
+      $("#gateForm").hidden = false;
+      if(gateMsgFromUrl && !$("#gateMsg").textContent) $("#gateMsg").textContent = gateMsgFromUrl;
+      if(!wasGated || document.activeElement === document.body) $("#gateEmail").focus();
+    }
+  }
+  try{ var last = localStorage.getItem("tm.lastEmail"); if(last) $("#gateEmail").value = last; }catch(e){}
+  $("#gateForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    var email = $("#gateEmail").value.trim(), btn = $("#gateSend");
+    if(!email) return;
+    btn.disabled = true; btn.textContent = "Sending…"; $("#gateMsg").textContent = "";
+    sendSignInLink(email).then(function(err){
+      btn.disabled = false; btn.textContent = "Email me a sign-in link";
+      if(err){ $("#gateMsg").textContent = err; return; }
+      $("#gateSentTo").textContent = email;
+      $("#gateForm").hidden = true; $("#gateSent").hidden = false;
+      $("#gateAgain").focus();
+    });
+  });
+  $("#gateAgain").addEventListener("click", function(){
+    $("#gateSent").hidden = true; $("#gateForm").hidden = false; $("#gateMsg").textContent = "";
+    $("#gateEmail").select(); $("#gateEmail").focus();
   });
   window.addEventListener("beforeunload", function(e){
     if(cloud.busy || cloudDirty()){ cloudFlush(); e.preventDefault(); e.returnValue = ""; }
