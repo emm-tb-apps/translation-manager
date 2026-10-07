@@ -605,6 +605,52 @@
     .app.railed .sidebar{width:auto}
     .app.railed .loc .meta2,.app.railed .addLoc span,.app.railed .sbfootBtn span{display:flex}
   }
+  /* ---------- account / cloud sync ---------- */
+  #acctBtn{position:relative}
+  .acct-dot{
+    position:absolute; right:3px; top:3px; width:8px; height:8px; border-radius:50%;
+    border:2px solid var(--surface); background:var(--tick-empty);
+  }
+  .acct-dot[data-s="idle"]{background:var(--jade)}
+  .acct-dot[data-s="saving"]{background:var(--accent)}
+  .acct-dot[data-s="error"],.acct-dot[data-s="conflict"]{background:var(--rose)}
+  .acct-ov{
+    position:fixed; inset:0; z-index:75; display:none; place-items:start center;
+    padding:72px 16px 16px; background:rgba(14,22,32,.28);
+    background:color-mix(in srgb,var(--ink) 22%,transparent);
+  }
+  .acct-ov.show{display:grid}
+  .acct{
+    width:100%; max-width:380px; background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--r); box-shadow:var(--shadow); padding:20px 20px 18px;
+  }
+  .acct h2{font:700 18px/1.2 "Bricolage Grotesque",Inter,sans-serif; margin:0 0 4px}
+  .acct p{margin:0 0 14px; font-size:13px; color:var(--ink-2); line-height:1.5}
+  .acct-head{display:flex; align-items:flex-start; gap:10px; margin-bottom:12px}
+  .acct-head .x{margin-left:auto}
+  .acct-who{
+    display:flex; align-items:center; gap:10px; padding:10px 12px; margin-bottom:12px;
+    background:var(--surface-2); border:1px solid var(--line); border-radius:10px;
+    font-size:13px; overflow-wrap:anywhere;
+  }
+  .acct-av{
+    flex:none; width:30px; height:30px; border-radius:50%; display:grid; place-items:center;
+    background:var(--accent-soft); color:var(--accent); font-weight:600; font-size:13px;
+  }
+  .acct-status{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--ink-2); margin-bottom:14px}
+  .acct-status .acct-dot{position:static; border:0; flex:none}
+  .acct-warn{
+    font-size:12.5px; color:var(--rose); background:var(--rose-soft); border-radius:8px;
+    padding:8px 10px; margin-bottom:12px; line-height:1.45;
+  }
+  .acct input[type=email]{
+    width:100%; font:inherit; font-size:13.5px; color:var(--ink); background:var(--surface-2);
+    border:1px solid var(--line); border-radius:9px; padding:9px 11px; margin-bottom:10px;
+  }
+  .acct input[type=email]:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
+  .acct-btns{display:flex; gap:8px; flex-wrap:wrap}
+  .acct-btns button{flex:1; justify-content:center}
+  .acct-msg{font-size:12.5px; color:var(--ink-2); margin-top:10px; min-height:1em}
   @media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
 </style>
 </head>
@@ -673,6 +719,10 @@
       </div>
     </div>
     <div class="actions">
+      <button class="icon" id="acctBtn" title="Account &amp; cloud sync" aria-label="Account and cloud sync" aria-haspopup="dialog">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.6"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.6 3.6 0 0 1 0 6.8M18.5 14.3A6.5 6.5 0 0 1 21.5 20"/></svg>
+        <span class="acct-dot" id="acctDot" data-s="off"></span>
+      </button>
       <button class="icon" id="themeBtn" title="Switch to dark mode" aria-label="Switch colour theme"></button>
       <button id="undoBtn" title="Undo last change" disabled>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7 4 12l5 5"/><path d="M4 12h11a5 5 0 0 1 0 10h-1"/></svg>
@@ -1035,6 +1085,41 @@
 <div class="toast" id="toast"></div>
 <div class="drop" id="drop"><div>Drop a .json or .csv locale file</div></div>
 
+<div class="acct-ov" id="acctOv">
+  <div class="acct" role="dialog" aria-modal="true" aria-labelledby="acctTitle">
+    <div class="acct-head">
+      <div>
+        <h2 id="acctTitle">Account</h2>
+      </div>
+      <button class="icon x" id="acctClose" aria-label="Close">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div id="acctOff" hidden>
+      <p>Cloud sync isn't configured for this copy of the app. Edits stay in this tab until you export.</p>
+    </div>
+    <form id="acctOut" hidden>
+      <p>Sign in to save translations to the cloud automatically and share them with your team.</p>
+      <input type="email" id="acctEmail" placeholder="you@company.com" autocomplete="email" required aria-label="Email address">
+      <div class="acct-btns"><button class="primary" type="submit" id="acctSend">Email me a sign-in link</button></div>
+      <div class="acct-msg" id="acctOutMsg" role="status"></div>
+    </form>
+    <div id="acctIn" hidden>
+      <div class="acct-who"><span class="acct-av" id="acctAv"></span><span id="acctEmailLbl"></span></div>
+      <div class="acct-status"><span class="acct-dot" id="acctDot2" data-s="off"></span><span id="acctStatus" role="status"></span></div>
+      <div class="acct-warn" id="acctWarn" hidden></div>
+      <div class="acct-btns">
+        <button class="primary" id="acctSync">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.7-4.4M4 4v3h3M4 13a8 8 0 0 0 14.7 4.4M20 20v-3h-3"/></svg>
+          Sync now
+        </button>
+        <button id="acctSignOut">Sign out</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"></script>
 <script>
 (function(){
   "use strict";
@@ -1067,7 +1152,7 @@
     term:r.term, definition:r.definition, context:r.context, term_plural:r.term_plural,
     reference:r.reference, comment:r.comment, source:r.source,
     tags:(r.tags ? r.tags.slice() : []), fuzzy:r.fuzzy }; }); }
-  function cloneLocale(l){ return { id:l.id, code:l.code, name:l.name, file:l.file,
+  function cloneLocale(l){ return { id:l.id, cloudId:l.cloudId, code:l.code, name:l.name, file:l.file,
     rows:cloneRows(l.rows), selected:Object.assign({}, l.selected) }; }
 
   /* Call BEFORE any content change. Snapshots the WHOLE project (all locales), tagged with
@@ -1079,6 +1164,7 @@
     history.push({ activeId: a ? a.id : -1, locales: state.locales.map(cloneLocale) });
     if(history.length > HISTORY_MAX) history.shift();
     updateUndo();
+    cloudSchedule();   // the change happens right after this; the debounced save picks it up
   }
   function undo(){
     var snap = history.pop();
@@ -1686,7 +1772,9 @@
     if(!state.locales.length){ toast("No locales to clear"); return; }
     var n = state.locales.length;
     if(typeof window.confirm === "function" &&
-       !window.confirm("Clear all " + n + " loaded locale" + (n > 1 ? "s" : "") + "? You can undo this right after.")) return;
+       !window.confirm("Clear all " + n + " loaded locale" + (n > 1 ? "s" : "") + "?" +
+         (cloud.user ? " This also deletes them from the cloud for everyone." : "") +
+         " You can undo this right after.")) return;
     snapshot();                                   // so Undo brings everything back
     state.locales = [];
     state.active = -1;
@@ -2928,6 +3016,7 @@
     renderSidebar();
     renderHeader();
     updateUndo();
+    cloudSchedule();
     var keys = state.view === "keys", xl = state.view === "excel";
     $("#translateView").hidden = keys || xl;
     $("#keysView").hidden = !keys;
@@ -3442,6 +3531,290 @@
     }
   }
 
+  /* ============ Cloud sync (Supabase) ============
+     Signed-in users share one workspace: each locale is one row in public.locales with its
+     strings stored as jsonb. Changes are auto-saved SAVE_DELAY ms after the last edit, and
+     only locales whose content changed are written. Updates carry the version we last saw,
+     so a locale someone else saved in the meantime is never silently overwritten — it is
+     flagged as a conflict until the user presses Sync (which loads the cloud copy). */
+  var SUPABASE_URL = "https://hnopvjgoywosldzrbiav.supabase.co";
+  var SUPABASE_KEY = "sb_publishable_9ZmhPLWB8hlnfNMKyacFIQ_xw_C2IAk";   // publishable key — safe in the browser; row-level security guards the data
+  var SAVE_DELAY = 1500, RETRY_DELAY = 10000;
+  var cloud = {
+    client: null, user: null,
+    ready: false,     // true once the cloud copy has been loaded for this user
+    busy: false,      // a save, load or sync is in flight
+    synced: {},       // cloudId -> { sig, version } as last written / read
+    conflicts: {},    // cloudId -> locale code, for locales changed elsewhere
+    err: "", lastSaved: null,
+    timer: null, running: null, again: false
+  };
+  var FOOTNOTE_LOCAL = "", FOOTNOTE_CLOUD = "Changes are saved to the cloud automatically. Undo covers the last 10 changes across all locales.";
+
+  function newCloudId(){
+    if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c){
+      var r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 3 | 8)).toString(16);
+    });
+  }
+  function cloudRows(l){
+    return l.rows.map(function(r){
+      return { term:r.term, definition:r.definition, context:r.context,
+               term_plural:r.term_plural, reference:r.reference,
+               comment:r.comment, source:r.source,
+               tags:normTags(r.tags), fuzzy:r.fuzzy ? 1 : 0 };
+    });
+  }
+  function cloudRecord(l, i){
+    return { code:l.code, name:l.name || "", file:l.file || "", position:i, strings:cloudRows(l) };
+  }
+  function cloudSig(rec){ return JSON.stringify([rec.code, rec.name, rec.file, rec.position, rec.strings]); }
+
+  function cloudSchedule(delay){
+    if(!cloud.user || !cloud.ready) return;
+    clearTimeout(cloud.timer);
+    cloud.timer = setTimeout(cloudFlush, delay == null ? SAVE_DELAY : delay);
+  }
+  function cloudDirty(){
+    if(!cloud.user || !cloud.ready) return false;
+    var seen = {};
+    var changed = state.locales.some(function(l, i){
+      if(!l.cloudId) return true;
+      seen[l.cloudId] = 1;
+      if(cloud.conflicts[l.cloudId]) return false;
+      var p = cloud.synced[l.cloudId];
+      return !p || p.sig !== cloudSig(cloudRecord(l, i));
+    });
+    return changed || Object.keys(cloud.synced).some(function(id){ return !seen[id]; });
+  }
+
+  /* Write every changed locale, insert new ones, delete removed ones. Never rejects. */
+  function cloudFlush(){
+    clearTimeout(cloud.timer); cloud.timer = null;
+    if(!cloud.user || !cloud.ready) return Promise.resolve();
+    if(cloud.running){ cloud.again = true; return cloud.running; }
+    var jobs = [], seen = {}, fresh = [];
+    state.locales.forEach(function(l, i){
+      if(!l.cloudId) l.cloudId = newCloudId();
+      var id = l.cloudId;
+      seen[id] = 1;
+      if(cloud.conflicts[id]) return;
+      var rec = cloudRecord(l, i), sig = cloudSig(rec), prev = cloud.synced[id];
+      if(prev && prev.sig === sig) return;
+      var q = prev
+        ? cloud.client.from("locales").update(rec).eq("id", id).eq("version", prev.version)
+        : cloud.client.from("locales").upsert(Object.assign({ id:id }, rec));
+      jobs.push(q.select("version").then(function(res){
+        if(res.error) throw res.error;
+        if(!res.data || !res.data.length){ cloud.conflicts[id] = l.code; fresh.push(l.code); return; }
+        cloud.synced[id] = { sig:sig, version:res.data[0].version };
+      }));
+    });
+    Object.keys(cloud.synced).forEach(function(id){
+      if(seen[id]) return;
+      jobs.push(cloud.client.from("locales").delete().eq("id", id).then(function(res){
+        if(res.error) throw res.error;
+        delete cloud.synced[id];
+      }));
+    });
+    if(!jobs.length){ cloudSetStatus(); return Promise.resolve(); }
+    cloud.busy = true; cloudSetStatus();
+    cloud.running = Promise.all(jobs).then(function(){
+      cloud.err = ""; cloud.lastSaved = new Date();
+    }, function(err){
+      cloud.err = (err && err.message) || "network error";
+      cloudSchedule(RETRY_DELAY);
+    }).then(function(){
+      cloud.busy = false; cloud.running = null;
+      if(fresh.length) toast("“" + fresh.join("”, “") + "” was changed by someone else — open Account and press Sync");
+      cloudSetStatus();
+      if(cloud.again){ cloud.again = false; return cloudFlush(); }
+    });
+    return cloud.running;
+  }
+
+  function cloudFetch(){
+    return cloud.client.from("locales")
+      .select("id,code,name,file,position,strings,version")
+      .order("position").order("created_at")
+      .then(function(res){ if(res.error) throw res.error; return res.data || []; });
+  }
+  /* Replace the screen with the cloud copy. Locales that were never saved (e.g. opened before
+     signing in) are kept and uploaded by the next save. */
+  function cloudApply(data){
+    var prev = cloud.synced, a = activeLocale();
+    cloud.synced = {}; cloud.conflicts = {};
+    var built = data.map(function(d, i){
+      var l = { id: ++uid, cloudId: d.id, code: d.code, name: d.name || "", file: d.file || "",
+                rows: (Array.isArray(d.strings) ? d.strings : []).map(makeRow), selected: {} };
+      cloud.synced[d.id] = { sig: cloudSig(cloudRecord(l, i)), version: d.version };
+      return l;
+    });
+    state.locales.filter(function(l){
+      return !l.cloudId || (!cloud.synced[l.cloudId] && !prev[l.cloudId]);
+    }).forEach(function(l){
+      var base = l.code, c = base, n = 2;
+      while(built.some(function(b){ return b.code === c; })){ c = base + "-" + n; n++; }
+      l.code = c; built.push(l);
+    });
+    var idx = built.indexOf(a);
+    if(idx < 0 && a && a.cloudId) idx = built.findIndex(function(l){ return l.cloudId === a.cloudId; });
+    state.locales = built;
+    state.active = idx > -1 ? idx : (built.length ? 0 : -1);
+    state.limit = 120;
+    history = []; updateUndo();
+    cloud.ready = true;
+    render();
+  }
+
+  function cloudSync(){
+    if(!cloud.user || cloud.busy) return;
+    var codes = Object.keys(cloud.conflicts).map(function(id){ return cloud.conflicts[id]; });
+    if(codes.length && typeof window.confirm === "function" &&
+       !window.confirm("Someone else changed “" + codes.join("”, “") + "” since you loaded it. " +
+         "Syncing loads their version and discards your unsaved edits to " +
+         (codes.length > 1 ? "those locales" : "it") + ". Continue?")) return;
+    (cloud.ready ? cloudFlush() : Promise.resolve()).then(function(){
+      if(cloud.err && cloud.ready) throw new Error("your latest changes couldn't be saved (" + cloud.err + ")");
+      cloud.busy = true; cloudSetStatus();
+      return cloudFetch();
+    }).then(function(data){
+      cloud.busy = false; cloud.err = ""; cloud.lastSaved = new Date();
+      cloudApply(data);
+      toast("Synced · " + data.length + " locale" + (data.length !== 1 ? "s" : "") + " from the cloud");
+    }).catch(function(err){
+      cloud.busy = false;
+      toast("Sync failed — " + ((err && err.message) || "network error"));
+    }).then(function(){ cloudSetStatus(); });
+  }
+
+  function cloudSetUser(u){
+    var was = cloud.user ? cloud.user.id : null, now = u ? u.id : null;
+    cloud.user = u;
+    if(was === now){ cloudSetStatus(); return; }
+    clearTimeout(cloud.timer); cloud.timer = null;
+    cloud.ready = false; cloud.synced = {}; cloud.conflicts = {}; cloud.err = ""; cloud.lastSaved = null;
+    if(!now){
+      // signed out: team data shouldn't linger on this screen
+      state.locales = []; state.active = -1; state.view = "translate";
+      history = []; updateUndo();
+      render(); cloudSetStatus();
+      if(was) toast("Signed out");
+      return;
+    }
+    cloud.busy = true; cloudSetStatus();
+    cloudFetch().then(function(data){
+      cloud.busy = false; cloud.lastSaved = new Date();
+      cloudApply(data);
+      toast(data.length
+        ? "Loaded " + data.length + " locale" + (data.length !== 1 ? "s" : "") + " from the cloud"
+        : "Signed in — your locales will be saved to the cloud");
+    }).catch(function(err){
+      cloud.busy = false;
+      cloud.err = "couldn't load from the cloud (" + ((err && err.message) || "network error") + "). Press Sync to retry";
+      toast("Could not load from the cloud");
+    }).then(function(){ cloudSetStatus(); });
+  }
+
+  function cloudInit(){
+    var fn = document.querySelector(".footnote");
+    if(fn) FOOTNOTE_LOCAL = fn.textContent;
+    if(SUPABASE_URL && SUPABASE_KEY && window.supabase){
+      cloud.client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      cloud.client.auth.onAuthStateChange(function(event, session){
+        var u = session ? session.user : null;
+        setTimeout(function(){ cloudSetUser(u); }, 0);   // never call Supabase inside this callback
+      });
+    }
+    cloudSetStatus();
+  }
+
+  function cloudSetStatus(){
+    var s = !cloud.user ? "off" : cloud.busy ? "saving"
+          : Object.keys(cloud.conflicts).length ? "conflict" : cloud.err ? "error" : "idle";
+    $("#acctDot").setAttribute("data-s", s);
+    $("#acctDot2").setAttribute("data-s", s);
+    var text = {
+      off: "",
+      saving: cloud.ready ? "Saving…" : "Loading…",
+      conflict: "Changed by someone else — press Sync to load the latest",
+      error: "Not saved — " + cloud.err,
+      idle: "All changes saved" + (cloud.lastSaved
+        ? " · " + cloud.lastSaved.toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" }) : "")
+    }[s];
+    $("#acctStatus").textContent = text;
+    $("#acctBtn").title = cloud.user ? "Account · " + text : "Account & cloud sync";
+    var codes = Object.keys(cloud.conflicts).map(function(id){ return cloud.conflicts[id]; });
+    var warn = $("#acctWarn");
+    warn.hidden = !codes.length;
+    warn.textContent = codes.length
+      ? "“" + codes.join("”, “") + "” " + (codes.length > 1 ? "were" : "was") +
+        " changed by someone else, so your edits there aren't being saved. Sync loads the cloud version."
+      : "";
+    $("#acctSync").disabled = cloud.busy;
+    $("#acctOff").hidden = !!cloud.client;
+    $("#acctOut").hidden = !cloud.client || !!cloud.user;
+    $("#acctIn").hidden = !cloud.user;
+    if(cloud.user){
+      var email = cloud.user.email || "";
+      $("#acctEmailLbl").textContent = email;
+      $("#acctAv").textContent = (email.charAt(0) || "?").toUpperCase();
+    }
+    var fn = document.querySelector(".footnote");
+    if(fn) fn.textContent = cloud.user ? FOOTNOTE_CLOUD : FOOTNOTE_LOCAL;
+  }
+
+  /* account dialog */
+  function openAcct(){
+    cloudSetStatus();
+    $("#acctOv").classList.add("show");
+    var f = cloud.user ? $("#acctSync") : $("#acctEmail");
+    if(f && !f.closest("[hidden]")) f.focus();
+  }
+  function closeAcct(){ $("#acctOv").classList.remove("show"); $("#acctBtn").focus(); }
+  $("#acctBtn").addEventListener("click", openAcct);
+  $("#acctClose").addEventListener("click", closeAcct);
+  $("#acctOv").addEventListener("click", function(e){ if(e.target === this) closeAcct(); });
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && $("#acctOv").classList.contains("show")) closeAcct();
+  });
+  $("#acctSync").addEventListener("click", cloudSync);
+  $("#acctSignOut").addEventListener("click", function(){
+    var btn = this;
+    btn.disabled = true;
+    cloudFlush().then(function(){
+      if((cloud.err || cloudDirty()) && typeof window.confirm === "function" &&
+         !window.confirm("Some changes haven't been saved to the cloud yet and will be lost. Sign out anyway?")) return;
+      return cloud.client.auth.signOut().then(function(res){
+        if(res && res.error) throw res.error;
+        closeAcct();
+      });
+    }).catch(function(err){
+      toast("Could not sign out — " + ((err && err.message) || "network error"));
+    }).then(function(){ btn.disabled = false; });
+  });
+  $("#acctOut").addEventListener("submit", function(e){
+    e.preventDefault();
+    var email = $("#acctEmail").value.trim(), btn = $("#acctSend"), msg = $("#acctOutMsg");
+    if(!email || !cloud.client) return;
+    btn.disabled = true; msg.textContent = "Sending…";
+    cloud.client.auth.signInWithOtp({
+      email: email,
+      options: { shouldCreateUser: false, emailRedirectTo: location.origin + location.pathname }
+    }).then(function(res){
+      if(res.error) throw res.error;
+      msg.textContent = "Check your inbox — we sent you a sign-in link.";
+    }).catch(function(err){
+      var m = (err && err.message) || "";
+      msg.textContent = /signup|not allowed|not found/i.test(m)
+        ? "This email hasn't been invited yet. Ask an admin to invite you."
+        : "Could not send the link — " + (m || "network error");
+    }).then(function(){ btn.disabled = false; });
+  });
+  window.addEventListener("beforeunload", function(e){
+    if(cloud.busy || cloudDirty()){ cloudFlush(); e.preventDefault(); e.returnValue = ""; }
+  });
+
   /* undo wiring */
   $("#undoBtn").addEventListener("click", undo);
   document.addEventListener("keydown", function(e){
@@ -3454,6 +3827,7 @@
 
   /* ============ boot ============ */
   render();     // start as a blank slate — no locale is auto-loaded
+  cloudInit();  // signed-in users then get the shared cloud workspace
 })();
 </script>
 </body>
