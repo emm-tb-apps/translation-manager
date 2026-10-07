@@ -4,7 +4,7 @@
    - Static assets (icons, manifest, fonts, supabase-js) are stale-while-revalidate.
    - Supabase API and auth traffic is never cached.
    Bump VERSION whenever the list of shell files changes. */
-const VERSION = "tm-v1";
+const VERSION = "tm-v2";
 const SHELL = [
   "./",
   "./manifest.webmanifest",
