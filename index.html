@@ -651,6 +651,70 @@
   .acct-btns{display:flex; gap:8px; flex-wrap:wrap}
   .acct-btns button{flex:1; justify-content:center}
   .acct-msg{font-size:12.5px; color:var(--ink-2); margin-top:10px; min-height:1em}
+  /* ---------- activity log page ---------- */
+  .logpage{position:fixed; inset:0; z-index:72; background:var(--bg); overflow:auto}
+  .logwrap{max-width:960px; margin:0 auto; padding:28px 16px 56px}
+  .loghead{display:flex; align-items:flex-start; gap:12px; margin-bottom:18px}
+  .loghead h1{margin:2px 0 4px}
+  .loghead .icon{margin-left:auto; flex:none}
+  .logbar{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px}
+  .logbar select{
+    font:inherit; font-size:12.5px; color:var(--ink); background:var(--surface);
+    border:1px solid var(--line); border-radius:9px; padding:8px 10px; max-width:100%;
+  }
+  .logday{
+    font:500 11px/1.2 "IBM Plex Mono",monospace; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--ink-3); margin:22px 0 8px;
+  }
+  .logitem{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
+    box-shadow:var(--shadow); margin-bottom:8px; overflow:hidden;
+  }
+  .logrow{
+    all:unset; box-sizing:border-box; width:100%; cursor:pointer;
+    display:flex; align-items:center; gap:10px 12px; flex-wrap:wrap; padding:11px 14px; font-size:13px;
+  }
+  .logrow:hover{background:var(--surface-2)}
+  .logrow:focus-visible{outline:2px solid var(--accent); outline-offset:-2px}
+  .logtime{font:400 12px "IBM Plex Mono",monospace; color:var(--ink-3); flex:none; width:42px}
+  .logwho{display:flex; align-items:center; gap:8px; flex:1 1 200px; min-width:0; overflow-wrap:anywhere}
+  .logwho .acct-av{width:24px; height:24px; font-size:11px}
+  .logact{flex:none; font-size:11px; font-weight:600; padding:2px 8px; border-radius:999px}
+  .logact[data-a="created"]{background:var(--jade-soft); color:var(--jade)}
+  .logact[data-a="updated"]{background:var(--accent-soft); color:var(--accent)}
+  .logact[data-a="deleted"]{background:var(--rose-soft); color:var(--rose)}
+  .logloc{flex:none; font:500 12px "IBM Plex Mono",monospace; color:var(--accent)}
+  .logsum{flex:2 1 220px; color:var(--ink-2)}
+  .logchev{flex:none; color:var(--ink-3); transition:transform .15s}
+  .logrow[aria-expanded="true"] .logchev{transform:rotate(90deg)}
+  .logdetail{border-top:1px solid var(--line); padding:6px 14px 12px; overflow-x:auto; font-size:12.5px}
+  .logdetail p{margin:8px 0 0; color:var(--ink-2)}
+  .logkeys{width:100%; border-collapse:collapse}
+  .logkeys th{text-align:left; font-weight:500; color:var(--ink-3); font-size:11.5px; padding:8px 8px 4px}
+  .logkeys td{padding:6px 8px; border-top:1px solid var(--line); vertical-align:top; overflow-wrap:anywhere}
+  .logkeys .k{font-family:"IBM Plex Mono",monospace; font-size:12px; min-width:120px}
+  .logkeys .was{color:var(--rose); text-decoration:line-through; text-decoration-thickness:1px}
+  .logkeys .now{color:var(--jade)}
+  .logkeys .none{color:var(--ink-3); font-style:italic}
+  @media (max-width:600px){
+    .logkeys tr:first-child{display:none}
+    .logkeys tr{display:grid; grid-template-columns:1fr 1fr; border-top:1px solid var(--line); padding:6px 0}
+    .logkeys td{border-top:0; padding:2px 8px}
+    .logkeys td.k,.logkeys td:nth-child(2){grid-column:1 / -1}
+    .logkeys td:nth-child(2){color:var(--ink-3); font-size:11.5px}
+  }
+  .logfoot{display:flex; align-items:center; gap:12px; margin-top:14px}
+  .logempty{padding:40px 16px; text-align:center; color:var(--ink-3); font-size:13px}
+  #warnOv{z-index:78}
+  .warn-ic{
+    flex:none; width:34px; height:34px; border-radius:50%; display:grid; place-items:center;
+    background:var(--ochre-soft); color:var(--ochre);
+  }
+  .acct-head h2{align-self:center}
+  .warn-msg{white-space:pre-line}
+  button.danger{background:var(--rose); border-color:var(--rose); color:#fff}
+  html[data-theme="dark"] button.danger{color:#0A0E13}
+  button.danger:hover{filter:brightness(1.06); background:var(--rose)}
   @media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
 </style>
 </head>
@@ -689,7 +753,7 @@
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>
         <span>Excel Tool</span>
       </button>
-      <button class="sbfootBtn" id="openFileBtn" title="Open a Save All project file">
+      <button class="sbfootBtn" id="openFileBtn" title="Open a Save All project file (replaces all locales — owner only)" style="display:none">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>
         <span>Open File (big JSON)</span>
       </button>
@@ -719,6 +783,10 @@
       </div>
     </div>
     <div class="actions">
+      <button id="logBtn" title="Activity Log — who changed what, and when" aria-haspopup="dialog" style="display:none">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>
+        Activity Log
+      </button>
       <button class="icon" id="acctBtn" title="Account &amp; cloud sync" aria-label="Account and cloud sync" aria-haspopup="dialog">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.6"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.6 3.6 0 0 1 0 6.8M18.5 14.3A6.5 6.5 0 0 1 21.5 20"/></svg>
         <span class="acct-dot" id="acctDot" data-s="off"></span>
@@ -1119,6 +1187,50 @@
   </div>
 </div>
 
+<div class="logpage" id="logPage" role="dialog" aria-modal="true" aria-labelledby="logTitle" hidden>
+  <div class="logwrap">
+    <header class="loghead">
+      <div>
+        <div class="eyebrow">Translation Manager</div>
+        <h1 id="logTitle">Activity Log</h1>
+        <p class="filemeta">Every change saved to the cloud — who made it, when, and exactly what changed.</p>
+      </div>
+      <button class="icon" id="logClose" aria-label="Close Activity Log">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </header>
+    <div class="logbar">
+      <select id="logLocale" aria-label="Filter by locale"><option value="">All locales</option></select>
+      <select id="logUser" aria-label="Filter by person"><option value="">Everyone</option></select>
+      <button id="logRefresh">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.7-4.4M4 4v3h3M4 13a8 8 0 0 0 14.7 4.4M20 20v-3h-3"/></svg>
+        Refresh
+      </button>
+    </div>
+    <div id="logList"></div>
+    <div class="logfoot">
+      <button id="logMore" hidden>Load more</button>
+      <span class="filemeta" id="logMeta" role="status"></span>
+    </div>
+  </div>
+</div>
+
+<div class="acct-ov" id="warnOv">
+  <div class="acct" role="alertdialog" aria-modal="true" aria-labelledby="warnTitle" aria-describedby="warnMsg">
+    <div class="acct-head">
+      <span class="warn-ic" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
+      </span>
+      <h2 id="warnTitle">Are you sure?</h2>
+    </div>
+    <p id="warnMsg" class="warn-msg"></p>
+    <div class="acct-btns">
+      <button id="warnCancel">Cancel</button>
+      <button class="danger" id="warnOk">Continue</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"></script>
 <script>
 (function(){
@@ -1212,6 +1324,32 @@
     el.textContent = msg; el.classList.add("show");
     clearTimeout(toastT); toastT = setTimeout(function(){ el.classList.remove("show"); }, 2600);
   }
+
+  /* ============ warning dialog ============
+     warn({ title, message, ok }) → Promise<boolean>. Used before anything that overwrites
+     or deletes existing data. Cancel is focused, so Enter/Escape never destroy anything. */
+  var warnResolve = null;
+  function warn(opts){
+    if(warnResolve) closeWarn(false);
+    $("#warnTitle").textContent = opts.title || "Are you sure?";
+    $("#warnMsg").textContent = opts.message || "";
+    $("#warnOk").textContent = opts.ok || "Continue";
+    $("#warnOv").classList.add("show");
+    $("#warnCancel").focus();
+    return new Promise(function(res){ warnResolve = res; });
+  }
+  function closeWarn(ok){
+    if(!warnResolve) return;
+    var r = warnResolve; warnResolve = null;
+    $("#warnOv").classList.remove("show");
+    r(ok);
+  }
+  $("#warnOk").addEventListener("click", function(){ closeWarn(true); });
+  $("#warnCancel").addEventListener("click", function(){ closeWarn(false); });
+  $("#warnOv").addEventListener("click", function(e){ if(e.target === this) closeWarn(false); });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && warnResolve) closeWarn(false); });
+  // appended to warnings when the change also lands in the shared cloud workspace
+  function cloudNote(){ return cloud.user ? "\n\nThis also changes the shared cloud copy for everyone." : ""; }
 
   /* ============ csv ============ */
   function sniffDelim(line){
@@ -1420,10 +1558,24 @@
     return c;
   }
 
-  /* Add a brand-new locale to the sidebar and switch to it. */
+  /* Add a brand-new locale to the sidebar and switch to it. If a locale with that code
+     already exists, warn first — confirming overwrites it with the file's strings. */
   function addLocale(rows, fileName, codeOverride){
     if(!rows.length){ toast("No strings found in that file"); return; }
-    var code = uniqueCode(codeOverride || guessLocale(fileName) || "locale");
+    var code = codeOverride || guessLocale(fileName) || "locale";
+    var idx = state.locales.findIndex(function(l){ return l.code === code; });
+    if(idx > -1){
+      var ex = state.locales[idx];
+      warn({
+        title: "Locale “" + code + "” already exists",
+        message: "“" + code + "” already has " + ex.rows.length + " string" + (ex.rows.length !== 1 ? "s" : "") +
+                 ". Adding " + (fileName ? "“" + fileName + "”" : "this file") + " will overwrite all of them with its " +
+                 rows.length + " string" + (rows.length !== 1 ? "s" : "") + "." + cloudNote() +
+                 "\n\nYou can undo this right after.",
+        ok: "Overwrite " + code
+      }).then(function(ok){ if(ok) overwriteLocale(idx, rows, fileName); });
+      return;
+    }
     var loc = {
       id: ++uid, code: code, name: prettyName(fileName) || "Locale",
       file: fileName || "", rows: rows, selected: {}
@@ -1433,6 +1585,17 @@
     state.limit = 120; state.filter = "all"; state.q = ""; state.section = "all";
     render();
     toast("Added " + code + " · " + rows.length + " strings");
+  }
+  function overwriteLocale(idx, rows, fileName){
+    var l = state.locales[idx];
+    if(!l) return;
+    snapshot();
+    l.rows = rows; l.selected = {};
+    if(fileName){ l.file = fileName; l.name = prettyName(fileName) || l.name; }
+    state.active = idx;
+    state.limit = 120; state.filter = "all"; state.q = ""; state.section = "all";
+    render();
+    toast("Overwrote " + l.code + " · " + rows.length + " strings");
   }
 
   /* Replace the ACTIVE locale's contents from a file (header Import button). Undoable. */
@@ -1464,7 +1627,17 @@
   function removeLocale(idx){
     var l = state.locales[idx];
     if(!l) return;
-    if(!window.confirm("Remove locale " + l.code + "? Unexported edits will be lost. (You can undo this.)")) return;
+    warn({
+      title: "Remove locale “" + l.code + "”?",
+      message: "Its " + l.rows.length + " string" + (l.rows.length !== 1 ? "s" : "") + " will be removed" +
+               (cloud.user ? " from the cloud for everyone." : " — unexported edits will be lost.") +
+               "\n\nYou can undo this right after.",
+      ok: "Remove " + l.code
+    }).then(function(ok){ if(ok) doRemoveLocale(l); });
+  }
+  function doRemoveLocale(l){
+    var idx = state.locales.indexOf(l);
+    if(idx < 0) return;
     snapshot();
     state.locales.splice(idx, 1);
     if(state.locales.length === 0) state.active = -1;
@@ -1568,6 +1741,28 @@
     var loc = activeLocale();
     if(!loc){ toast("Load a locale first, then Merge into it"); return; }
     if(!pairs || !pairs.length){ toast("No translations found in that file"); return; }
+    // warn when existing (non-empty) translations would be replaced with different values
+    var cur = {};
+    loc.rows.forEach(function(r){ cur[r.term] = r; });
+    var hits = [];
+    pairs.forEach(function(p){
+      var term = p.term == null ? "" : String(p.term).trim();
+      var val = p.definition == null ? "" : String(p.definition);
+      var ex = cur[term];
+      if(ex && val !== "" && String(ex.definition).trim() !== "" && ex.definition !== val) hits.push(term);
+    });
+    if(!hits.length){ applyMerge(loc, pairs); return; }
+    warn({
+      title: "Overwrite " + hits.length + " existing translation" + (hits.length !== 1 ? "s" : "") + "?",
+      message: "Merging " + (srcName ? "“" + srcName + "”" : "this file") + " replaces " + hits.length +
+               (hits.length !== 1 ? " translations that already exist" : " translation that already exists") +
+               " in “" + loc.code + "”" +
+               (hits.length <= 5 ? " (" + hits.join(", ") + ")" : ", e.g. " + hits.slice(0, 5).join(", ") + " …") +
+               "." + cloudNote() + "\n\nTip: Merge Missing Translations only fills empty ones. You can undo this right after.",
+      ok: "Overwrite " + hits.length
+    }).then(function(ok){ if(ok && activeLocale() === loc) applyMerge(loc, pairs); });
+  }
+  function applyMerge(loc, pairs){
     snapshot();
     var byTerm = {};
     loc.rows.forEach(function(r){ byTerm[r.term] = r; });
@@ -1771,10 +1966,15 @@
   function clearAllLocales(){
     if(!state.locales.length){ toast("No locales to clear"); return; }
     var n = state.locales.length;
-    if(typeof window.confirm === "function" &&
-       !window.confirm("Clear all " + n + " loaded locale" + (n > 1 ? "s" : "") + "?" +
-         (cloud.user ? " This also deletes them from the cloud for everyone." : "") +
-         " You can undo this right after.")) return;
+    warn({
+      title: "Clear all " + n + " locale" + (n > 1 ? "s" : "") + "?",
+      message: "Every locale and all of its strings will be removed" +
+               (cloud.user ? " — this also deletes them from the cloud for everyone." : ".") +
+               "\n\nYou can undo this right after.",
+      ok: "Clear all"
+    }).then(function(ok){ if(ok) doClearAll(); });
+  }
+  function doClearAll(){
     snapshot();                                   // so Undo brings everything back
     state.locales = [];
     state.active = -1;
@@ -1807,21 +2007,37 @@
                    file: L.file || "", rows: rows, selected: {} });
     });
     if(!built.length){ toast("No locales found in that file"); return; }
-    if(state.locales.length &&
-       typeof window.confirm === "function" &&
-       !window.confirm("Open this project? It replaces the current " +
-         state.locales.length + " locale(s) with " + built.length + " from the file.")) return;
+    if(!state.locales.length){ openBuilt(built); return; }
+    var n = state.locales.length;
+    warn({
+      title: n > 1 ? "Replace all " + n + " locales?" : "Replace locale “" + state.locales[0].code + "”?",
+      message: "Opening " + (fileName ? "“" + fileName + "”" : "this project") + " overwrites everything currently loaded (" +
+               state.locales.map(function(l){ return l.code; }).join(", ") + ") with the " + built.length +
+               " locale" + (built.length !== 1 ? "s" : "") + " in the file. Locales not in the file are deleted." +
+               (cloud.user ? "\n\nThis replaces the shared cloud copy for everyone." : "") +
+               "\n\nYou can undo this right after (until you reload the page).",
+      ok: "Replace everything"
+    }).then(function(ok){ if(ok) openBuilt(built); });
+  }
+  function openBuilt(built){
+    snapshot();                                   // undoable, so a wrong file can be reverted
     state.locales = built;
     state.active = 0;
-    history = []; updateUndo();
     state.filter = "all"; state.q = ""; state.section = "all"; state.limit = 120;
     var qEl = $("#q"); if(qEl) qEl.value = "";
     render();
     toast("Opened project · " + built.length + " locales");
   }
-  $("#openFileBtn").addEventListener("click", function(){ $("#openFileInput").click(); });
+  // Opening a project replaces every locale (and, when signed in, the shared cloud copy) — owner only
+  function ownerOnly(){
+    if(cloud.isOwner) return true;
+    toast("Only the owner can open project files");
+    return false;
+  }
+  $("#openFileBtn").addEventListener("click", function(){ if(ownerOnly()) $("#openFileInput").click(); });
   $("#openFileInput").addEventListener("change", function(e){
     var input = e.target;
+    if(!ownerOnly()){ input.value = ""; return; }
     var file = input.files && input.files[0];
     if(!file) return;
     readTextRobust(file).then(function(txt){
@@ -1954,7 +2170,14 @@
     return true;
   }
   function deleteKey(term){
-    if(!window.confirm("Delete key “" + term + "” from all locales? You can undo this.")) return;
+    warn({
+      title: "Delete key “" + term + "”?",
+      message: "The key and its translations are removed from all " + state.locales.length + " locale" +
+               (state.locales.length !== 1 ? "s" : "") + "." + cloudNote() + "\n\nYou can undo this right after.",
+      ok: "Delete key"
+    }).then(function(ok){ if(ok) doDeleteKey(term); });
+  }
+  function doDeleteKey(term){
     snapshot();
     state.locales.forEach(function(l){
       l.rows = l.rows.filter(function(r){ return r.term !== term; });
@@ -3174,31 +3397,60 @@
     return out;
   }
   /* Add every ticked tab straight into the locale list on the left (one undoable action). */
+  /* Tabs whose locale code already exists overwrite that locale — after a warning. */
   function importSelectedAsLocales(){
     var names = includedNames();
     if(!names.length){ toast("Tick at least one tab to import"); return; }
-    snapshot();
-    var added = 0, skipped = 0, first = -1;
+    var plan = [], skipped = 0;
     names.forEach(function(nm){
       var s = sheetByName(nm); if(!s) return;
       var rows = tabToLocaleRows(s.rows);
       if(!rows.length){ skipped++; return; }
-      var loc = {
+      var code = guessLocale(nm) || sanitizeName(nm) || "locale";
+      var ex = state.locales.find(function(l){ return l.code === code; }) || null;
+      plan.push({ nm: nm, code: code, rows: rows, existing: ex });
+    });
+    if(!plan.length){ toast("No strings found in the selected tabs"); return; }
+    var clash = plan.filter(function(p){ return p.existing; });
+    if(!clash.length){ applyImport(plan, skipped); return; }
+    warn({
+      title: clash.length === 1 ? "Locale “" + clash[0].code + "” already exists"
+                                : clash.length + " locales already exist",
+      message: "Importing will overwrite the existing " +
+               clash.map(function(p){ return "“" + p.code + "” (" + p.existing.rows.length + " → " + p.rows.length + " strings)"; }).join(", ") +
+               " with the Excel tab" + (clash.length !== 1 ? "s" : "") + "." + cloudNote() +
+               "\n\nYou can undo this right after.",
+      ok: "Overwrite " + (clash.length === 1 ? clash[0].code : clash.length + " locales")
+    }).then(function(ok){ if(ok) applyImport(plan, skipped); });
+  }
+  function applyImport(plan, skipped){
+    snapshot();
+    var added = 0, replaced = 0, first = -1;
+    plan.forEach(function(p){
+      var ex = p.existing && state.locales.indexOf(p.existing) > -1 ? p.existing : null;
+      if(ex){
+        ex.rows = p.rows; ex.selected = {}; ex.file = excel.name || p.nm;
+        replaced++;
+        if(first < 0) first = state.locales.indexOf(ex);
+        return;
+      }
+      state.locales.push({
         id: ++uid,
-        code: uniqueCode(guessLocale(nm) || sanitizeName(nm) || "locale"),
-        name: prettyName(nm) || nm || "Locale",
-        file: excel.name || nm,
-        rows: rows, selected: {}
-      };
-      state.locales.push(loc);
+        code: uniqueCode(p.code),
+        name: prettyName(p.nm) || p.nm || "Locale",
+        file: excel.name || p.nm,
+        rows: p.rows, selected: {}
+      });
       if(first < 0) first = state.locales.length - 1;
       added++;
     });
-    if(!added){ history.pop(); updateUndo(); toast("No strings found in the selected tabs"); return; }
     if(state.active < 0 && first >= 0) state.active = first;
     render();
-    toast("Imported " + added + " locale" + (added>1?"s":"") + " into the sidebar" +
-          (skipped ? " (" + skipped + " empty tab" + (skipped>1?"s":"") + " skipped)" : ""));
+    var bits = [];
+    if(added) bits.push(added + " added");
+    if(replaced) bits.push(replaced + " overwritten");
+    if(skipped) bits.push(skipped + " empty tab" + (skipped>1?"s":"") + " skipped");
+    toast("Imported into the sidebar · " + bits.join(" · "));
   }
   $("#importLocalesBtn").addEventListener("click", importSelectedAsLocales);
   function clearWorkbook(){
@@ -3542,6 +3794,7 @@
   var SAVE_DELAY = 1500, RETRY_DELAY = 10000;
   var cloud = {
     client: null, user: null,
+    isOwner: false,   // from the is_owner() database function; gates Open File
     ready: false,     // true once the cloud copy has been loaded for this user
     busy: false,      // a save, load or sync is in flight
     synced: {},       // cloudId -> { sig, version } as last written / read
@@ -3670,10 +3923,16 @@
   function cloudSync(){
     if(!cloud.user || cloud.busy) return;
     var codes = Object.keys(cloud.conflicts).map(function(id){ return cloud.conflicts[id]; });
-    if(codes.length && typeof window.confirm === "function" &&
-       !window.confirm("Someone else changed “" + codes.join("”, “") + "” since you loaded it. " +
-         "Syncing loads their version and discards your unsaved edits to " +
-         (codes.length > 1 ? "those locales" : "it") + ". Continue?")) return;
+    if(!codes.length){ doCloudSync(); return; }
+    warn({
+      title: "Overwrite your unsaved edits?",
+      message: "Someone else changed “" + codes.join("”, “") + "” since you loaded it. Syncing loads their " +
+               "version and overwrites your unsaved edits to " + (codes.length > 1 ? "those locales" : "it") +
+               ".\n\nTip: use Save All first if you want to keep a copy of your version.",
+      ok: "Load their version"
+    }).then(function(ok){ if(ok) doCloudSync(); });
+  }
+  function doCloudSync(){
     (cloud.ready ? cloudFlush() : Promise.resolve()).then(function(){
       if(cloud.err && cloud.ready) throw new Error("your latest changes couldn't be saved (" + cloud.err + ")");
       cloud.busy = true; cloudSetStatus();
@@ -3694,6 +3953,12 @@
     if(was === now){ cloudSetStatus(); return; }
     clearTimeout(cloud.timer); cloud.timer = null;
     cloud.ready = false; cloud.synced = {}; cloud.conflicts = {}; cloud.err = ""; cloud.lastSaved = null;
+    cloud.isOwner = false; applyOwnerUI();
+    if(now){
+      cloud.client.rpc("is_owner").then(function(res){
+        if(cloud.user && cloud.user.id === now){ cloud.isOwner = !res.error && res.data === true; applyOwnerUI(); }
+      });
+    }
     if(!now){
       // signed out: team data shouldn't linger on this screen
       state.locales = []; state.active = -1; state.view = "translate";
@@ -3729,6 +3994,10 @@
     cloudSetStatus();
   }
 
+  function applyOwnerUI(){
+    $("#openFileBtn").style.display = cloud.isOwner ? "" : "none";
+  }
+
   function cloudSetStatus(){
     var s = !cloud.user ? "off" : cloud.busy ? "saving"
           : Object.keys(cloud.conflicts).length ? "conflict" : cloud.err ? "error" : "idle";
@@ -3752,6 +4021,8 @@
         " changed by someone else, so your edits there aren't being saved. Sync loads the cloud version."
       : "";
     $("#acctSync").disabled = cloud.busy;
+    $("#logBtn").style.display = cloud.user ? "" : "none";
+    if(!cloud.user) closeLog();
     $("#acctOff").hidden = !!cloud.client;
     $("#acctOut").hidden = !cloud.client || !!cloud.user;
     $("#acctIn").hidden = !cloud.user;
@@ -3783,8 +4054,14 @@
     var btn = this;
     btn.disabled = true;
     cloudFlush().then(function(){
-      if((cloud.err || cloudDirty()) && typeof window.confirm === "function" &&
-         !window.confirm("Some changes haven't been saved to the cloud yet and will be lost. Sign out anyway?")) return;
+      if(!(cloud.err || cloudDirty())) return true;
+      return warn({
+        title: "Sign out with unsaved changes?",
+        message: "Some changes haven't been saved to the cloud yet and will be lost if you sign out now.",
+        ok: "Sign out anyway"
+      });
+    }).then(function(ok){
+      if(!ok) return;
       return cloud.client.auth.signOut().then(function(res){
         if(res && res.error) throw res.error;
         closeAcct();
@@ -3813,6 +4090,183 @@
   });
   window.addEventListener("beforeunload", function(e){
     if(cloud.busy || cloudDirty()){ cloudFlush(); e.preventDefault(); e.returnValue = ""; }
+  });
+
+  /* ============ Activity Log page ============
+     Reads public.activity_log, which a database trigger fills on every saved change
+     (who, when, which locale, and a per-key before/after diff). Read-only for everyone. */
+  var LOG_PAGE = 50;
+  var logState = { rows: [], done: false, loading: false, users: {}, locales: {} };
+
+  function openLog(){
+    if(!cloud.user) return;
+    $("#logPage").hidden = false;
+    document.body.style.overflow = "hidden";
+    $("#logClose").focus();
+    loadLog(true);
+  }
+  function closeLog(){
+    if($("#logPage").hidden) return;
+    $("#logPage").hidden = true;
+    document.body.style.overflow = "";
+    $("#logBtn").focus();
+  }
+  function loadLog(reset){
+    if(!cloud.user || logState.loading) return;
+    if(reset){ logState.rows = []; logState.done = false; }
+    logState.loading = true;
+    $("#logMeta").textContent = "Loading…";
+    $("#logMore").hidden = true;
+    var from = logState.rows.length;
+    var q = cloud.client.from("activity_log")
+      .select("id,at,user_email,action,locale_code,summary,details")
+      .order("at", { ascending: false }).order("id", { ascending: false })
+      .range(from, from + LOG_PAGE - 1);
+    var loc = $("#logLocale").value, who = $("#logUser").value;
+    if(loc) q = q.eq("locale_code", loc);
+    if(who) q = q.eq("user_email", who);
+    q.then(function(res){
+      if(res.error) throw res.error;
+      var data = res.data || [];
+      logState.rows = logState.rows.concat(data);
+      logState.done = data.length < LOG_PAGE;
+      data.forEach(function(r){
+        if(r.user_email) logState.users[r.user_email] = 1;
+        logState.locales[r.locale_code] = 1;
+      });
+      renderLog();
+    }).catch(function(err){
+      $("#logMeta").textContent = "Could not load the activity log — " + ((err && err.message) || "network error");
+    }).then(function(){ logState.loading = false; });
+  }
+
+  function fillSelect(sel, values, allLabel){
+    var keep = sel.value;
+    sel.textContent = "";
+    var o = document.createElement("option"); o.value = ""; o.textContent = allLabel; sel.appendChild(o);
+    values.forEach(function(v){
+      var op = document.createElement("option"); op.value = v; op.textContent = v; sel.appendChild(op);
+    });
+    sel.value = values.indexOf(keep) > -1 ? keep : "";
+  }
+  function dayLabel(d){
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var that = new Date(d); that.setHours(0, 0, 0, 0);
+    var diff = Math.round((today - that) / 864e5);
+    if(diff === 0) return "Today";
+    if(diff === 1) return "Yesterday";
+    return d.toLocaleDateString([], { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+  }
+  function el(tag, cls, text){
+    var e = document.createElement(tag);
+    if(cls) e.className = cls;
+    if(text != null) e.textContent = text;
+    return e;
+  }
+
+  function renderLog(){
+    state.locales.forEach(function(l){ logState.locales[l.code] = 1; });
+    fillSelect($("#logLocale"), Object.keys(logState.locales).sort(), "All locales");
+    fillSelect($("#logUser"), Object.keys(logState.users).sort(), "Everyone");
+    var host = $("#logList");
+    host.textContent = "";
+    if(!logState.rows.length){
+      host.appendChild(el("div", "logempty", ($("#logLocale").value || $("#logUser").value)
+        ? "No activity matches these filters."
+        : "No activity yet. Changes appear here as soon as they're saved to the cloud."));
+    }
+    var lastDay = "";
+    logState.rows.forEach(function(r){
+      var at = new Date(r.at), day = dayLabel(at);
+      if(day !== lastDay){ host.appendChild(el("div", "logday", day)); lastDay = day; }
+      var item = el("div", "logitem");
+      var row = el("button", "logrow");
+      row.type = "button";
+      row.setAttribute("aria-expanded", "false");
+      row.appendChild(el("span", "logtime", at.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })));
+      var who = el("span", "logwho");
+      var email = r.user_email || "";
+      who.appendChild(el("span", "acct-av", (email.charAt(0) || "?").toUpperCase()));
+      who.appendChild(el("span", null, email || "Unknown (changed outside the app)"));
+      row.appendChild(who);
+      var act = el("span", "logact", r.action);
+      act.setAttribute("data-a", r.action);
+      row.appendChild(act);
+      row.appendChild(el("span", "logloc", r.locale_code));
+      row.appendChild(el("span", "logsum", r.summary));
+      var chev = el("span", "logchev");
+      chev.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>';
+      row.appendChild(chev);
+      item.appendChild(row);
+      var detail = null;
+      row.addEventListener("click", function(){
+        var open = row.getAttribute("aria-expanded") === "true";
+        row.setAttribute("aria-expanded", open ? "false" : "true");
+        if(open){ if(detail) detail.hidden = true; return; }
+        if(!detail){ detail = renderLogDetail(r); item.appendChild(detail); }
+        detail.hidden = false;
+      });
+      host.appendChild(item);
+    });
+    $("#logMore").hidden = logState.done || !logState.rows.length;
+    $("#logMeta").textContent = logState.rows.length
+      ? "Showing " + logState.rows.length + " entr" + (logState.rows.length === 1 ? "y" : "ies") + (logState.done ? "" : " — load more for older ones")
+      : "";
+  }
+
+  function renderLogDetail(r){
+    var d = r.details || {}, box = el("div", "logdetail");
+    var who = r.user_email || "Someone outside the app";
+    var when = new Date(r.at).toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+    if(r.action !== "updated"){
+      box.appendChild(el("p", null, who + " " + r.action + " “" + r.locale_code + "” (" + (d.strings || 0) +
+        " strings) on " + when + "."));
+      return box;
+    }
+    var keys = Array.isArray(d.keys) ? d.keys : [];
+    if(!keys.length){
+      box.appendChild(el("p", null, who + " " + r.summary + " on " + when + "."));
+      return box;
+    }
+    var t = el("table", "logkeys"), head = el("tr");
+    ["Key", "Change", "Before", "After"].forEach(function(h){ head.appendChild(el("th", null, h)); });
+    t.appendChild(head);
+    var val = function(v, cls){
+      return v == null || v === "" ? el("span", "none", v == null ? "—" : "(empty)") : el("span", cls, v);
+    };
+    keys.forEach(function(k){
+      var tr = el("tr");
+      tr.appendChild(el("td", "k", k.key));
+      var what = k.change;
+      if(k.change === "changed" && k.from === k.to){
+        what = String(k.review_to) === "1" ? "flagged for review"
+             : String(k.review_from) === "1" ? "approved" : "tags / details";
+      } else if(k.change === "changed" && String(k.review_to) === "1" && String(k.review_from) !== "1"){
+        what = "changed · flagged for review";
+      }
+      tr.appendChild(el("td", null, what));
+      var b = el("td"), a = el("td");
+      if(k.change !== "added") b.appendChild(val(k.from, k.from !== k.to ? "was" : null));
+      if(k.change !== "removed") a.appendChild(val(k.to, k.from !== k.to ? "now" : null));
+      tr.appendChild(b); tr.appendChild(a);
+      t.appendChild(tr);
+    });
+    box.appendChild(t);
+    if(d.truncated){
+      box.appendChild(el("p", null, "Showing the first " + keys.length + " of " +
+        ((d.changed || 0) + (d.added || 0) + (d.removed || 0)) + " changed keys."));
+    }
+    return box;
+  }
+
+  $("#logBtn").addEventListener("click", openLog);
+  $("#logClose").addEventListener("click", closeLog);
+  $("#logRefresh").addEventListener("click", function(){ loadLog(true); });
+  $("#logMore").addEventListener("click", function(){ loadLog(false); });
+  $("#logLocale").addEventListener("change", function(){ loadLog(true); });
+  $("#logUser").addEventListener("change", function(){ loadLog(true); });
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && !warnResolve && !$("#acctOv").classList.contains("show")) closeLog();
   });
 
   /* undo wiring */
