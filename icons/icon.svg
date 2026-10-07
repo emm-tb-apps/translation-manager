@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <rect width="512" height="512" rx="112" fill="#2340C4"/>
-  <!-- back bubble (source) -->
+  <g transform="translate(256 256) scale(1.27) translate(-259.5 -280.5)">
   <path d="M138 123h162a36 36 0 0 1 36 36v100a36 36 0 0 1-36 36H205l-62 46 6-46h-11a36 36 0 0 1-36-36V159a36 36 0 0 1 36-36Z" fill="#FFFFFF"/>
   <rect x="143" y="171" width="150" height="22" rx="11" fill="#2340C4"/>
   <rect x="143" y="217" width="104" height="22" rx="11" fill="#2340C4"/>
-  <!-- front bubble (translation) -->
   <path d="M248 236h126a36 36 0 0 1 36 36v88a36 36 0 0 1-36 36h-7l6 42-58-42h-67a36 36 0 0 1-36-36v-88a36 36 0 0 1 36-36Z" fill="#9DB0FF" stroke="#2340C4" stroke-width="14" stroke-linejoin="round"/>
   <rect x="254" y="282" width="122" height="20" rx="10" fill="#2340C4"/>
   <rect x="254" y="324" width="84" height="20" rx="10" fill="#2340C4"/>
+  </g>
 </svg>
