@@ -4,6 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Translation Manager</title>
+<meta name="description" content="Edit, merge, review and sync POEditor-style translation files with your team.">
+<meta name="theme-color" id="themeColor" content="#EEF1F5">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Translations">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -783,6 +793,10 @@
       </div>
     </div>
     <div class="actions">
+      <button id="installBtn" title="Install Translation Manager as an app on this device" hidden>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        Install app
+      </button>
       <button id="logBtn" title="Activity Log — who changed what, and when" aria-haspopup="dialog" style="display:none">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>
         Activity Log
@@ -1311,6 +1325,8 @@
     var b = $("#themeBtn");
     b.innerHTML = t === "dark" ? SUN : MOON;
     b.title = t === "dark" ? "Switch to light mode" : "Switch to dark mode";
+    var tc = document.getElementById("themeColor");   // installed-app title bar follows the theme
+    if(tc) tc.setAttribute("content", t === "dark" ? "#0A0E13" : "#EEF1F5");
   }
   setTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
   $("#themeBtn").addEventListener("click", function(){
@@ -4280,6 +4296,30 @@
   });
 
   /* ============ boot ============ */
+  /* ============ PWA: offline support + install ============ */
+  if("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")){
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("sw.js").catch(function(){ /* app still works without it */ });
+    });
+  }
+  var installPrompt = null;
+  window.addEventListener("beforeinstallprompt", function(e){
+    e.preventDefault();                     // show our own button instead of the mini-infobar
+    installPrompt = e;
+    $("#installBtn").hidden = false;
+  });
+  $("#installBtn").addEventListener("click", function(){
+    if(!installPrompt) return;
+    installPrompt.prompt();
+    installPrompt.userChoice.then(function(){ installPrompt = null; $("#installBtn").hidden = true; });
+  });
+  window.addEventListener("appinstalled", function(){
+    installPrompt = null; $("#installBtn").hidden = true;
+    toast("Translation Manager installed");
+  });
+  // back online → push any edits that piled up while offline straight away
+  window.addEventListener("online", function(){ cloudSchedule(0); });
+
   render();     // start as a blank slate — no locale is auto-loaded
   cloudInit();  // signed-in users then get the shared cloud workspace
 })();
