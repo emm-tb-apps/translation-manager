@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in · Translation Manager</title>
+<meta name="description" content="Sign in to Translation Manager — edit, merge, review and sync translation files with your team.">
+<meta name="theme-color" content="#EEF1F5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0A0E13" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Translations">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EEF1F5; --surface:#FFFFFF; --surface-2:#F6F8FB;
+    --line:#DCE3EC; --line-strong:#C6D0DC;
+    --ink:#0E1620; --ink-2:#4C5B6B; --ink-3:#8291A2;
+    --accent:#2340C4; --accent-soft:#E5E9FB;
+    --jade:#0B7A5E; --jade-soft:#DFF1EA;
+    --rose:#AF2437; --rose-soft:#FBE4E7;
+    --shadow:0 1px 2px rgba(14,22,32,.05), 0 8px 24px -16px rgba(14,22,32,.22);
+    --on-accent:#fff;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0A0E13; --surface:#111821; --surface-2:#151D27;
+      --line:#232E3B; --line-strong:#31404F;
+      --ink:#E7EEF6; --ink-2:#9DAFC0; --ink-3:#6A7B8C;
+      --accent:#7E9CFF; --accent-soft:#1B2540;
+      --jade:#3CC79E; --jade-soft:#102C25;
+      --rose:#FF8090; --rose-soft:#331A20;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -18px rgba(0,0,0,.8);
+      --on-accent:#0A0E13;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    min-height:100vh; background:var(--bg); color:var(--ink);
+    font:400 14px/1.55 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+    display:flex; flex-direction:column;
+  }
+  .top{display:flex; align-items:center; gap:10px; padding:20px 28px}
+  .top .name{font:700 15px/1 "Bricolage Grotesque",Inter,sans-serif}
+  main{
+    flex:1; width:100%; max-width:1080px; margin:0 auto; padding:24px 28px 40px;
+    display:grid; grid-template-columns:1.1fr .9fr; gap:56px; align-items:center;
+  }
+  .eyebrow{font:500 11px/1.2 "IBM Plex Mono",monospace; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
+  h1{font:700 clamp(30px,4.2vw,44px)/1.08 "Bricolage Grotesque",Inter,sans-serif; letter-spacing:-.01em; margin:12px 0 14px}
+  .lead{font-size:16px; color:var(--ink-2); max-width:34em; margin:0 0 28px}
+  .features{list-style:none; margin:0; padding:0; display:grid; grid-template-columns:1fr 1fr; gap:14px 22px}
+  .features li{display:flex; gap:11px; align-items:flex-start}
+  .features .ic{
+    flex:none; width:32px; height:32px; border-radius:9px; display:grid; place-items:center;
+    background:var(--accent-soft); color:var(--accent);
+  }
+  .features b{display:block; font-weight:600; font-size:13.5px}
+  .features span{font-size:12.5px; color:var(--ink-2)}
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:16px;
+    box-shadow:var(--shadow); padding:30px 28px 22px;
+  }
+  .card h2{font:700 22px/1.2 "Bricolage Grotesque",Inter,sans-serif; margin:0 0 6px}
+  .card p{margin:0 0 18px; font-size:13.5px; color:var(--ink-2)}
+  label{display:block; font-size:12px; font-weight:500; color:var(--ink-2); margin-bottom:6px}
+  input[type=email]{
+    width:100%; font:inherit; font-size:14px; color:var(--ink); background:var(--surface-2);
+    border:1px solid var(--line); border-radius:10px; padding:11px 12px; margin-bottom:12px;
+  }
+  input[type=email]:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
+  button{
+    font:inherit; cursor:pointer; border-radius:10px; transition:filter .15s, transform .05s;
+  }
+  button:active{transform:translateY(1px)}
+  button:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  button:disabled{opacity:.55; cursor:not-allowed}
+  .primary{
+    width:100%; padding:11px 14px; font-size:13.5px; font-weight:600;
+    background:var(--accent); color:var(--on-accent); border:1px solid var(--accent);
+  }
+  .primary:hover{filter:brightness(1.07)}
+  .link{all:unset; cursor:pointer; color:var(--accent); font-size:12.5px; margin-top:12px; display:inline-block}
+  .link:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
+  .note{border-radius:10px; padding:11px 13px; font-size:13px; line-height:1.5; margin-bottom:14px}
+  .note.ok{background:var(--jade-soft); color:var(--jade)}
+  .note.info{background:var(--accent-soft); color:var(--accent)}
+  .note.err{background:var(--rose-soft); color:var(--rose)}
+  .note strong{overflow-wrap:anywhere}
+  .busy{display:flex; align-items:center; gap:10px; font-size:13.5px; color:var(--ink-2); padding:6px 0 10px}
+  .spin{width:16px; height:16px; border-radius:50%; border:2px solid var(--line-strong); border-top-color:var(--accent); animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .foot{font-size:11.5px; color:var(--ink-3); margin-top:18px; padding-top:14px; border-top:1px solid var(--line)}
+  [hidden]{display:none !important}
+  @media (max-width:860px){
+    main{grid-template-columns:1fr; gap:32px; padding-top:8px}
+    .hero{order:2}
+    .card{order:1}
+  }
+  @media (max-width:520px){
+    .top{padding:16px}
+    main{padding:8px 16px 32px}
+    .features{grid-template-columns:1fr}
+    .card{padding:24px 20px 18px}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <svg width="30" height="30" viewBox="0 0 512 512" aria-hidden="true">
+    <rect width="512" height="512" rx="112" fill="#2340C4"/>
+    <g transform="translate(256 256) scale(1.27) translate(-259.5 -280.5)">
+      <path d="M138 123h162a36 36 0 0 1 36 36v100a36 36 0 0 1-36 36H205l-62 46 6-46h-11a36 36 0 0 1-36-36V159a36 36 0 0 1 36-36Z" fill="#FFFFFF"/>
+      <rect x="143" y="171" width="150" height="22" rx="11" fill="#2340C4"/>
+      <rect x="143" y="217" width="104" height="22" rx="11" fill="#2340C4"/>
+      <path d="M248 236h126a36 36 0 0 1 36 36v88a36 36 0 0 1-36 36h-7l6 42-58-42h-67a36 36 0 0 1-36-36v-88a36 36 0 0 1 36-36Z" fill="#9DB0FF" stroke="#2340C4" stroke-width="14" stroke-linejoin="round"/>
+      <rect x="254" y="282" width="122" height="20" rx="10" fill="#2340C4"/>
+      <rect x="254" y="324" width="84" height="20" rx="10" fill="#2340C4"/>
+    </g>
+  </svg>
+  <span class="name">Translation Manager</span>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="eyebrow">Your team's translation workspace</div>
+    <h1>Every locale, in one shared place.</h1>
+    <p class="lead">Edit, merge and review POEditor-style translation files together. Changes save to the cloud automatically, and every edit is tracked.</p>
+    <ul class="features">
+      <li>
+        <span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>
+        <div><b>Edit &amp; review</b><span>Translate, flag and approve strings across every locale.</span></div>
+      </li>
+      <li>
+        <span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></svg></span>
+        <div><b>Merge files</b><span>Bring in JSON, CSV and Excel exports with clear overwrite warnings.</span></div>
+      </li>
+      <li>
+        <span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 1 0-1.4-8.8A6 6 0 1 0 6 17.7"/><path d="m9 16 2 2 4-4"/></svg></span>
+        <div><b>Saved automatically</b><span>Your team always works from the same up-to-date copy.</span></div>
+      </li>
+      <li>
+        <span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg></span>
+        <div><b>Activity log</b><span>See who changed what, and when, down to each key.</span></div>
+      </li>
+    </ul>
+  </section>
+
+  <section class="card" aria-labelledby="signinTitle">
+    <h2 id="signinTitle">Sign in</h2>
+    <p>Enter your work email and we'll send you a one-time sign-in link — no password needed.</p>
+
+    <div class="busy" id="busy"><span class="spin" aria-hidden="true"></span><span id="busyText">Checking your session…</span></div>
+    <div class="note" id="note" role="status" hidden></div>
+
+    <form id="form" hidden>
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="you@company.com" autocomplete="email" required>
+      <button class="primary" type="submit" id="send">Email me a sign-in link</button>
+    </form>
+
+    <div id="sent" hidden>
+      <div class="note ok">Check your inbox — we sent a sign-in link to <strong id="sentTo"></strong>. Open it on this device and you'll go straight to Translation Manager.</div>
+      <button type="button" class="link" id="again">Use a different email</button>
+    </div>
+
+    <div class="foot">Access is by invitation only — ask the owner if you need an account.</div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+(function(){
+  "use strict";
+  var APP = "./";                                    // the main Translation Manager page
+  var cfg = window.TM_CONFIG || {};
+  var $ = function(s){ return document.querySelector(s); };
+  var query = new URLSearchParams(location.search);
+  var hash = new URLSearchParams(location.hash.replace(/^#/, ""));
+  var returning = hash.has("access_token") || query.has("code");   // coming back from a magic link
+
+  function note(kind, text){
+    var n = $("#note");
+    n.className = "note " + kind;
+    n.textContent = text;
+    n.hidden = !text;
+  }
+  function showForm(){
+    $("#busy").hidden = true;
+    $("#sent").hidden = true;
+    $("#form").hidden = false;
+    $("#email").focus();
+  }
+
+  if("serviceWorker" in navigator && location.protocol === "https:"){
+    navigator.serviceWorker.register("sw.js").catch(function(){});
+  }
+  try{ var last = localStorage.getItem("tm.lastEmail"); if(last) $("#email").value = last; }catch(e){}
+
+  if(!window.supabase || !cfg.supabaseUrl){
+    $("#busy").hidden = true;
+    note("err", "Couldn't load the sign-in service. Check your connection and reload the page.");
+    return;
+  }
+  if(returning) $("#busyText").textContent = "Signing you in…";
+
+  var client = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseKey);
+  var leaving = false;
+  client.auth.onAuthStateChange(function(event, session){
+    setTimeout(function(){                           // never call Supabase inside this callback
+      if(session){
+        if(leaving) return;
+        leaving = true;
+        $("#form").hidden = true; $("#sent").hidden = true; note("", "");
+        $("#busy").hidden = false; $("#busyText").textContent = "Signed in — opening Translation Manager…";
+        location.replace(APP);
+        return;
+      }
+      if(event !== "INITIAL_SESSION") return;
+      showForm();
+      if(hash.get("error")){
+        var d = (hash.get("error_description") || "").replace(/\+/g, " ");
+        note("err", /expired|invalid/i.test(d)
+          ? "That sign-in link has expired or was already used. Request a new one below."
+          : "Sign-in failed — " + d);
+        history.replaceState(null, "", location.pathname);
+      } else if(query.has("signedout")){
+        note("info", "You've signed out.");
+        history.replaceState(null, "", location.pathname);
+      }
+    }, 0);
+  });
+
+  $("#form").addEventListener("submit", function(e){
+    e.preventDefault();
+    var email = $("#email").value.trim(), btn = $("#send");
+    if(!email) return;
+    btn.disabled = true; btn.textContent = "Sending…"; note("", "");
+    client.auth.signInWithOtp({
+      email: email,
+      // the link comes back to this page, which signs in and then opens the app
+      options: { shouldCreateUser: false, emailRedirectTo: location.origin + location.pathname }
+    }).then(function(res){
+      if(res.error) throw res.error;
+      try{ localStorage.setItem("tm.lastEmail", email); }catch(e){}
+      $("#sentTo").textContent = email;
+      $("#form").hidden = true; $("#sent").hidden = false;
+      $("#again").focus();
+    }).catch(function(err){
+      var m = (err && err.message) || "";
+      note("err", /signup|not allowed|not found/i.test(m) ? "This email hasn't been invited yet. Ask the owner to invite you."
+                : /rate|too many|seconds/i.test(m) ? "Too many sign-in emails were requested. Wait a minute and try again."
+                : "Could not send the link — " + (m || "network error"));
+    }).then(function(){ btn.disabled = false; btn.textContent = "Email me a sign-in link"; });
+  });
+  $("#again").addEventListener("click", function(){
+    note("", "");
+    showForm();
+    $("#email").select();
+  });
+})();
+</script>
+</body>
+</html>

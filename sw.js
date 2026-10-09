@@ -4,9 +4,11 @@
    - Static assets (icons, manifest, fonts, supabase-js) are stale-while-revalidate.
    - Supabase API and auth traffic is never cached.
    Bump VERSION whenever the list of shell files changes. */
-const VERSION = "tm-v2";
+const VERSION = "tm-v3";
 const SHELL = [
   "./",
+  "./signin.html",
+  "./config.js",
   "./manifest.webmanifest",
   "./icons/icon.svg",
   "./icons/icon-192.png",
@@ -18,7 +20,7 @@ const CDN = [
   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"
 ];
 const STATIC_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com", "cdn.jsdelivr.net"];
-const PAGE = new URL("./", self.registration.scope).href;
+const APP_PAGE = new URL("./", self.registration.scope).href;
 
 self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
@@ -55,12 +57,14 @@ self.addEventListener("fetch", (event) => {
 
 async function networkFirstPage(req) {
   const cache = await caches.open(VERSION);
+  const url = new URL(req.url);
+  const key = url.origin + url.pathname;                       // one copy per page, whatever the query/hash
   try {
     const res = await fetch(req);
-    if (res.ok) cache.put(PAGE, res.clone());                  // one copy of the app page, whatever the query/hash
+    if (res.ok && !res.redirected) cache.put(key, res.clone());
     return res;
   } catch (err) {
-    return (await cache.match(PAGE)) || (await cache.match(req, { ignoreSearch: true })) || Response.error();
+    return (await cache.match(key)) || (await cache.match(APP_PAGE)) || Response.error();
   }
 }
 
