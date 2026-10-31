@@ -59,25 +59,60 @@
     font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.16em;
     text-transform:uppercase; color:var(--ink-3);
   }
-  .topbar{display:flex; align-items:flex-start; gap:20px; flex-wrap:wrap}
+  .topbar{display:flex; align-items:flex-end; gap:16px 20px; flex-wrap:wrap}
+  .titleblock{min-width:0; flex:1 1 320px}
+  .titlerow{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:4px}
   h1{
     font-family:"Bricolage Grotesque",Inter,sans-serif; font-weight:700;
-    font-size:clamp(24px,3.4vw,34px); line-height:1.05; letter-spacing:-.02em;
-    margin:6px 0 0;
+    font-size:clamp(22px,3vw,30px); line-height:1.1; letter-spacing:-.02em;
+    margin:0;
   }
-  .subline{display:flex; align-items:center; gap:8px; margin-top:10px; flex-wrap:wrap}
-  .chip{
-    display:inline-flex; align-items:center; gap:6px;
-    background:var(--surface); border:1px solid var(--line); border-radius:999px;
-    padding:3px 10px; font-size:12px; color:var(--ink-2);
+  .subline{display:flex; align-items:center; gap:6px 12px; margin-top:8px; flex-wrap:wrap}
+  .codechip{
+    display:inline-flex; align-items:center; padding:3px 9px; border-radius:7px;
+    background:var(--accent-soft); color:var(--accent); font:500 12.5px/1.3 "IBM Plex Mono",monospace;
   }
-  .chip input{
-    all:unset; width:5.5em; font:500 12px/1.2 "IBM Plex Mono",monospace;
-    color:var(--accent); text-align:center;
-  }
-  .chip input:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
   .filemeta{font-size:12px; color:var(--ink-3)}
   .actions{display:flex; gap:8px; margin-left:auto; flex-wrap:wrap; align-items:center}
+  .actgroup{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+  .actions .chev,.sbfootBtn .chev{opacity:.6; margin-left:-2px}
+
+  /* cloud save status, next to the title */
+  .syncpill{
+    padding:2px 9px 2px 7px; border-radius:999px; font-size:11.5px; font-weight:500; gap:5px;
+    background:var(--surface-3); border:1px solid transparent; color:var(--ink-2);
+  }
+  .syncpill:hover{background:var(--surface-3); border-color:var(--line-strong)}
+  .syncpill[data-s="idle"]{background:var(--jade-soft); color:var(--jade)}
+  .syncpill[data-s="saving"]{background:var(--accent-soft); color:var(--accent)}
+  .syncpill[data-s="error"],.syncpill[data-s="conflict"]{background:var(--rose-soft); color:var(--rose)}
+  .syncpill[data-s="saving"] svg{animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* dropdown menus (Import, Export, locale ⋯, Backup & restore) */
+  .menuwrap{position:relative; display:inline-flex}
+  .menu{
+    position:absolute; top:calc(100% + 6px); right:0; z-index:40; width:300px; max-width:calc(100vw - 32px);
+    background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:6px;
+    box-shadow:0 2px 6px rgba(14,22,32,.06), 0 18px 40px -12px rgba(14,22,32,.28);
+    display:flex; flex-direction:column; gap:2px;
+  }
+  .menu.up{top:auto; bottom:calc(100% + 6px); left:0; right:auto}
+  .menu > button{
+    width:100%; border:0; background:transparent; border-radius:8px; padding:9px 10px;
+    align-items:flex-start; text-align:left; gap:10px; color:var(--ink);
+  }
+  .menu > button:hover,.menu > button:focus-visible{background:var(--surface-2)}
+  .menu > button:focus-visible{outline:2px solid var(--accent); outline-offset:-2px}
+  .menu > button > svg{margin-top:2px; color:var(--ink-3)}
+  .menu .mi{display:flex; flex-direction:column; gap:1px; min-width:0}
+  .menu .mi b{font-weight:600; font-size:13px}
+  .menu .mi small{font-size:11.5px; line-height:1.4; color:var(--ink-3); font-weight:400}
+  .menu > button.danger .mi b,.menu > button.danger > svg{color:var(--rose)}
+  .menuhead{padding:6px 10px 4px; font-size:11.5px; color:var(--ink-3); line-height:1.4}
+  .menuhead b{color:var(--ink-2); font-family:"IBM Plex Mono",monospace; font-weight:500}
+  .menusep{height:1px; background:var(--line); margin:4px 6px}
+  .menunote{padding:6px 10px 4px; font-size:11px; color:var(--ink-3); line-height:1.4; border-top:1px solid var(--line); margin-top:4px}
 
   button{
     font-family:inherit; font-size:12.5px; font-weight:500; color:var(--ink);
@@ -102,6 +137,24 @@
   }
   .panel + .panel{margin-top:16px}
   .hero{margin-top:22px; padding:20px 22px 18px}
+
+  /* translation progress summary (translate view) */
+  .prog{margin-top:20px; padding:16px 18px 14px}
+  .proghead{display:flex; align-items:center; gap:10px 18px; flex-wrap:wrap}
+  .covbig{display:flex; align-items:baseline; gap:8px}
+  .coverage{
+    font-family:"Bricolage Grotesque",Inter,sans-serif; font-weight:700; font-size:28px; line-height:1;
+    letter-spacing:-.02em; font-variant-numeric:tabular-nums; color:var(--ink);
+  }
+  .covof{font-size:12.5px; color:var(--ink-2)}
+  .legend{display:flex; gap:6px 14px; flex-wrap:wrap; font-size:12px; color:var(--ink-2)}
+  .legend span{display:inline-flex; align-items:center; gap:6px}
+  .legend b{font-weight:600; color:var(--ink); font-variant-numeric:tabular-nums}
+  .proghead .nextwrap{margin-left:auto; display:flex; align-items:center; gap:10px}
+  .alldone{font-size:12.5px; color:var(--jade); font-weight:500; display:inline-flex; align-items:center; gap:6px}
+  .progbar{display:none; height:8px; border-radius:99px; overflow:hidden; background:var(--tick-empty); margin-top:12px}
+  .progbar i{display:block; height:100%}
+  .progbar .done{background:var(--jade)} .progbar .review{background:var(--ochre)} .progbar .missing{background:var(--rose)}
 
   .stats{display:flex; gap:10px; flex-wrap:wrap}
   .stat{
@@ -144,20 +197,13 @@
   .dot{width:7px; height:7px; border-radius:50%; background:currentColor; flex:none}
 
   /* ---------- ribbon (signature) ---------- */
-  .ribbonhead{
-    display:flex; align-items:baseline; gap:10px; margin:20px 0 8px; flex-wrap:wrap;
-  }
-  .coverage{
-    font-family:"Bricolage Grotesque",Inter,sans-serif; font-weight:600; font-size:15px;
-    letter-spacing:-.01em; font-variant-numeric:tabular-nums;
-  }
   .ribbon{
-    display:flex; flex-wrap:wrap; gap:2px; align-content:flex-start;
-    padding:10px 11px; background:var(--surface-2);
-    border:1px solid var(--line); border-radius:10px; min-height:44px;
+    display:flex; flex-wrap:wrap; gap:2px; align-content:flex-start; margin-top:14px;
+    padding:9px 10px; background:var(--surface-2);
+    border:1px solid var(--line); border-radius:10px; min-height:36px;
   }
   .tick{
-    width:4px; height:16px; border-radius:1.5px; background:var(--tick-empty);
+    width:4px; height:13px; border-radius:1.5px; background:var(--tick-empty);
     cursor:pointer; transition:transform .1s ease, opacity .1s ease;
   }
   .tick:hover{transform:scaleY(1.35)}
@@ -182,7 +228,7 @@
 
   .search{
     display:flex; align-items:center; gap:8px; background:var(--surface-2);
-    border:1px solid var(--line); border-radius:9px; padding:0 10px; min-width:210px; flex:1 1 210px;
+    border:1px solid var(--line); border-radius:9px; padding:0 10px; min-width:140px; flex:1 1 140px;
   }
   .search:focus-within{border-color:var(--accent)}
   .search input{all:unset; flex:1; padding:8px 0; font-size:13px; color:var(--ink); min-width:0}
@@ -247,7 +293,9 @@
     background:var(--surface); border:1px solid var(--accent); border-radius:8px;
     padding:7px 9px; resize:vertical; min-height:64px;
   }
-  .val textarea:focus{outline:none}
+  .val textarea:focus{outline:none; box-shadow:0 0 0 3px var(--accent-soft)}
+  .edhint{margin-top:5px; font-size:11px; color:var(--ink-3); font-style:normal}
+  .edhint kbd{font:500 10px "IBM Plex Mono",monospace; border:1px solid var(--line); border-radius:4px; padding:0 4px; color:var(--ink-2)}
   .pill{
     display:inline-flex; align-items:center; gap:6px; padding:3px 9px; border-radius:999px;
     font-size:11.5px; font-weight:500; white-space:nowrap;
@@ -283,6 +331,10 @@
   .row:hover .flag,.flag:focus-visible,.flag.on{opacity:1}
   .flag.on{color:var(--ochre)}
   .flag:hover{background:var(--surface-3); color:var(--ink)}
+  /* a flagged row shows an always-visible Approve tick instead of the flag */
+  .flag.approve{opacity:1; color:var(--jade); border-color:var(--jade-soft); background:var(--jade-soft)}
+  .flag.approve:hover{background:var(--jade); border-color:var(--jade); color:#fff}
+  html[data-theme="dark"] .flag.approve:hover{color:#08130F}
 
   .tablefoot{padding:12px 14px; display:flex; justify-content:center}
   .reviewbar{
@@ -291,12 +343,19 @@
     background:var(--ochre-soft);
   }
   .reviewbar-label{font-size:12.5px; color:var(--ochre); font-weight:500}
+  .selbar{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    padding:8px 14px; border-bottom:1px solid var(--line); background:var(--accent-soft);
+    position:sticky; top:0; z-index:6;
+  }
+  .selbar-label{font-size:12.5px; color:var(--accent); font-weight:600; margin-right:auto}
+  .selbar button{background:var(--surface); padding:6px 10px}
   .reviewbar-actions{display:flex; gap:8px; margin-left:auto}
   .reviewbar-actions button{background:var(--surface)}
   .reviewbar-actions button.approve{background:var(--jade); border-color:var(--jade); color:#fff}
   html[data-theme="dark"] .reviewbar-actions button.approve{color:#08130F}
   .reviewbar-actions button.approve:hover{filter:brightness(1.06); background:var(--jade)}
-  .empty{padding:56px 22px; text-align:center; color:var(--ink-2)}
+  .empty:not(.val):not(.tags){padding:56px 22px; text-align:center; color:var(--ink-2)}
   .empty h3{font-family:"Bricolage Grotesque",Inter,sans-serif; font-size:17px; margin:0 0 6px; color:var(--ink)}
   .empty p{margin:0 auto; max-width:380px; font-size:13px}
   .empty .cta{margin-top:16px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
@@ -326,8 +385,6 @@
     font-family:"Bricolage Grotesque",Inter,sans-serif; font-size:18px; color:var(--accent);
     background:var(--surface);
   }
-  .legend{display:flex; gap:14px; flex-wrap:wrap; font-size:11.5px; color:var(--ink-2); margin-left:auto}
-  .legend span{display:inline-flex; align-items:center; gap:5px}
   .footnote{margin-top:14px; font-size:11.5px; color:var(--ink-3); text-align:center}
   /* Excel Tool home + sub-page nav */
   .excelback{
@@ -348,18 +405,19 @@
   .excelhome-card .ehc-desc{font-size:12.5px; line-height:1.55; color:var(--ink-2)}
   @media (max-width:640px){ .excelhome{grid-template-columns:1fr} }
   /* collapsible "what the buttons do" help */
-  .help{margin:18px 0 0; border:1px solid var(--line); border-radius:var(--r); background:var(--surface); overflow:hidden}
+  .help{margin:12px 0 0; border:1px solid transparent; border-radius:var(--r); overflow:hidden}
+  .help[open]{border-color:var(--line); background:var(--surface)}
   .help > summary{
-    list-style:none; cursor:pointer; display:flex; align-items:center; gap:9px;
-    padding:13px 16px; font-weight:600; font-size:13px; color:var(--ink); user-select:none;
+    list-style:none; cursor:pointer; display:inline-flex; align-items:center; gap:7px;
+    padding:6px 4px; font-weight:500; font-size:12.5px; color:var(--ink-2); user-select:none;
   }
+  .help[open] > summary{display:flex; padding:11px 16px}
   .help > summary::-webkit-details-marker{display:none}
   .help > summary:hover{color:var(--accent)}
   .help > summary:focus-visible{outline:2px solid var(--accent); outline-offset:-2px; border-radius:var(--r)}
   .help > summary .chev{transition:transform .18s ease; color:var(--ink-3); flex:none; display:inline-flex}
   .help[open] > summary .chev{transform:rotate(90deg)}
   .help > summary .ic{color:var(--accent); flex:none; display:inline-flex}
-  .help > summary .hint{margin-left:auto; font-weight:400; font-size:11.5px; color:var(--ink-3)}
   .help-body{padding:14px 16px 16px; border-top:1px solid var(--line)}
   .help-body dl{margin:0; display:grid; grid-template-columns:max-content 1fr; gap:9px 18px; align-items:baseline}
   .help-body dt{font-weight:600; font-size:12.5px; color:var(--accent); white-space:nowrap}
@@ -385,7 +443,7 @@
   }
   /* ---------- manage keys view ---------- */
   .keysbanner{
-    display:flex; align-items:flex-start; gap:10px; margin-top:22px; margin-bottom:-4px;
+    display:flex; align-items:flex-start; gap:10px; margin-top:22px; margin-bottom:0;
     padding:12px 16px; border-radius:var(--r);
     background:var(--accent-soft); border:1px solid transparent; color:var(--accent);
     font-size:12.5px; line-height:1.5;
@@ -506,36 +564,55 @@
   /* ---------- app shell + sidebar ---------- */
   .app{display:flex; min-height:100vh; align-items:stretch}
   .sidebar{
-    width:250px; flex:none; background:var(--surface); border-right:1px solid var(--line);
+    width:260px; flex:none; background:var(--surface); border-right:1px solid var(--line);
     display:flex; flex-direction:column; position:sticky; top:0; height:100vh;
     transition:width .22s ease;
   }
-  .sbhead{display:flex; align-items:center; gap:8px; padding:16px 16px 10px}
-  .sbhead .eyebrow{flex:1}
-  .sbsort{display:flex; align-items:center; gap:7px; padding:0 16px 10px; color:var(--ink-3)}
-  .sbsort select{
-    flex:1; min-width:0; font:inherit; font-size:12px; color:var(--ink-2);
-    background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:5px 8px; cursor:pointer;
-  }
-  .sbsort select:hover{border-color:var(--accent)}
-  .sbsort select:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
-  .app.railed .sbsort{display:none}
+  .brand{display:flex; align-items:center; gap:10px; padding:14px 12px 10px 16px}
+  .brand img{width:28px; height:28px; border-radius:7px; flex:none}
+  .brand-name{flex:1; min-width:0; font:700 15px/1.2 "Bricolage Grotesque",Inter,sans-serif; letter-spacing:-.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   .collapseBtn{
-    padding:5px; width:26px; height:26px; justify-content:center; border-radius:7px;
-    color:var(--ink-2); background:transparent; border-color:transparent;
+    padding:5px; width:26px; height:26px; justify-content:center; border-radius:7px; flex:none;
+    color:var(--ink-3); background:transparent; border-color:transparent;
   }
-  .collapseBtn:hover{background:var(--surface-2)}
-  .locales{flex:1; overflow-y:auto; padding:2px 10px 10px; display:flex; flex-direction:column; gap:3px}
+  .collapseBtn:hover{background:var(--surface-2); color:var(--ink)}
+
+  /* section navigation */
+  .views{display:flex; flex-direction:column; gap:2px; padding:4px 10px 10px; border-bottom:1px solid var(--line)}
+  .nav{
+    width:100%; justify-content:flex-start; gap:10px; padding:8px 10px; border-radius:9px;
+    border-color:transparent; background:transparent; color:var(--ink-2); font-size:13px; position:relative;
+  }
+  .nav:hover{background:var(--surface-2); border-color:transparent; color:var(--ink)}
+  .nav.on{background:var(--accent-soft); color:var(--accent); font-weight:600}
+  .nav svg{opacity:.9}
+  .mismatch-badge{
+    margin-left:auto; min-width:18px; height:18px; padding:0 5px; border-radius:999px;
+    background:var(--rose); color:#fff; font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+    font-weight:600; display:inline-flex; align-items:center; justify-content:center; flex:none;
+  }
+
+  /* locale list */
+  .sbhead{display:flex; align-items:center; gap:8px; padding:14px 16px 6px}
+  .sbhead .eyebrow{flex:1}
+  .sbsort{display:flex; align-items:center; color:var(--ink-3)}
+  .sbsort select{
+    font:inherit; font-size:11.5px; color:var(--ink-2); max-width:118px;
+    background:transparent; border:1px solid transparent; border-radius:7px; padding:3px 4px; cursor:pointer;
+  }
+  .sbsort select:hover{border-color:var(--line)}
+  .sbsort select:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
+  .locales{flex:1; overflow-y:auto; padding:2px 10px 6px; display:flex; flex-direction:column; gap:2px}
   .loc{
     display:flex; align-items:center; gap:10px; width:100%; text-align:left;
-    padding:9px 10px; border-radius:9px; border:1px solid transparent; background:transparent;
+    padding:7px 8px; border-radius:9px; border:1px solid transparent; background:transparent;
     cursor:pointer;
   }
-  .loc:hover{background:var(--surface-2)}
+  .loc:hover{background:var(--surface-2); border-color:transparent}
   .loc.active{background:var(--accent-soft); border-color:transparent}
-  .loc.active .code{color:var(--accent)}
+  .loc.active .lname{color:var(--accent)}
   .loc .badge{
-    width:34px; height:34px; flex:none; border-radius:8px; display:grid; place-items:center;
+    width:32px; height:32px; flex:none; border-radius:8px; display:grid; place-items:center;
     font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:500;
     background:conic-gradient(var(--jade) calc(var(--pct)*1%), var(--tick-empty) 0);
     position:relative;
@@ -546,8 +623,9 @@
   .loc.active .badge::before{background:var(--accent-soft)}
   .loc .badge span{position:relative; z-index:1; color:var(--ink-2); font-size:10px}
   .loc .meta2{min-width:0; flex:1}
-  .loc .code{font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:500; color:var(--ink); display:block}
-  .loc .sub{font-size:11px; color:var(--ink-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .loc .lname{font-size:13px; font-weight:500; color:var(--ink); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .loc .sub{display:block; font-size:11px; color:var(--ink-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .loc .sub .mono{font-size:10.5px}
   .loc .rm{
     margin-left:auto; padding:3px; width:22px; height:22px; justify-content:center; border-radius:6px;
     color:var(--ink-3); background:transparent; border-color:transparent; opacity:0; flex:none;
@@ -555,72 +633,99 @@
   .loc:hover .rm,.loc .rm:focus-visible{opacity:1}
   .loc .rm:hover{background:var(--surface-3); color:var(--rose)}
   .addLoc{
-    margin:8px 12px 8px; justify-content:center; border-style:dashed; color:var(--ink-2);
+    margin:4px 12px 12px; justify-content:center; border-style:dashed; color:var(--ink-2);
   }
   .addLoc:hover{color:var(--accent); border-color:var(--accent)}
+
+  /* footer: backup menu + account */
   .sbfoot{
-    display:flex; flex-direction:column; gap:6px; padding:10px 12px 14px;
+    display:flex; flex-direction:column; gap:6px; padding:10px 12px 12px;
     margin-top:auto; border-top:1px solid var(--line);
   }
+  .sbfoot .menuwrap{display:flex}
   .sbfootBtn{
-    justify-content:flex-start; gap:9px; color:var(--ink-2); font-size:12.5px;
+    width:100%; justify-content:flex-start; gap:9px; color:var(--ink-2); font-size:12.5px;
+    background:transparent; border-color:transparent;
   }
-  .sbfootBtn:hover{color:var(--ink)}
-  .sbfootBtn.danger:hover{border-color:var(--rose); color:var(--rose)}
-  .sbfootBtn.manage{color:var(--ink); font-weight:500}
-  .sbfootBtn.manage:hover{border-color:var(--accent); color:var(--accent)}
-  .sbfootBtn.manage.on{background:var(--accent); border-color:var(--accent); color:#fff}
-  html[data-theme="dark"] .sbfootBtn.manage.on{color:#0A0E13}
-  .mismatch-badge{
-    margin-left:auto; min-width:18px; height:18px; padding:0 5px; border-radius:999px;
-    background:var(--rose); color:#fff; font-family:"IBM Plex Mono",monospace; font-size:10.5px;
-    font-weight:600; display:inline-flex; align-items:center; justify-content:center; flex:none;
+  .sbfootBtn:hover{color:var(--ink); background:var(--surface-2); border-color:transparent}
+  .sbfootBtn .chev{margin-left:auto}
+  #installBtn{color:var(--accent)}
+  .merow{display:flex; align-items:center; gap:4px}
+  .me{
+    flex:1; min-width:0; justify-content:flex-start; gap:9px; padding:6px 8px; position:relative;
+    background:transparent; border-color:transparent; text-align:left;
   }
-  .sbfootBtn.manage.on .mismatch-badge{background:rgba(255,255,255,.28); color:#fff}
-  #saveAllBtn{color:var(--ink); font-weight:500}
-  #saveAllBtn:hover{border-color:var(--accent); color:var(--accent)}
+  .me:hover{background:var(--surface-2); border-color:transparent}
+  .me .acct-av{width:30px; height:30px}
+  .me-txt{display:flex; flex-direction:column; min-width:0}
+  .me-name{font-size:12.5px; font-weight:500; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .me-status{font-size:11px; color:var(--ink-3); font-weight:400; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  button.ghost{background:transparent; border-color:transparent; color:var(--ink-2)}
+  button.ghost:hover{background:var(--surface-2); border-color:transparent; color:var(--ink)}
+  #sbSignOut:hover{color:var(--rose)}
 
+  /* collapsed rail */
   .app.railed .sidebar{width:64px}
-  .app.railed .sbhead .eyebrow,
+  .app.railed .brand-name,
+  .app.railed .nav span:not(.mismatch-badge),
+  .app.railed .sbhead,
   .app.railed .loc .meta2,
   .app.railed .loc .rm,
   .app.railed .addLoc span,
-  .app.railed .sbfootBtn span{display:none}
-  .app.railed .sbhead{justify-content:center; padding:16px 0 10px}
-  .app.railed .locales{padding:2px 8px; align-items:center}
-  .app.railed .loc{justify-content:center; padding:6px}
-  .app.railed .addLoc{margin:8px auto 8px; width:40px; padding:9px 0}
-  .app.railed .sbfoot{align-items:center; padding:10px 8px 14px}
+  .app.railed .sbfootBtn span,
+  .app.railed .sbfootBtn .chev,
+  .app.railed .me-txt{display:none}
+  .app.railed .brand{flex-direction:column; padding:14px 0 8px}
+  .app.railed .views{padding:4px 8px 10px; align-items:center}
+  .app.railed .nav{width:40px; justify-content:center; padding:9px 0}
+  .app.railed .mismatch-badge{position:absolute; margin:0; top:-3px; right:-5px; min-width:16px; height:16px; font-size:9px}
+  .app.railed .locales{padding:10px 8px 2px; align-items:center}
+  .app.railed .loc{justify-content:center; padding:5px; width:auto}
+  .app.railed .addLoc{margin:8px auto; width:40px; padding:9px 0}
+  .app.railed .sbfoot{align-items:center; padding:10px 8px 12px}
   .app.railed .sbfootBtn{width:40px; padding:9px 0; justify-content:center}
-  .app.railed .mismatch-badge{
-    position:absolute; margin:0; top:-4px; right:-4px; min-width:16px; height:16px; font-size:9px;
-  }
-  .app.railed .sbfootBtn.manage{position:relative}
+  .app.railed .merow{flex-direction:column}
+  .app.railed .me{flex:none; padding:4px}
 
-  .app .wrap{flex:1; min-width:0; max-width:1180px; margin:0 auto}
+  .app .wrap{flex:1; min-width:0; max-width:1240px; margin:0 auto}
+  .help + .panel,.keysbanner + .panel{margin-top:14px}
 
   @media (max-width:860px){
     .app{flex-direction:column}
     .sidebar{
-      width:auto; height:auto; position:static; border-right:0; border-bottom:1px solid var(--line);
-      flex-direction:column;
+      width:auto; height:auto; position:relative; border-right:0; border-bottom:1px solid var(--line);
     }
-    .locales{flex-direction:row; overflow-x:auto; padding:8px 12px; gap:6px}
-    .loc{width:auto; flex:none}
-    .loc .sub{display:none}
-    .addLoc{margin:0 12px 8px}
-    .sbfoot{flex-direction:row; margin-top:0; border-top:0; padding:0 12px 12px}
-    .sbfootBtn{flex:1; justify-content:center}
+    .brand{padding:12px 14px 8px}
     .collapseBtn{display:none}
+    .views{flex-direction:row; overflow-x:auto; padding:0 12px 8px; gap:4px; border-bottom:0}
+    .nav{width:auto; flex:none; padding:7px 11px}
+    .sbhead{display:none}
+    .locales{flex:none; flex-direction:row; overflow-x:auto; padding:2px 12px 10px; gap:6px; align-items:center}
+    .loc{width:auto; flex:none; padding:5px 10px 5px 5px; border:1px solid var(--line)}
+    .loc.active{border-color:var(--accent)}
+    .loc .badge{width:26px; height:26px}
+    .loc .badge::before{inset:2.5px; border-radius:5px}
+    .loc .lname{font-size:12.5px; max-width:140px}
+    .loc .rm{display:none}
+    .addLoc{margin:0 12px 10px; padding:6px 10px; align-self:flex-start}
+    /* backup + account sit in the brand row */
+    .sbfoot{position:absolute; top:8px; right:10px; flex-direction:row; align-items:center; gap:2px; padding:0; margin:0; border:0}
+    .sbfootBtn{width:34px; padding:8px 0; justify-content:center}
+    .sbfootBtn span,.sbfootBtn .chev,.me-txt{display:none}
+    .menu.up{top:calc(100% + 6px); bottom:auto; left:auto; right:0}
+    .me{flex:none; padding:3px}
+    .me .acct-av{width:28px; height:28px}
     .app.railed .sidebar{width:auto}
-    .app.railed .loc .meta2,.app.railed .addLoc span,.app.railed .sbfootBtn span{display:flex}
+    /* auto side margins would shrink-wrap the column to its widest row; stretch it instead */
+    .app .wrap{margin:0; width:100%}
   }
+  @media (max-width:420px){ .brand-name{display:none} }
   /* ---------- account / cloud sync ---------- */
-  #acctBtn{position:relative}
   .acct-dot{
-    position:absolute; right:3px; top:3px; width:8px; height:8px; border-radius:50%;
+    position:absolute; left:30px; top:4px; width:10px; height:10px; border-radius:50%;
     border:2px solid var(--surface); background:var(--tick-empty);
   }
+  .app.railed .acct-dot{left:auto; right:2px; top:2px}
   .acct-dot[data-s="idle"]{background:var(--jade)}
   .acct-dot[data-s="saving"]{background:var(--accent)}
   .acct-dot[data-s="error"],.acct-dot[data-s="conflict"]{background:var(--rose)}
@@ -726,6 +831,29 @@
   html[data-theme="dark"] .acct-btns button.danger{color:#0A0E13}
   .acct-btns button.danger:hover{filter:brightness(1.06); background:var(--rose)}
 
+  /* ---------- phones ---------- */
+  @media (max-width:760px){
+    .wrap,.app .wrap{padding:18px 14px 64px}
+    .topbar{gap:12px}
+    .titleblock{flex-basis:100%}
+    .actions{margin-left:0; width:100%}
+    #undoLabel{display:none}
+    .prog{margin-top:14px; padding:14px}
+    .progbar{display:flex}
+    .ribbon,.tickhint{display:none}
+    .coverage{font-size:24px}
+    .proghead .nextwrap{margin-left:0; width:100%}
+    .proghead .nextwrap button{flex:1; justify-content:center}
+    .controls{padding:10px}
+    .controls .segmented{width:100%; min-width:0; overflow-x:auto}
+    .controls .segmented button{flex:1 0 auto}
+    .search{flex:1 1 100%; min-width:0}
+    #sectionSel,#sortSel{flex:1 1 40%; min-width:0}
+    /* menus become a bottom sheet so they never run off the screen */
+    .menu,.menu.up{position:fixed; left:10px; right:10px; top:auto; bottom:10px; width:auto; max-width:none; z-index:74; padding:8px}
+    .menu > button{padding:11px 10px}
+  }
+
   /* ---------- session check: the app stays hidden until a signed-in user is confirmed ---------- */
   .boot{position:fixed; inset:0; z-index:90; display:none; place-items:center; background:var(--bg);
         font-size:13px; color:var(--ink-3)}
@@ -739,170 +867,214 @@
 <div class="app" id="app">
 
   <aside class="sidebar" id="sidebar">
-    <div class="sbhead">
-      <span class="eyebrow" id="localesHead">Locales</span>
+    <div class="brand">
+      <img src="icons/icon.svg" alt="">
+      <span class="brand-name">Translation Manager</span>
       <button class="collapseBtn" id="collapseBtn" title="Collapse sidebar" aria-label="Collapse sidebar">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>
       </button>
     </div>
-    <div class="sbsort" id="sbSort" hidden>
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h12M3 12h9M3 18h6M17 6v12m0 0 3-3m-3 3-3-3"/></svg>
-      <select id="localeSort" title="Sort the locale list">
-        <option value="file">Added order</option>
-        <option value="code-asc">Code A→Z</option>
-        <option value="code-desc">Code Z→A</option>
-        <option value="cov-desc">Coverage: high→low</option>
-        <option value="cov-asc">Coverage: low→high</option>
-      </select>
+    <nav class="views" aria-label="Sections">
+      <button class="nav on" id="navTranslate" aria-current="page" title="Translate the selected locale">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h9M8.5 3v2M6 5c.5 3 2.6 5.6 5.5 7M11 5c-.6 3.4-3 6.4-7 8"/><path d="m12.5 21 4-10 4 10M14 17.5h5"/></svg>
+        <span>Translations</span>
+      </button>
+      <button class="nav" id="viewBtn" title="Add, rename and line up keys across every locale">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.5 12.5 8-8M15 8l2 2M19 4l2 2"/></svg>
+        <span>Keys</span>
+        <span class="mismatch-badge" id="mismatchBadge" hidden>0</span>
+      </button>
+      <button class="nav" id="excelBtn" title="Import an Excel workbook as locales, or export locales to Excel">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h18M3 15h18"/></svg>
+        <span>Excel tool</span>
+      </button>
+      <button class="nav" id="logBtn" title="Who changed what, and when" aria-haspopup="dialog" style="display:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>
+        <span>Activity log</span>
+      </button>
+    </nav>
+    <div class="sbhead">
+      <span class="eyebrow" id="localesHead">Locales</span>
+      <label class="sbsort" id="sbSort" hidden>
+        <select id="localeSort" title="Sort the locale list" aria-label="Sort locales">
+          <option value="file">Added order</option>
+          <option value="name-asc">Name A→Z</option>
+          <option value="code-asc">Code A→Z</option>
+          <option value="code-desc">Code Z→A</option>
+          <option value="cov-desc">Most translated</option>
+          <option value="cov-asc">Least translated</option>
+        </select>
+      </label>
     </div>
     <nav class="locales" id="localeList" aria-label="Locales"></nav>
-    <button class="addLoc" id="addLocaleBtn">
+    <button class="addLoc" id="addLocaleBtn" title="Add a locale from a JSON, CSV or Excel file">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
       <span>Add locale</span>
     </button>
     <div class="sbfoot">
-      <button class="sbfootBtn manage" id="viewBtn" title="Manage keys across all locales">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.5 12.5 8-8M15 8l2 2M19 4l2 2"/></svg>
-        <span id="viewBtnLabel">Manage Keys</span>
-        <span class="mismatch-badge" id="mismatchBadge" hidden>0</span>
+      <button class="sbfootBtn" id="installBtn" title="Install Translation Manager as an app on this device" hidden>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        <span>Install app</span>
       </button>
-      <button class="sbfootBtn manage" id="excelBtn" title="Import an Excel workbook and split its tabs into locale files">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>
-        <span>Excel Tool</span>
-      </button>
-      <button class="sbfootBtn" id="openFileBtn" title="Open a Save All project file (replaces all locales — owner only)" style="display:none">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>
-        <span>Open File (big JSON)</span>
-      </button>
-      <button class="sbfootBtn" id="saveAllBtn" title="Export every locale into one project file">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
-        <span>Save All (big JSON)</span>
-      </button>
-      <button class="sbfootBtn danger" id="clearAllBtn" title="Remove every locale and start from a blank slate (owner only, undoable)" style="display:none">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 5v6m6-6v6"/></svg>
-        <span>Clear All (big JSON)</span>
-      </button>
-      <button class="sbfootBtn" id="sbSignOut" title="Sign out" style="display:none">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
-        <span>Sign out</span>
-      </button>
+      <div class="menuwrap">
+        <button class="sbfootBtn" id="projectBtn" data-menu="projectMenu" aria-haspopup="menu" aria-expanded="false" title="Back up or restore every locale at once">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="5" rx="1.5"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4"/></svg>
+          <span>Backup &amp; restore</span>
+          <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg>
+        </button>
+        <div class="menu up" id="projectMenu" role="menu" hidden>
+          <button role="menuitem" id="saveAllBtn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+            <span class="mi"><b>Download backup</b><small>Every locale, with tags and review flags, in one JSON file</small></span>
+          </button>
+          <div class="menusep" id="ownerSep" style="display:none"></div>
+          <button role="menuitem" id="openFileBtn" style="display:none">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>
+            <span class="mi"><b>Restore from backup…</b><small>Replaces every locale for everyone · owner only</small></span>
+          </button>
+          <button role="menuitem" class="danger" id="clearAllBtn" style="display:none">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 5v6m6-6v6"/></svg>
+            <span class="mi"><b>Clear all locales…</b><small>Removes everything for everyone · owner only · undoable</small></span>
+          </button>
+        </div>
+      </div>
+      <div class="merow">
+        <button class="me" id="acctBtn" title="Account &amp; cloud sync" aria-label="Account and cloud sync" aria-haspopup="dialog">
+          <span class="acct-av" id="meAv">?</span>
+          <span class="me-txt"><span class="me-name" id="meName">Account</span><span class="me-status" id="meStatus"></span></span>
+          <span class="acct-dot" id="acctDot" data-s="off"></span>
+        </button>
+        <button class="icon ghost" id="themeBtn" title="Switch to dark mode" aria-label="Switch colour theme"></button>
+        <button class="icon ghost" id="sbSignOut" title="Sign out" aria-label="Sign out" style="display:none">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        </button>
+      </div>
     </div>
-    <input type="file" id="addLocaleInput" accept=".json,.xlsx,application/json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+    <input type="file" id="addLocaleInput" accept=".json,.csv,.xlsx,application/json,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
     <input type="file" id="openFileInput" accept=".json,application/json" hidden>
   </aside>
 
   <div class="wrap">
 
   <header class="topbar">
-    <div>
-      <div class="eyebrow" id="eyebrow">Translation Manager</div>
-      <h1 id="appName">Translation Manager</h1>
+    <div class="titleblock">
+      <div class="eyebrow" id="eyebrow">Translations</div>
+      <div class="titlerow">
+        <h1 id="appName">Translation Manager</h1>
+        <span class="codechip" id="localeChip" hidden></span>
+      </div>
       <div class="subline">
-        <span class="chip" id="localeChip">locale <input id="localeInput" value="en-US" aria-label="Locale code" spellcheck="false"></span>
-        <span class="filemeta" id="fileMeta">no file loaded</span>
+        <span class="filemeta" id="fileMeta"></span>
         <span class="filemeta" id="keysMeta" hidden></span>
+        <button class="syncpill" id="syncPill" data-s="off" aria-haspopup="dialog" hidden></button>
       </div>
     </div>
     <div class="actions">
-      <button id="installBtn" title="Install Translation Manager as an app on this device" hidden>
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-        Install app
-      </button>
-      <button id="logBtn" title="Activity Log — who changed what, and when" aria-haspopup="dialog" style="display:none">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>
-        Activity Log
-      </button>
-      <button class="icon" id="acctBtn" title="Account &amp; cloud sync" aria-label="Account and cloud sync" aria-haspopup="dialog">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.6"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.6 3.6 0 0 1 0 6.8M18.5 14.3A6.5 6.5 0 0 1 21.5 20"/></svg>
-        <span class="acct-dot" id="acctDot" data-s="off"></span>
-      </button>
-      <button class="icon" id="themeBtn" title="Switch to dark mode" aria-label="Switch colour theme"></button>
       <button id="undoBtn" title="Undo last change" disabled>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7 4 12l5 5"/><path d="M4 12h11a5 5 0 0 1 0 10h-1"/></svg>
         <span id="undoLabel">Undo</span>
       </button>
-      <button id="mergeBtn" title="Merge translations from a JSON or Excel file into the current locale (overwrites matching keys)">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v6a3 3 0 0 0 3 3h4a3 3 0 0 1 3 3v6M7 3H4m3 0h3m7 18h3m-3 0h-3"/></svg>
-        Merge
-      </button>
-      <button id="mergeMissingBtn" title="Fill only the untranslated entries in the current locale from a JSON or Excel file — existing values are left untouched">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9M4 12h9M4 17h5m7-4v6m3-3h-6"/></svg>
-        Merge Missing Translations
-      </button>
-      <button id="mergeNewBtn" title="Insert only keys that don't exist in the current locale yet (with their English source text and translation) from a JSON or Excel file — existing keys are ignored">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M4 11h10M4 16h6m6-6v8m4-4h-8"/></svg>
-        Merge New Translations
-      </button>
-      <button id="xlsxBtn" title="Export the checked strings as an Excel file" disabled>
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="m8 8 8 8M16 8l-8 8"/></svg>
-        <span id="xlsxLabel">Export Selected</span>
-      </button>
-      <button id="csvBtn">Export CSV</button>
-      <button class="primary" id="jsonBtn">Export Locale (JSON)</button>
+      <div class="actgroup" id="localeActions" hidden>
+        <div class="menuwrap">
+          <button id="importMenuBtn" data-menu="importMenu" aria-haspopup="menu" aria-expanded="false" title="Bring translations from a file into this locale">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+            Import <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="menu" id="importMenu" role="menu" hidden>
+            <div class="menuhead">Import a JSON, CSV or Excel file into <b id="importInto">this locale</b></div>
+            <button role="menuitem" id="mergeMissingBtn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9M4 12h9M4 17h5m7-4v6m3-3h-6"/></svg>
+              <span class="mi"><b>Fill empty translations</b><small>Only untranslated strings get text. Nothing already written is changed.</small></span>
+            </button>
+            <button role="menuitem" id="mergeNewBtn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M4 11h10M4 16h6m6-6v8m4-4h-8"/></svg>
+              <span class="mi"><b>Add missing keys</b><small>Adds keys this locale doesn't have yet. Existing keys are left alone.</small></span>
+            </button>
+            <button role="menuitem" id="mergeBtn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v6a3 3 0 0 0 3 3h4a3 3 0 0 1 3 3v6M7 3H4m3 0h3m7 18h3m-3 0h-3"/></svg>
+              <span class="mi"><b>Update &amp; overwrite</b><small>Replaces matching translations with the file's and adds any new keys.</small></span>
+            </button>
+            <div class="menunote">Imported strings are tagged and flagged for review, and every import can be undone.</div>
+          </div>
+        </div>
+        <div class="menuwrap">
+          <button class="primary" id="exportMenuBtn" data-menu="exportMenu" aria-haspopup="menu" aria-expanded="false" title="Download this locale">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3m0 0L8 7m4-4 4 4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+            Export <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="menu" id="exportMenu" role="menu" hidden>
+            <div class="menuhead">Download strings from <b id="exportFrom">this locale</b></div>
+            <button role="menuitem" id="jsonBtn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5a2 2 0 0 0 2 2h1M16 3h1a2 2 0 0 1 2 2v5a2 2 0 0 0 2 2 2 2 0 0 0-2 2v5a2 2 0 0 1-2 2h-1"/></svg>
+              <span class="mi"><b>JSON (POEditor)</b><small id="jsonSub">The strings shown in the table</small></span>
+            </button>
+            <button role="menuitem" id="csvBtn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M8 13h8M8 17h8"/></svg>
+              <span class="mi"><b>CSV</b><small id="csvSub">The strings shown in the table</small></span>
+            </button>
+            <button role="menuitem" id="xlsxBtn" disabled>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="m8 8 8 8M16 8l-8 8"/></svg>
+              <span class="mi"><b id="xlsxLabel">Selected strings (Excel)</b><small>Tick strings in the table first</small></span>
+            </button>
+            <div class="menusep"></div>
+            <button role="menuitem" id="exportAllNav">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h18M3 15h18"/></svg>
+              <span class="mi"><b>All locales to Excel…</b><small>Opens the Excel tool: one workbook, a tab per locale</small></span>
+            </button>
+          </div>
+        </div>
+        <div class="menuwrap">
+          <button class="icon" id="localeMenuBtn" data-menu="localeMenu" aria-haspopup="menu" aria-expanded="false" title="More for this locale" aria-label="More for this locale">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+          </button>
+          <div class="menu" id="localeMenu" role="menu" hidden>
+            <button role="menuitem" id="renameLocaleBtn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              <span class="mi"><b>Change locale code…</b><small>For example de-DE or pt-BR</small></span>
+            </button>
+            <button role="menuitem" class="danger" id="removeLocaleBtn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+              <span class="mi"><b>Remove this locale…</b><small>You'll be asked to confirm. Undoable.</small></span>
+            </button>
+          </div>
+        </div>
+      </div>
       <input type="file" id="fileInput" accept=".json,.csv,.tsv,.txt,.xlsx,application/json,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
     </div>
   </header>
 
   <div id="translateView">
-  <details class="help">
-    <summary>
-      <span class="chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
-      What the buttons on this page do
-      <span class="hint">tap to expand</span>
-    </summary>
-    <div class="help-body">
-      <dl>
-        <dt>Merge</dt>
-        <dd>Import a JSON or Excel file and <b>overwrite</b> matching keys in this locale, adding any keys that are new. Touched rows are tagged <span class="t">merged</span> and flagged Needs review.</dd>
-        <dt>Merge Missing Translations</dt>
-        <dd>Fill only the <b>untranslated</b> (empty) entries already in this locale; existing translations are left untouched. Filled rows are tagged <span class="t">merged new translation</span> and flagged.</dd>
-        <dt>Merge New Translations</dt>
-        <dd>Insert only keys that <b>don't exist</b> in this locale yet, with their English source and translation. Existing keys are ignored. New rows are tagged <span class="t">inserted new translations</span> and flagged.</dd>
-        <dt>Export Selected</dt>
-        <dd>Download the tick-selected rows as a POEditor-format Excel (<span class="t">.xlsx</span>) file. Enabled once you tick at least one row.</dd>
-        <dt>Export CSV</dt>
-        <dd>Download the rows currently shown as a CSV — the active filter, search, and section narrow what's exported.</dd>
-        <dt>Export Locale (JSON)</dt>
-        <dd>Download this one locale as a POEditor-format JSON file (the shape the Excel Tool extracts).</dd>
-        <dt>Undo</dt>
-        <dd>Step back through the last 10 changes, across every locale.</dd>
-        <dt>Flag &amp; tags</dt>
-        <dd>The flag button toggles a row's Needs review state. The <b>×</b> on a tag removes it; removing a row's <b>last</b> tag also clears its review flag.</dd>
-        <dt>Approve / Approve All</dt>
-        <dd>Shown on the <b>Needs review</b> filter — clear the review flag on the selected, or on all shown, flagged rows.</dd>
-        <dt>Add locale · Open File · Save All (big JSON)</dt>
-        <dd>In the left sidebar: add a locale from a file; open a saved project bundle; or save every locale — including tags and review flags — into one project JSON.</dd>
-      </dl>
+  <section class="panel prog" id="hero">
+    <div class="proghead">
+      <div class="covbig"><span class="coverage" id="coverage">—</span><span class="covof" id="covOf">translated</span></div>
+      <div class="legend">
+        <span style="color:var(--jade)"><i class="dot"></i><span><b id="cDone">0</b> translated</span></span>
+        <span style="color:var(--ochre)"><i class="dot"></i><span><b id="cReview">0</b> need review</span></span>
+        <span style="color:var(--rose)"><i class="dot"></i><span><b id="cMissing">0</b> untranslated</span></span>
+      </div>
+      <div class="nextwrap">
+        <span class="alldone" id="allDone" hidden>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          All translated and reviewed
+        </span>
+        <button class="primary" id="nextBtn" hidden>
+          <span id="nextLabel">Translate next</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+        </button>
+      </div>
     </div>
-  </details>
-  <section class="panel hero">
-    <div class="stats">
-      <button class="stat total"   data-f="all"      aria-pressed="true"><span class="num" id="cTotal">0</span><span class="lbl"><i class="dot"></i><span>Strings total</span></span></button>
-      <button class="stat done"    data-f="done"     aria-pressed="false"><span class="num" id="cDone">0</span><span class="lbl"><i class="dot"></i><span>Translated</span></span></button>
-      <button class="stat review"  data-f="review"   aria-pressed="false"><span class="num" id="cReview">0</span><span class="lbl"><i class="dot"></i><span>Needs review</span></span></button>
-      <button class="stat missing" data-f="missing"  aria-pressed="false"><span class="num" id="cMissing">0</span><span class="lbl"><i class="dot"></i><span>Untranslated</span></span></button>
-    </div>
-
-    <div class="ribbonhead">
-      <span class="coverage" id="coverage">—</span>
-      <span class="eyebrow">one mark per string, in file order</span>
-      <span class="legend">
-        <span style="color:var(--jade)"><i class="dot"></i>translated</span>
-        <span style="color:var(--ochre)"><i class="dot"></i>needs review</span>
-        <span style="color:var(--rose)"><i class="dot"></i>untranslated</span>
-      </span>
-    </div>
+    <div class="progbar" id="progBar" aria-hidden="true"><i class="done"></i><i class="review"></i><i class="missing"></i></div>
     <div class="ribbon" id="ribbon"></div>
-    <div class="tickhint">Hover a mark to read its key, click to jump to the string.</div>
+    <div class="tickhint">One mark per string, in file order. Hover to read the key, click to jump to it.</div>
   </section>
 
   <section class="panel">
-    <div class="controls">
+    <div class="controls" id="tControls">
       <div class="segmented" id="filters">
         <button data-f="all"     aria-pressed="true">All <span class="count" data-c="all">0</span></button>
-        <button data-f="done"    aria-pressed="false">Translated <span class="count" data-c="done">0</span></button>
         <button data-f="missing" aria-pressed="false">Untranslated <span class="count" data-c="missing">0</span></button>
         <button data-f="review"  aria-pressed="false">Needs review <span class="count" data-c="review">0</span></button>
+        <button data-f="done"    aria-pressed="false">Translated <span class="count" data-c="done">0</span></button>
       </div>
       <label class="search">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4.3-4.3"/></svg>
@@ -920,16 +1092,24 @@
     <div class="reviewbar" id="reviewBar" hidden>
       <span class="reviewbar-label" id="reviewBarLabel"></span>
       <div class="reviewbar-actions">
-        <button id="approveSelBtn" disabled>Approve Selected</button>
-        <button class="primary approve" id="approveAllBtn">Approve All</button>
+        <button id="approveSelBtn" disabled>Approve selected</button>
+        <button class="primary approve" id="approveAllBtn">Approve all</button>
       </div>
     </div>
+    <div class="selbar" id="selBar" hidden>
+      <span class="selbar-label" id="selBarLabel"></span>
+      <button id="selExport">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3m0 0L8 7m4-4 4 4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        Export to Excel
+      </button>
+      <button id="selClear">Clear selection</button>
+    </div>
 
-    <div class="thead">
+    <div class="thead" id="tHead">
       <div class="pick"><input type="checkbox" id="selectAll" title="Select all shown" aria-label="Select all shown strings"></div>
       <div><button class="sortable" data-sort="key">Key</button></div>
       <div id="valHead">Translation</div>
-      <div>English Source Text</div>
+      <div>English source</div>
       <div>Tags</div>
       <div><button class="sortable" data-sort="status">Status</button></div>
       <div></div>
@@ -942,13 +1122,12 @@
   <div id="keysView" hidden>
     <div class="keysbanner">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
-      <span>Global view — you're managing the <b>key set shared by every locale</b>, not one locale's translations. Add, rename, delete, or sync here and it applies to all locales at once.</span>
+      <span>Keys are <b>shared by every locale</b>. Adding, renaming or deleting a key here changes all locales at once, and every change can be undone.</span>
     </div>
     <details class="help">
       <summary>
         <span class="chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
-        What the buttons on this page do
-        <span class="hint">tap to expand</span>
+        How this page works
       </summary>
       <div class="help-body">
         <dl>
@@ -1005,19 +1184,19 @@
     <div id="excelHome">
       <div class="keysbanner">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg>
-        <span>The Excel Tool has two areas. Pick <b>Import</b> to bring an Excel workbook into the app, or <b>Export</b> for the outbound tools.</span>
+        <span>Bring a multi-tab Excel workbook in as locales, or export your locales to one Excel workbook.</span>
       </div>
       <section class="panel">
         <div class="excelhome">
           <button type="button" class="excelhome-card" id="excelGoImport">
             <span class="ehc-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M12 4 7 9M12 4l5 5M4 18v2h16v-2"/></svg></span>
-            <span class="ehc-title">Import</span>
-            <span class="ehc-desc">Load a multi-tab Excel workbook, preview it, and split its tabs into locale files or add them straight into the app.</span>
+            <span class="ehc-title">Import a workbook</span>
+            <span class="ehc-desc">Preview a multi-tab workbook, then add its tabs as locales or split them into separate files.</span>
           </button>
           <button type="button" class="excelhome-card" id="excelGoExport">
             <span class="ehc-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v12m0-12L7 13m5-5 5 5M4 6V4h16v2"/></svg></span>
-            <span class="ehc-title">Export</span>
-            <span class="ehc-desc">Outbound tools for turning your locales into files. A different set of functionalities.</span>
+            <span class="ehc-title">Export to Excel</span>
+            <span class="ehc-desc">Download one workbook with a tab per locale: every string, or only what still needs translating.</span>
           </button>
         </div>
       </section>
@@ -1026,29 +1205,28 @@
     <div id="excelImport" hidden>
       <button type="button" class="excelback" id="excelImportBack">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg>
-        Excel Tool home
+        Back to Excel tool
       </button>
       <div class="keysbanner">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg>
-        <span>Import a multi-tab Excel workbook to preview it (read-only), then <b>Extract Locales</b> to split every tab into its own POEditor-format file, named after the tab.</span>
+        <span>Choose a workbook to preview it (nothing changes yet). Tick the tabs that are locales, then <b>add them to the app</b> or download them as separate files.</span>
       </div>
     <details class="help">
       <summary>
         <span class="chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
-        What the buttons on this page do
-        <span class="hint">tap to expand</span>
+        How this page works
       </summary>
       <div class="help-body">
         <dl>
-          <dt>Import XLSX</dt>
+          <dt>Choose workbook</dt>
           <dd>Load a multi-tab Excel workbook. Each tab is previewed here <b>read-only</b> — nothing changes until you extract or import.</dd>
           <dt>Tabs to extract</dt>
           <dd>Tick the tabs that are actual locales. <span class="t">Select all</span> / <span class="t">Select none</span> toggle them all; tabs that look like summaries are left unticked automatically.</dd>
-          <dt>Extract Locales (XLSX)</dt>
+          <dt>Download as .xlsx files</dt>
           <dd>Save each ticked tab as its own POEditor-format <span class="t">.xlsx</span> file — bundled into a <span class="t">.zip</span> when more than one is selected.</dd>
-          <dt>Extract Locales (JSON)</dt>
+          <dt>Download as .json files</dt>
           <dd>Same as above but each tab is written as a POEditor-format <span class="t">.json</span> file.</dd>
-          <dt>Import Selected as Locales</dt>
+          <dt>Add to app as locales</dt>
           <dd>Add each ticked tab straight into your locale list on the left, ready to edit — no download step.</dd>
           <dt>Clear</dt>
           <dd>Discard the imported workbook and its preview so you can start over.</dd>
@@ -1059,19 +1237,19 @@
       <div class="keysbar">
         <button class="primary" id="importXlsxBtn">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 16V4M12 4 7 9M12 4l5 5M4 18v2h16v-2"/></svg>
-          Import XLSX
-        </button>
-        <button id="extractBtn" title="Extract each selected tab into a POEditor-format .xlsx file" disabled>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-          <span id="extractLabel">Extract Locales (XLSX)</span>
-        </button>
-        <button id="extractJsonBtn" title="Extract each selected tab into a POEditor-format .json file" disabled>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-          <span id="extractJsonLabel">Extract Locales (JSON)</span>
+          Choose workbook…
         </button>
         <button id="importLocalesBtn" class="primary approve" title="Add each selected tab to your locale list on the left, ready to edit in the app" disabled>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4v16M4 12h11m0 0-4-4m4 4-4 4"/></svg>
-          <span id="importLocalesLabel">Import Selected as Locales</span>
+          <span id="importLocalesLabel">Add to app as locales</span>
+        </button>
+        <button id="extractBtn" title="Extract each selected tab into a POEditor-format .xlsx file" disabled>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          <span id="extractLabel">Download as .xlsx files</span>
+        </button>
+        <button id="extractJsonBtn" title="Extract each selected tab into a POEditor-format .json file" disabled>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          <span id="extractJsonLabel">Download as .json files</span>
         </button>
         <span class="filemeta" id="xlsxMeta" style="margin-left:auto"></span>
         <button id="clearXlsxBtn" title="Clear the imported workbook and start over" hidden>
@@ -1099,18 +1277,18 @@
       <div class="previewwrap"><table class="preview" id="previewTable"></table></div>
     </section>
     <section class="panel" id="excelEmpty">
-      <div class="empty"><h3>No workbook loaded</h3><p>Use <b>Import XLSX</b> to load a multi-tab Excel file. Each tab is previewed here read-only; nothing is changed until you extract.</p></div>
+      <div class="empty"><h3>No workbook loaded</h3><p>Use <b>Choose workbook…</b> to load a multi-tab Excel file. Each tab is previewed here read-only; nothing is changed until you extract.</p></div>
     </section>
     </div><!-- /#excelImport -->
     <!-- Export area -->
     <div id="excelExport" hidden>
       <button type="button" class="excelback" id="excelExportBack">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg>
-        Excel Tool home
+        Back to Excel tool
       </button>
       <div class="keysbanner">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v12m0-12L7 13m5-5 5 5M4 6V4h16v2"/></svg>
-        <span>Export your locales to Excel. Click a card to filter the list, tick the locales to include, then export — each locale becomes its own tab, with a clickable <b>Contents</b> tab first.</span>
+        <span>Tick the locales to include, then export. Each locale becomes its own tab, with a clickable <b>Contents</b> tab first. The cards preview what's in each category.</span>
       </div>
       <section class="panel hero">
         <div class="stats" id="expStats">
@@ -1125,11 +1303,11 @@
         <div class="keysbar">
           <button class="primary" id="exportAllBtn" title="Export all strings of the selected locales, each locale in its own tab" disabled>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-            <span id="exportAllLabel">Export ALL to XLSX</span>
+            <span id="exportAllLabel">Export all strings</span>
           </button>
           <button id="exportUntransBtn" title="Export only the untranslated strings of the selected locales, each locale in its own tab" disabled>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-            <span id="exportUntransLabel">Export Untranslated to XLSX</span>
+            <span id="exportUntransLabel">Export untranslated only</span>
           </button>
           <span class="filemeta" id="expMeta" style="margin-left:auto"></span>
         </div>
@@ -1170,13 +1348,13 @@
     </div>
   </div>
 
-  <p class="footnote">Edits stay in this tab until you export. Undo covers the last 10 changes across all locales.</p>
+  <p class="footnote">Edits stay in this tab until you export. Undo covers the last 10 changes.</p>
   </div>
 </div>
 
 <div class="tooltip" id="tip"></div>
 <div class="toast" id="toast"></div>
-<div class="drop" id="drop"><div>Drop a .json or .csv locale file</div></div>
+<div class="drop" id="drop"><div>Drop a .json or .csv file to add it as a locale</div></div>
 
 <div class="acct-ov" id="acctOv">
   <div class="acct" role="dialog" aria-modal="true" aria-labelledby="acctTitle">
@@ -1376,6 +1554,47 @@
   $("#warnCancel").addEventListener("click", function(){ closeWarn(false); });
   $("#warnOv").addEventListener("click", function(e){ if(e.target === this) closeWarn(false); });
   document.addEventListener("keydown", function(e){ if(e.key === "Escape" && warnResolve) closeWarn(false); });
+  /* ============ dropdown menus ============
+     A button with data-menu="id" toggles that menu. Picking an item, clicking elsewhere or
+     pressing Escape closes it; arrow keys move between items. */
+  var openMenuEl = null;
+  function closeMenu(focusTrigger){
+    if(!openMenuEl) return;
+    var m = openMenuEl, trig = document.querySelector('[data-menu="' + m.id + '"]');
+    openMenuEl = null;
+    m.hidden = true;
+    if(trig){ trig.setAttribute("aria-expanded", "false"); if(focusTrigger) trig.focus(); }
+  }
+  function menuItems(m){
+    return Array.prototype.filter.call(m.querySelectorAll('[role="menuitem"]'), function(b){
+      return !b.disabled && b.style.display !== "none";
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("[data-menu]"), function(trig){
+    var m = document.getElementById(trig.dataset.menu);
+    trig.addEventListener("click", function(e){
+      e.stopPropagation();
+      var wasOpen = openMenuEl === m;
+      closeMenu();
+      if(wasOpen) return;
+      m.hidden = false; openMenuEl = m;
+      trig.setAttribute("aria-expanded", "true");
+      var first = menuItems(m)[0]; if(first) first.focus();
+    });
+    m.addEventListener("click", function(e){ if(e.target.closest('[role="menuitem"]')) closeMenu(); });
+    m.addEventListener("keydown", function(e){
+      var items = menuItems(m), at = items.indexOf(document.activeElement);
+      if(e.key === "ArrowDown" || e.key === "ArrowUp"){
+        e.preventDefault();
+        var next = items[(at + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length];
+        if(next) next.focus();
+      }
+      if(e.key === "Tab") closeMenu();
+    });
+  });
+  document.addEventListener("click", function(e){ if(openMenuEl && !openMenuEl.contains(e.target)) closeMenu(); });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape" && openMenuEl) closeMenu(true); });
+
   // appended to warnings when the change also lands in the shared cloud workspace
   function cloudNote(){ return cloud.user ? "\n\nThis also changes the shared cloud copy for everyone." : ""; }
 
@@ -2087,7 +2306,7 @@
     host.textContent = "";
     var n = state.locales.length;
     var head = $("#localesHead");
-    if(head) head.textContent = n + (n > 1 ? " locales" : " locale");
+    if(head) head.textContent = n ? n + (n !== 1 ? " locales" : " locale") : "Locales";
     var showActive = state.view === "translate";   // global views (keys/excel) have no active locale
 
     // sort control: only worth showing with 2+ locales
@@ -2100,10 +2319,11 @@
     var items = state.locales.map(function(l, i){
       var done = 0; l.rows.forEach(function(r){ if(statusOf(r) === "done") done++; });
       var all = l.rows.length;
-      return { i:i, l:l, all:all, done:done, pct: all ? Math.round(done / all * 100) : 0 };
+      return { i:i, l:l, all:all, done:done, pct: all ? Math.floor(done / all * 100) : 0, name: localeTitle(l) };
     });
     var cmps = {
       "file":     function(a,b){ return a.i - b.i; },
+      "name-asc": function(a,b){ return a.name.localeCompare(b.name) || a.i - b.i; },
       "code-asc": function(a,b){ return a.l.code.localeCompare(b.l.code) || a.i - b.i; },
       "code-desc":function(a,b){ return b.l.code.localeCompare(a.l.code) || a.i - b.i; },
       "cov-desc": function(a,b){ return b.pct - a.pct || a.l.code.localeCompare(b.l.code); },
@@ -2119,11 +2339,11 @@
       btn.className = "loc" + (showActive && i === state.active ? " active" : "");
       btn.style.setProperty("--pct", pct);
       btn.setAttribute("aria-current", showActive && i === state.active ? "true" : "false");
-      btn.title = l.code + " — " + pct + "% translated";
+      btn.title = o.name + " (" + l.code + ") — " + c.done + " of " + c.all + " translated";
       btn.innerHTML =
         '<span class="badge"><span>' + esc(region) + '</span></span>' +
-        '<span class="meta2"><span class="code">' + esc(l.code) + '</span>' +
-        '<span class="sub">' + c.done + "/" + c.all + " · " + pct + '%</span></span>';
+        '<span class="meta2"><span class="lname">' + esc(o.name) + '</span>' +
+        '<span class="sub">' + (o.name !== l.code ? '<span class="mono">' + esc(l.code) + "</span> · " : "") + pct + '% done</span></span>';
 
       var rm = document.createElement("button");
       rm.className = "rm"; rm.innerHTML = FLAGSVG_RM;
@@ -2136,7 +2356,7 @@
       host.appendChild(btn);
     });
     if(!state.locales.length){
-      host.innerHTML = '<p style="padding:10px 12px;font-size:12px;color:var(--ink-3)">No locales yet. Use “Add locale”.</p>';
+      host.innerHTML = '<p style="padding:6px 8px;margin:0;font-size:12px;color:var(--ink-3)">No locales yet.</p>';
     }
   }
 
@@ -2152,15 +2372,33 @@
     this.title = railed ? "Expand sidebar" : "Collapse sidebar";
   });
 
-  /* the header locale field renames the ACTIVE locale's code */
-  $("#localeInput").addEventListener("change", function(){
+  /* locale ⋯ menu: rename the ACTIVE locale's code, or remove it */
+  $("#renameLocaleBtn").addEventListener("click", function(){
     var l = activeLocale();
-    if(!l){ return; }
-    var next = uniqueCode(this.value.trim() || l.code, state.active);
-    if(next !== l.code){ l.code = next; }
-    this.value = l.code;
+    if(!l) return;
+    var entered = window.prompt("New locale code for “" + l.code + "” (e.g. de-DE, pt-BR):", l.code);
+    if(entered === null) return;
+    var next = uniqueCode(entered.trim() || l.code, state.active);
+    if(next === l.code) return;
+    snapshot();
+    var was = l.code;
+    l.code = next;
     render();
+    toast("Renamed " + was + " to " + next);
   });
+  $("#removeLocaleBtn").addEventListener("click", function(){ if(state.active > -1) removeLocale(state.active); });
+
+  /* English display name for a locale code, e.g. de-DE → German (Germany) */
+  var LANG_NAMES = null;
+  try{ LANG_NAMES = new Intl.DisplayNames(["en"], { type: "language" }); }catch(e){}
+  function langName(code){
+    if(!LANG_NAMES || !code) return "";
+    try{
+      var n = LANG_NAMES.of(String(code).replace(/_/g, "-"));
+      return n && n.toLowerCase() !== String(code).toLowerCase() ? n : "";
+    }catch(e){ return ""; }   // not a valid language tag, e.g. "locale-2"
+  }
+  function localeTitle(l){ return langName(l.code) || l.code; }
 
   /* ============ Manage Keys ============ */
   // Union of keys across all locales, in first-seen order, with presence info.
@@ -2254,9 +2492,8 @@
     render();
     if(v === "keys"){ var n = $("#newKeyInput"); if(n) n.focus(); }
   }
-  $("#viewBtn").addEventListener("click", function(){
-    setView(state.view === "keys" ? "translate" : "keys");
-  });
+  $("#navTranslate").addEventListener("click", function(){ setView("translate"); });
+  $("#viewBtn").addEventListener("click", function(){ setView("keys"); });
   $("#addKeyBtn").addEventListener("click", function(){
     var inp = $("#newKeyInput");
     if(addKey(inp.value)) inp.value = "";
@@ -2856,8 +3093,10 @@
     var n = selCount();
     var btn = $("#xlsxBtn"), lab = $("#xlsxLabel");
     btn.disabled = n === 0;
-    if(lab) lab.textContent = n ? "Export Selected (" + n + ")" : "Export Selected";
-    btn.title = n ? "Export " + n + " checked string" + (n>1?"s":"") + " as Excel" : "Check some strings first";
+    if(lab) lab.textContent = n ? n + " selected string" + (n>1?"s":"") + " (Excel)" : "Selected strings (Excel)";
+    var bar = $("#selBar");
+    bar.hidden = n === 0;
+    $("#selBarLabel").textContent = n + " selected";
     // select-all reflects the currently shown rows
     var shown = visible(), sa = $("#selectAll");
     if(sa){
@@ -2872,6 +3111,8 @@
     shown.forEach(function(r){ setSel(r.term, on); });
     render();
   });
+  $("#selExport").addEventListener("click", function(){ $("#xlsxBtn").click(); });
+  $("#selClear").addEventListener("click", function(){ clearSel(); render(); });
   $("#xlsxBtn").addEventListener("click", function(){
     if(state.active === -1){ toast("Add a locale first"); return; }
     var m = selMap();
@@ -2910,9 +3151,9 @@
       (selFlagged ? " · " + selFlagged + " selected" : "");
     var selBtn = $("#approveSelBtn"), allBtn = $("#approveAllBtn");
     selBtn.disabled = selFlagged === 0;
-    selBtn.textContent = "Approve Selected" + (selFlagged ? " (" + selFlagged + ")" : "");
+    selBtn.textContent = "Approve selected" + (selFlagged ? " (" + selFlagged + ")" : "");
     allBtn.disabled = shownFlagged === 0;
-    allBtn.textContent = "Approve All" + (shownFlagged ? " (" + shownFlagged + ")" : "");
+    allBtn.textContent = "Approve all" + (shownFlagged ? " (" + shownFlagged + ")" : "");
   }
   $("#approveSelBtn").addEventListener("click", function(){
     var m = selMap();
@@ -2942,7 +3183,7 @@
     state.filter = f; state.limit = 120;
     render();
   }
-  Array.prototype.forEach.call(document.querySelectorAll("#filters button, .stat"), function(b){
+  Array.prototype.forEach.call(document.querySelectorAll("#filters button"), function(b){
     b.addEventListener("click", function(){ setFilter(b.dataset.f); });
   });
   $("#q").addEventListener("input", function(e){ state.q = e.target.value; state.limit = 120; render(); });
@@ -2979,20 +3220,31 @@
     return c;
   }
   function renderStats(c){
-    $("#cTotal").textContent = c.all;
     $("#cDone").textContent = c.done;
     $("#cReview").textContent = c.review;
     $("#cMissing").textContent = c.missing;
     Array.prototype.forEach.call(document.querySelectorAll("[data-c]"), function(el){
       el.textContent = c[el.dataset.c];
     });
-    Array.prototype.forEach.call(document.querySelectorAll("#filters button, .stat"), function(b){
+    Array.prototype.forEach.call(document.querySelectorAll("#filters button"), function(b){
       b.setAttribute("aria-pressed", b.dataset.f === state.filter ? "true" : "false");
     });
     var pct = c.all ? (c.done / c.all) * 100 : 0;
-    $("#coverage").textContent = c.all
-      ? (Math.round(pct * 10) / 10) + "% translated" + (c.review ? " · " + c.review + " flagged for review" : "")
-      : "—";
+    // round down, so 99.96% never reads as a finished 100%
+    $("#coverage").textContent = c.all ? (Math.floor(pct * 10) / 10) + "%" : "—";
+    $("#covOf").textContent = "translated · " + c.done + " of " + c.all;
+    var bar = $("#progBar").children;
+    bar[0].style.width = (c.all ? c.done / c.all * 100 : 0) + "%";
+    bar[1].style.width = (c.all ? c.review / c.all * 100 : 0) + "%";
+    bar[2].style.width = (c.all ? c.missing / c.all * 100 : 0) + "%";
+    // one button that always takes you to the next piece of work
+    var nb = $("#nextBtn");
+    nb.hidden = !c.missing && !c.review;
+    $("#nextLabel").textContent = c.missing ? "Translate next" : "Review next";
+    nb.title = c.missing
+      ? c.missing + " untranslated — opens the next one for editing"
+      : c.review + " flagged for review — jumps to the next one";
+    $("#allDone").hidden = !c.all || !nb.hidden;
   }
   function renderRibbon(){
     var rib = $("#ribbon");
@@ -3063,13 +3315,56 @@
     sel.value = state.section;
   }
   var FLAG = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 21V4.5h13l-2.4 4.2L18 13H5"/></svg>';
+  var CHECK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+  var lastTerm = null, flagTipShown = false;
+
+  function rowEl(term){
+    return document.querySelector('.row[data-term="' + (window.CSS && CSS.escape ? CSS.escape(term) : term) + '"]');
+  }
+  /* open a row's editor, showing more rows first if it's past the "Show more" cut-off */
+  function editTerm(term, block){
+    var row = rowEl(term);
+    if(!row){
+      var at = visible().findIndex(function(x){ return x.term === term; });
+      if(at === -1) return;
+      state.limit = Math.max(state.limit, at + 40);
+      render();
+      row = rowEl(term);
+    }
+    if(!row || !row._edit) return;
+    row._edit();
+    row.scrollIntoView({ block: block || "nearest" });
+  }
+  /* "Translate next" / "Review next": the next untranslated string after the last one
+     touched (wrapping round), or — once nothing is untranslated — the next flagged one */
+  function goNext(){
+    var rows = activeRows(), n = rows.length;
+    var want = rows.some(function(r){ return statusOf(r) === "missing"; }) ? "missing"
+             : rows.some(function(r){ return statusOf(r) === "review"; }) ? "review" : "";
+    if(!want){ toast("Everything is translated and reviewed"); return; }
+    var start = lastTerm == null ? -1 : rows.findIndex(function(r){ return r.term === lastTerm; });
+    for(var k = 1; k <= n; k++){
+      var r = rows[(start + k) % n];
+      if(statusOf(r) !== want) continue;
+      lastTerm = r.term;
+      if(!visible().some(function(x){ return x.term === r.term; })){
+        // the current filter/search hides it: switch to the matching filter
+        state.filter = want; state.section = "all"; state.q = "";
+        $("#q").value = ""; render();
+      }
+      if(want === "missing") editTerm(r.term, "center");
+      else jumpTo(r.term);
+      return;
+    }
+  }
+  $("#nextBtn").addEventListener("click", goNext);
 
   function renderRows(list){
     var host = $("#rows"), foot = $("#foot");
     host.textContent = ""; foot.textContent = "";
     if(state.active === -1){
       host.innerHTML = '<div class="empty"><h3>No locales yet</h3>' +
-        '<p>Add a JSON or CSV export of your system text to see coverage, filter untranslated strings, and export it back out. Each file you add appears in the sidebar as its own locale.</p>' +
+        '<p>Add a JSON, CSV or Excel file of your strings to see what\'s translated, fill in the gaps and export it back out. Each file becomes a locale in the sidebar — you can also drop a .json or .csv file anywhere on this page.</p>' +
         '<div class="cta"><button class="primary" id="emptyImport">Add locale</button></div></div>';
       var eb = $("#emptyImport");
       if(eb) eb.addEventListener("click", function(){ $("#addLocaleInput").click(); });
@@ -3131,7 +3426,14 @@
         if(rtl){ ta.dir = "rtl"; }
         vcell.textContent = ""; vcell.classList.remove("empty");
         vcell.appendChild(ta);
-        ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+        var hint = document.createElement("div");
+        hint.className = "edhint";
+        hint.innerHTML = "<kbd>Enter</kbd> save &amp; next · <kbd>Shift</kbd>+<kbd>Enter</kbd> new line · <kbd>Esc</kbd> cancel";
+        if(rtl) hint.dir = "ltr";
+        vcell.appendChild(hint);
+        ta.focus({ preventScroll: true }); ta.setSelectionRange(ta.value.length, ta.value.length);
+        lastTerm = r.term;
+        var nextTerm = null;      // set by Enter: the row to open once this one is saved
         function commit(){
           var next = ta.value;
           if(next !== r.definition){
@@ -3146,15 +3448,24 @@
               autoFlagged = true;
             }
             render();
-            if(autoFlagged) toast("New translation flagged for review");
+            if(autoFlagged && !flagTipShown){ flagTipShown = true; toast("New translations are flagged for review"); }
           } else { render(); }
+          if(nextTerm) editTerm(nextTerm);
         }
         ta.addEventListener("blur", commit);
         ta.addEventListener("keydown", function(ev){
           if(ev.key === "Escape"){ ta.value = r.definition; ta.blur(); }
-          if(ev.key === "Enter" && (ev.metaKey || ev.ctrlKey)) ta.blur();
+          else if(ev.key === "Enter" && !ev.shiftKey && !ev.isComposing){
+            ev.preventDefault();
+            if(!(ev.metaKey || ev.ctrlKey)){
+              var list = visible(), at = list.findIndex(function(x){ return x.term === r.term; });
+              nextTerm = at > -1 && list[at + 1] ? list[at + 1].term : null;
+            }
+            ta.blur();
+          }
         });
       }
+      row._edit = edit;
       vcell.addEventListener("click", edit);
       vcell.addEventListener("keydown", function(ev){ if(ev.key === "Enter"){ ev.preventDefault(); edit(); } });
 
@@ -3198,9 +3509,9 @@
 
       var fcell = document.createElement("div");
       var fb = document.createElement("button");
-      fb.className = "flag" + (r.fuzzy ? " on" : "");
-      fb.innerHTML = FLAG;
-      fb.title = r.fuzzy ? "Clear review flag" : "Flag for review";
+      fb.className = "flag" + (r.fuzzy ? " approve" : "");
+      fb.innerHTML = r.fuzzy ? CHECK : FLAG;
+      fb.title = r.fuzzy ? "Approve — clear the review flag" : "Flag for review";
       fb.setAttribute("aria-label", fb.title);
       fb.addEventListener("click", function(){ snapshot(); r.fuzzy = r.fuzzy ? 0 : 1; render(); });
       fcell.appendChild(fb);
@@ -3229,27 +3540,22 @@
   }
   function renderHeader(){
     var l = activeLocale();
-    var keys = state.view === "keys", xl = state.view === "excel";
-    var input = $("#localeInput");
-    input.value = l ? l.code : "";
-    input.disabled = !l;
-    var mb = $("#mergeBtn"); if(mb) mb.disabled = !l;
-    var mm = $("#mergeMissingBtn"); if(mm) mm.disabled = !l;
-    var mn = $("#mergeNewBtn"); if(mn) mn.disabled = !l;
-    var cb2 = $("#csvBtn"); if(cb2) cb2.disabled = !l;
-    var jb2 = $("#jsonBtn"); if(jb2) jb2.disabled = !l;
+    var keys = state.view === "keys", xl = state.view === "excel", global = keys || xl;
+    ["#mergeBtn","#mergeMissingBtn","#mergeNewBtn","#csvBtn","#jsonBtn"].forEach(function(sel){ $(sel).disabled = !l; });
+    $("#eyebrow").textContent = keys ? "Shared by every locale" : (xl ? "Workbooks in and out" : "Translations");
+    $("#appName").textContent = keys ? "Keys" : (xl ? "Excel tool" : (l ? localeTitle(l) : "Translation Manager"));
+    var chip = $("#localeChip");
+    chip.textContent = l ? l.code : "";
+    chip.hidden = global || !l || localeTitle(l) === l.code;
     $("#fileMeta").textContent = l
-      ? (l.file || l.name || "locale") + " · " + l.rows.length + " strings"
-      : "no locale loaded";
-    $("#valHead").textContent = "Translation" + (l ? " — " + l.code : "");
-
-    var global = keys || xl;
-    $("#appName").textContent = keys ? "Manage Keys" : (xl ? "Excel Tool" : "Translation Manager");
-    $("#localeChip").hidden = global;
+      ? (l.file ? l.file + " · " : "") + l.rows.length + " string" + (l.rows.length !== 1 ? "s" : "")
+      : "Add a locale to get started";
     $("#fileMeta").hidden = global;
     $("#keysMeta").hidden = !keys;
-    $("#eyebrow").textContent = keys ? "Translation Manager · global view"
-      : (xl ? "Translation Manager · excel tool" : "Translation Manager");
+    $("#localeActions").hidden = global || !l;
+    $("#valHead").textContent = "Translation" + (l ? " · " + l.code : "");
+    $("#importInto").textContent = $("#exportFrom").textContent = l ? l.code : "this locale";
+    document.title = (keys ? "Keys" : xl ? "Excel tool" : l ? l.code : "") + (keys || xl || l ? " · " : "") + "Translation Manager";
     if(keys){
       var n = state.locales.length;
       var uniq = keyIndex().order.length;
@@ -3274,11 +3580,11 @@
     $("#translateView").hidden = keys || xl;
     $("#keysView").hidden = !keys;
     $("#excelView").hidden = !xl;
-    var vb = $("#viewBtn"), vl = $("#viewBtnLabel");
-    vb.classList.toggle("on", keys);
-    if(vl) vl.textContent = keys ? "Back to Translations" : "Manage Keys";
-    vb.title = keys ? "Back to the translation table" : "Manage keys across all locales";
-    var xb = $("#excelBtn"); if(xb) xb.classList.toggle("on", xl);
+    [["#navTranslate","translate"],["#viewBtn","keys"],["#excelBtn","excel"]].forEach(function(p){
+      var b = $(p[0]), on = state.view === p[1];
+      b.classList.toggle("on", on);
+      if(on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+    });
     // mismatch badge — visible even from the translation view
     var mm = mismatchCount(), badge = $("#mismatchBadge");
     if(badge){
@@ -3291,19 +3597,20 @@
     } else if(xl){
       renderExcel();
     } else {
+      // with no locale yet, only the "add a locale" empty state is shown
+      var has = state.active !== -1;
+      $("#hero").hidden = !has; $("#tControls").hidden = !has; $("#tHead").hidden = !has;
       renderStats(counts());
       renderSections();
       renderRibbon();
-      renderRows(visible());
+      var list = visible();
+      renderRows(list);
       updateSelUI();
       updateReviewBar();
-    }
-    // In the global views (Manage Keys / Excel Tool) the header actions don't apply to a
-    // single locale, so disable them all (the theme toggle stays active). Runs last so it
-    // overrides updateUndo()/updateSelUI(); translate view keeps each button's normal state.
-    if(keys || xl){
-      ["#undoBtn","#mergeBtn","#mergeMissingBtn","#mergeNewBtn","#xlsxBtn","#csvBtn","#jsonBtn"]
-        .forEach(function(sel){ var b = $(sel); if(b) b.disabled = true; });
+      var scope = list.length === activeRows().length
+        ? "All " + list.length + " strings"
+        : "The " + list.length + " string" + (list.length !== 1 ? "s" : "") + " matching the current filter";
+      $("#jsonSub").textContent = scope; $("#csvSub").textContent = scope;
     }
   }
 
@@ -3578,9 +3885,9 @@
 
     var nSel = chosen.length;
     var ab = $("#exportAllBtn"), al = $("#exportAllLabel");
-    ab.disabled = nSel === 0; if(al) al.textContent = "Export ALL to XLSX" + (nSel ? " · " + nSel : "");
+    ab.disabled = nSel === 0; if(al) al.textContent = "Export all strings" + (nSel ? " · " + nSel + " locale" + (nSel !== 1 ? "s" : "") : "");
     var ub = $("#exportUntransBtn"), ul = $("#exportUntransLabel");
-    ub.disabled = nSel === 0; if(ul) ul.textContent = "Export Untranslated to XLSX" + (nSel ? " · " + nSel : "");
+    ub.disabled = nSel === 0; if(ul) ul.textContent = "Export untranslated only" + (nSel ? " · " + nSel + " locale" + (nSel !== 1 ? "s" : "") : "");
     $("#expMeta").textContent = locs.length + " locale" + (locs.length !== 1 ? "s" : "") + " · " + T.all + " strings";
 
     var act = shown.filter(function(o){ return o.l.id === exp.active; })[0];
@@ -3743,9 +4050,10 @@
     exportKeyList().forEach(function(o){ exp.excludeKeys[o.key] = true; }); renderExpKeys();
   });
   $("#excelBtn").addEventListener("click", function(){
-    if(state.view !== "excel"){ excel.page = "home"; }   // always land on the Excel Tool home
-    setView(state.view === "excel" ? "translate" : "excel");
+    excel.page = "home";                                // the nav item always lands on the Excel tool home
+    setView("excel");
   });
+  $("#exportAllNav").addEventListener("click", function(){ excel.page = "export"; setView("excel"); });
 
   function renderExcel(){
     var page = excel.page || "home";
@@ -3761,16 +4069,17 @@
     $("#previewPanel").hidden = !loaded;
     $("#excelEmpty").hidden = loaded;
     var clr = $("#clearXlsxBtn"); if(clr) clr.hidden = !loaded;
+    $("#importXlsxBtn").classList.toggle("primary", !loaded);   // once loaded, "Add to app" is the next step
     var inc = includedNames().length;
     var eb = $("#extractBtn"), el = $("#extractLabel");
     eb.disabled = inc === 0;
-    if(el) el.textContent = "Extract Locales (XLSX)" + (inc ? " · " + inc : "");
+    if(el) el.textContent = "Download as .xlsx files" + (inc ? " · " + inc : "");
     var jb = $("#extractJsonBtn"), jl = $("#extractJsonLabel");
     if(jb) jb.disabled = inc === 0;
-    if(jl) jl.textContent = "Extract Locales (JSON)" + (inc ? " · " + inc : "");
+    if(jl) jl.textContent = "Download as .json files" + (inc ? " · " + inc : "");
     var ib = $("#importLocalesBtn"), il = $("#importLocalesLabel");
     if(ib) ib.disabled = inc === 0;
-    if(il) il.textContent = "Import Selected as Locales" + (inc ? " · " + inc : "");
+    if(il) il.textContent = "Add to app as locales" + (inc ? " · " + inc : "");
     if(!loaded) return;
 
     $("#tabSelectHead").textContent = "Tabs to extract — " + inc + " of " + excel.sheets.length + " selected";
@@ -3835,7 +4144,7 @@
     err: "", lastSaved: null,
     timer: null, running: null, again: false
   };
-  var FOOTNOTE_LOCAL = "", FOOTNOTE_CLOUD = "Changes are saved to the cloud automatically. Undo covers the last 10 changes across all locales.";
+  var FOOTNOTE_LOCAL = "", FOOTNOTE_CLOUD = "Changes save to the cloud automatically and are shared with your team. Undo covers the last 10 changes.";
 
   function newCloudId(){
     if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
@@ -4028,8 +4337,9 @@
   }
 
   function applyOwnerUI(){
-    $("#openFileBtn").style.display = cloud.isOwner ? "" : "none";
-    $("#clearAllBtn").style.display = cloud.isOwner ? "" : "none";
+    ["#openFileBtn","#clearAllBtn","#ownerSep"].forEach(function(sel){
+      $(sel).style.display = cloud.isOwner ? "" : "none";
+    });
   }
 
   function cloudSetStatus(){
@@ -4047,6 +4357,16 @@
     }[s];
     $("#acctStatus").textContent = text;
     $("#acctBtn").title = cloud.user ? "Account · " + text : "Account & cloud sync";
+    var pill = $("#syncPill");
+    pill.hidden = !cloud.user;
+    pill.setAttribute("data-s", s);
+    pill.title = text + " — open account & sync";
+    pill.innerHTML = (SYNC_ICONS[s] || "") + "<span>" + ({
+      saving: cloud.ready ? "Saving…" : "Loading…", conflict: "Sync needed", error: "Not saved",
+      idle: "Saved" + (cloud.lastSaved ? " " + cloud.lastSaved.toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" }) : "")
+    }[s] || "") + "</span>";
+    $("#meStatus").textContent = { off: "Not signed in", saving: cloud.ready ? "Saving…" : "Loading…",
+      conflict: "Sync needed", error: "Not saved", idle: "All changes saved" }[s];
     var codes = Object.keys(cloud.conflicts).map(function(id){ return cloud.conflicts[id]; });
     var warn = $("#acctWarn");
     warn.hidden = !codes.length;
@@ -4065,20 +4385,35 @@
       var email = cloud.user.email || "";
       $("#acctEmailLbl").textContent = email;
       $("#acctAv").textContent = (email.charAt(0) || "?").toUpperCase();
+      $("#meAv").textContent = $("#acctAv").textContent;
+      $("#meName").textContent = email || "Account";
     }
     var fn = document.querySelector(".footnote");
     if(fn) fn.textContent = cloud.user ? FOOTNOTE_CLOUD : FOOTNOTE_LOCAL;
   }
 
+  var SYNC_ICONS = {
+    idle: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+    saving: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></svg>',
+    error: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 7v6M12 17h.01"/></svg>'
+  };
+  SYNC_ICONS.conflict = SYNC_ICONS.error;
+
   /* account dialog */
+  var acctOpener = null;
   function openAcct(){
+    acctOpener = document.activeElement;
     cloudSetStatus();
     $("#acctOv").classList.add("show");
     var f = cloud.user ? $("#acctSync") : $("#acctEmail");
     if(f && !f.closest("[hidden]")) f.focus();
   }
-  function closeAcct(){ $("#acctOv").classList.remove("show"); $("#acctBtn").focus(); }
+  function closeAcct(){
+    $("#acctOv").classList.remove("show");
+    if(acctOpener && acctOpener.focus && !acctOpener.closest("[hidden]")) acctOpener.focus();
+  }
   $("#acctBtn").addEventListener("click", openAcct);
+  $("#syncPill").addEventListener("click", openAcct);
   $("#acctClose").addEventListener("click", closeAcct);
   $("#acctOv").addEventListener("click", function(e){ if(e.target === this) closeAcct(); });
   document.addEventListener("keydown", function(e){
