@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sign in · Translation Manager</title>
 <meta name="description" content="Sign in to Translation Manager — edit, merge, review and sync translation files with your team.">
-<meta name="theme-color" content="#EEF1F5" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0A0E13" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F7F5F2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B0B0B" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
@@ -16,51 +16,53 @@
 <meta name="apple-mobile-web-app-title" content="Translations">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#EEF1F5; --surface:#FFFFFF; --surface-2:#F6F8FB;
-    --line:#DCE3EC; --line-strong:#C6D0DC;
-    --ink:#0E1620; --ink-2:#4C5B6B; --ink-3:#8291A2;
-    --accent:#2340C4; --accent-soft:#E5E9FB;
+    --bg:#F7F5F2; --surface:#FFFFFF; --surface-2:#FAF9F7;
+    --line:#E6E2DC; --line-strong:#D1CCC4;
+    --ink:#212121; --ink-2:#616161; --ink-3:#8C8C8C;
+    --accent:#F86700; --accent-ink:#A84600; --accent-soft:#FFEEDB;
+    --primary:#111111; --primary-hover:#2E2E2E;
     --jade:#0B7A5E; --jade-soft:#DFF1EA;
     --rose:#AF2437; --rose-soft:#FBE4E7;
-    --shadow:0 1px 2px rgba(14,22,32,.05), 0 8px 24px -16px rgba(14,22,32,.22);
-    --on-accent:#fff;
+    --shadow:0 1px 2px rgba(17,17,17,.05), 0 8px 24px -16px rgba(17,17,17,.22);
+    --on-primary:#fff;
   }
   @media (prefers-color-scheme: dark){
     :root{
-      --bg:#0A0E13; --surface:#111821; --surface-2:#151D27;
-      --line:#232E3B; --line-strong:#31404F;
-      --ink:#E7EEF6; --ink-2:#9DAFC0; --ink-3:#6A7B8C;
-      --accent:#7E9CFF; --accent-soft:#1B2540;
+      --bg:#0B0B0B; --surface:#151515; --surface-2:#1B1B1B;
+      --line:#2A2A2A; --line-strong:#3A3A3A;
+      --ink:#F2F2F2; --ink-2:#B3B3B3; --ink-3:#7E7E7E;
+      --accent:#F86700; --accent-ink:#FF9442; --accent-soft:#2B1A0C;
+      --primary:#F86700; --primary-hover:#FF7F26;
       --jade:#3CC79E; --jade-soft:#102C25;
       --rose:#FF8090; --rose-soft:#331A20;
       --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -18px rgba(0,0,0,.8);
-      --on-accent:#0A0E13;
+      --on-primary:#111111;
     }
   }
   *{box-sizing:border-box}
   html,body{margin:0}
   body{
     min-height:100vh; background:var(--bg); color:var(--ink);
-    font:400 14px/1.55 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+    font:400 14px/1.55 "Open Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
     display:flex; flex-direction:column;
   }
   .top{display:flex; align-items:center; gap:10px; padding:20px 28px}
-  .top .name{font:700 15px/1 "Bricolage Grotesque",Inter,sans-serif}
+  .top .name{font:700 15px/1 "Open Sans",sans-serif}
   main{
     flex:1; width:100%; max-width:1080px; margin:0 auto; padding:24px 28px 40px;
     display:grid; grid-template-columns:1.1fr .9fr; gap:56px; align-items:center;
   }
   .eyebrow{font:500 11px/1.2 "IBM Plex Mono",monospace; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3)}
-  h1{font:700 clamp(30px,4.2vw,44px)/1.08 "Bricolage Grotesque",Inter,sans-serif; letter-spacing:-.01em; margin:12px 0 14px}
+  h1{font:700 clamp(30px,4.2vw,44px)/1.08 "Open Sans",sans-serif; letter-spacing:-.01em; margin:12px 0 14px}
   .lead{font-size:16px; color:var(--ink-2); max-width:34em; margin:0 0 28px}
   .features{list-style:none; margin:0; padding:0; display:grid; grid-template-columns:1fr 1fr; gap:14px 22px}
   .features li{display:flex; gap:11px; align-items:flex-start}
   .features .ic{
     flex:none; width:32px; height:32px; border-radius:9px; display:grid; place-items:center;
-    background:var(--accent-soft); color:var(--accent);
+    background:var(--accent-soft); color:var(--accent-ink);
   }
   .features b{display:block; font-weight:600; font-size:13.5px}
   .features span{font-size:12.5px; color:var(--ink-2)}
@@ -68,7 +70,7 @@
     background:var(--surface); border:1px solid var(--line); border-radius:16px;
     box-shadow:var(--shadow); padding:30px 28px 22px;
   }
-  .card h2{font:700 22px/1.2 "Bricolage Grotesque",Inter,sans-serif; margin:0 0 6px}
+  .card h2{font:700 22px/1.2 "Open Sans",sans-serif; margin:0 0 6px}
   .card p{margin:0 0 18px; font-size:13.5px; color:var(--ink-2)}
   label{display:block; font-size:12px; font-weight:500; color:var(--ink-2); margin-bottom:6px}
   input[type=email]{
@@ -84,14 +86,14 @@
   button:disabled{opacity:.55; cursor:not-allowed}
   .primary{
     width:100%; padding:11px 14px; font-size:13.5px; font-weight:600;
-    background:var(--accent); color:var(--on-accent); border:1px solid var(--accent);
+    background:var(--primary); color:var(--on-primary); border:1px solid var(--primary);
   }
-  .primary:hover{filter:brightness(1.07)}
-  .link{all:unset; cursor:pointer; color:var(--accent); font-size:12.5px; margin-top:12px; display:inline-block}
+  .primary:hover{background:var(--primary-hover); border-color:var(--primary-hover)}
+  .link{all:unset; cursor:pointer; color:var(--accent-ink); font-size:12.5px; margin-top:12px; display:inline-block}
   .link:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:4px}
   .note{border-radius:10px; padding:11px 13px; font-size:13px; line-height:1.5; margin-bottom:14px}
   .note.ok{background:var(--jade-soft); color:var(--jade)}
-  .note.info{background:var(--accent-soft); color:var(--accent)}
+  .note.info{background:var(--accent-soft); color:var(--accent-ink)}
   .note.err{background:var(--rose-soft); color:var(--rose)}
   .note strong{overflow-wrap:anywhere}
   .busy{display:flex; align-items:center; gap:10px; font-size:13.5px; color:var(--ink-2); padding:6px 0 10px}
@@ -115,17 +117,7 @@
 </head>
 <body>
 <header class="top">
-  <svg width="30" height="30" viewBox="0 0 512 512" aria-hidden="true">
-    <rect width="512" height="512" rx="112" fill="#2340C4"/>
-    <g transform="translate(256 256) scale(1.27) translate(-259.5 -280.5)">
-      <path d="M138 123h162a36 36 0 0 1 36 36v100a36 36 0 0 1-36 36H205l-62 46 6-46h-11a36 36 0 0 1-36-36V159a36 36 0 0 1 36-36Z" fill="#FFFFFF"/>
-      <rect x="143" y="171" width="150" height="22" rx="11" fill="#2340C4"/>
-      <rect x="143" y="217" width="104" height="22" rx="11" fill="#2340C4"/>
-      <path d="M248 236h126a36 36 0 0 1 36 36v88a36 36 0 0 1-36 36h-7l6 42-58-42h-67a36 36 0 0 1-36-36v-88a36 36 0 0 1 36-36Z" fill="#9DB0FF" stroke="#2340C4" stroke-width="14" stroke-linejoin="round"/>
-      <rect x="254" y="282" width="122" height="20" rx="10" fill="#2340C4"/>
-      <rect x="254" y="324" width="84" height="20" rx="10" fill="#2340C4"/>
-    </g>
-  </svg>
+  <img src="icons/icon.svg" width="30" height="30" alt="">
   <span class="name">Translation Manager</span>
 </header>
 
