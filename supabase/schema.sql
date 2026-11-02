@@ -42,7 +42,8 @@ create trigger locales_touch
   before insert or update on public.locales
   for each row execute function public.locales_touch();
 
--- Access: signed-in users only.
+-- Access: signed-in users only. Everyone signed in can read; only editors and the Admin can
+-- write (see public.can_edit() and the policies further down).
 alter table public.locales enable row level security;
 
 -- Supabase's default privileges also hand out TRUNCATE (which bypasses RLS), REFERENCES and
@@ -56,16 +57,20 @@ drop policy if exists "signed-in users can edit locales"   on public.locales;
 drop policy if exists "signed-in users can delete locales" on public.locales;
 
 create policy "signed-in users can read locales"   on public.locales for select to authenticated using (true);
-create policy "signed-in users can add locales"    on public.locales for insert to authenticated with check (true);
-create policy "signed-in users can edit locales"   on public.locales for update to authenticated using (true) with check (true);
-create policy "signed-in users can delete locales" on public.locales for delete to authenticated using (true);
 
--- Roles. The owner row is added by hand in the SQL editor so no email lands in this public repo:
+-- Roles. 'owner' is the Admin: the only one who can invite people (Users page), restore a
+-- backup or clear all locales. 'editor' can change translations; 'viewer' is read only.
+-- Anyone signed in without a row counts as a viewer. Rows are written by the Admin through the
+-- admin-users Edge Function; the owner row is added by hand in the SQL editor so no email lands
+-- in this public repo:
 --   insert into public.app_roles (email, role) values ('<owner email, lowercase>', 'owner');
 create table if not exists public.app_roles (
   email  text primary key check (email = lower(email)),
-  role   text not null check (role in ('owner'))
+  role   text not null check (role in ('owner', 'editor', 'viewer'))
 );
+-- databases created before editor/viewer existed: widen the check
+alter table public.app_roles drop constraint if exists app_roles_role_check;
+alter table public.app_roles add constraint app_roles_role_check check (role in ('owner', 'editor', 'viewer'));
 alter table public.app_roles enable row level security;
 revoke all on public.app_roles from anon, authenticated;   -- not readable from the browser at all
 
@@ -85,6 +90,46 @@ as $$
 $$;
 revoke all on function public.is_owner() from public, anon;
 grant execute on function public.is_owner() to authenticated;
+
+-- The signed-in user's permission: 'owner', 'editor' or 'viewer' (no row = viewer).
+create or replace function public.my_role()
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(
+    (select r.role from public.app_roles r where r.email = lower(coalesce(auth.jwt() ->> 'email', ''))),
+    'viewer');
+$$;
+revoke all on function public.my_role() from public, anon;
+grant execute on function public.my_role() to authenticated;
+
+create or replace function public.can_edit()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select public.my_role() in ('owner', 'editor');
+$$;
+revoke all on function public.can_edit() from public, anon;
+grant execute on function public.can_edit() to authenticated;
+
+-- Writes: editors and the Admin only. Read-only people can look and export, nothing else.
+drop policy if exists "editors can add locales"    on public.locales;
+drop policy if exists "editors can edit locales"   on public.locales;
+drop policy if exists "editors can delete locales" on public.locales;
+create policy "editors can add locales"    on public.locales for insert to authenticated with check (public.can_edit());
+create policy "editors can edit locales"   on public.locales for update to authenticated using (public.can_edit()) with check (public.can_edit());
+create policy "editors can delete locales" on public.locales for delete to authenticated using (public.can_edit());
+
+-- People who already had an account before permissions existed keep editing.
+insert into public.app_roles (email, role)
+  select distinct lower(u.email), 'editor' from auth.users u where u.email is not null
+  on conflict (email) do nothing;
 
 -- Activity log. Written only by a trigger on public.locales (security definer), so every saved
 -- change is recorded with who made it and it can't be skipped, edited or deleted from the app.
