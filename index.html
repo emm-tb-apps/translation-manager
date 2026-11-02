@@ -373,7 +373,7 @@
   .toast{
     position:fixed; left:50%; bottom:24px; transform:translate(-50%,16px);
     background:var(--ink); color:var(--bg); padding:10px 16px; border-radius:10px;
-    font-size:12.5px; opacity:0; transition:.2s; z-index:70; pointer-events:none;
+    font-size:12.5px; opacity:0; transition:.2s; z-index:79; pointer-events:none;
   }
   .toast.show{opacity:1; transform:translate(-50%,0)}
   .drop{
@@ -772,6 +772,15 @@
   .acct-btns{display:flex; gap:8px; flex-wrap:wrap}
   .acct-btns button{flex:1; justify-content:center}
   .acct-msg{font-size:12.5px; color:var(--ink-2); margin-top:10px; min-height:1em}
+  /* ---------- read-only access (viewers) ---------- */
+  html.ro .ro-hide,html.ro .loc .rm,html.ro .keydel,html.ro .tagx,html.ro .flag{display:none !important}
+  html.ro .val,html.ro .keyname{cursor:default}
+  html.ro .val:hover{text-decoration:none}
+  html.ro .val.empty{font-style:italic}
+  .ropill{
+    display:inline-flex; align-items:center; gap:5px; padding:2px 9px 2px 7px; border-radius:999px;
+    font-size:11.5px; font-weight:500; background:var(--surface-3); color:var(--ink-2);
+  }
   /* ---------- activity log page ---------- */
   .logpage{position:fixed; inset:0; z-index:72; background:var(--bg); overflow:auto}
   .logwrap{max-width:960px; margin:0 auto; padding:28px 16px 56px}
@@ -826,6 +835,44 @@
   }
   .logfoot{display:flex; align-items:center; gap:12px; margin-top:14px}
   .logempty{padding:40px 16px; text-align:center; color:var(--ink-3); font-size:13px}
+  /* ---------- users page (Admin) ---------- */
+  .invite{padding:18px 18px 14px; margin-bottom:6px}
+  .invite h2{font-size:15px; margin:0 0 2px}
+  .perm{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px}
+  .perm label{
+    display:flex; gap:10px; align-items:flex-start; padding:10px 12px; cursor:pointer;
+    border:1px solid var(--line); border-radius:10px; background:var(--surface);
+  }
+  .perm label:has(input:checked){border-color:var(--accent); background:var(--accent-soft)}
+  .perm input{accent-color:var(--accent); margin:3px 0 0; flex:none}
+  .perm b{display:block; font-size:13px; font-weight:600}
+  .perm small{display:block; font-size:12px; color:var(--ink-2); line-height:1.4}
+  .invite-row{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px}
+  .invite-row input{
+    flex:1 1 240px; min-width:0; font:inherit; font-size:13.5px; color:var(--ink); background:var(--surface-2);
+    border:1px solid var(--line); border-radius:9px; padding:9px 11px;
+  }
+  .invite-row input:focus-visible{outline:2px solid var(--accent); outline-offset:1px}
+  .usermsg{font-size:12.5px; color:var(--ink-2); margin-top:10px; min-height:1em}
+  .usermsg.ok{color:var(--jade)}
+  .usermsg.err{color:var(--rose)}
+  .ulist{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); overflow:hidden}
+  .urow{display:flex; align-items:center; gap:10px 12px; flex-wrap:wrap; padding:11px 14px; border-top:1px solid var(--line)}
+  .urow:first-child{border-top:0}
+  .uwho{display:flex; align-items:center; gap:10px; flex:1 1 240px; min-width:0}
+  .uwho .acct-av{width:28px; height:28px; font-size:12px}
+  .uwho > div{min-width:0}
+  .uemail{font-size:13px; font-weight:500; overflow-wrap:anywhere}
+  .ustate{display:block; font-size:11.5px; color:var(--ink-3)}
+  .ustate.pending{color:var(--ochre)}
+  .uacts{display:flex; gap:6px; align-items:center; margin-left:auto}
+  .uacts select{
+    font:inherit; font-size:12.5px; color:var(--ink); background:var(--surface);
+    border:1px solid var(--line); border-radius:9px; padding:7px 8px;
+  }
+  .uacts .icon:hover{color:var(--rose)}
+  .urole{font-size:12px; font-weight:600; color:var(--accent-ink); background:var(--accent-soft); padding:3px 10px; border-radius:999px}
+  @media (max-width:600px){ .perm{grid-template-columns:1fr} .uacts{margin-left:38px} }
   #warnOv{z-index:78}
   .warn-ic{
     flex:none; width:34px; height:34px; border-radius:50%; display:grid; place-items:center;
@@ -898,6 +945,10 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>
         <span>Activity log</span>
       </button>
+      <button class="nav" id="usersBtn" title="Invite people and choose what they can do" aria-haspopup="dialog" style="display:none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>
+        <span>Users</span>
+      </button>
     </nav>
     <div class="sbhead">
       <span class="eyebrow" id="localesHead">Locales</span>
@@ -913,7 +964,7 @@
       </label>
     </div>
     <nav class="locales" id="localeList" aria-label="Locales"></nav>
-    <button class="addLoc" id="addLocaleBtn" title="Add a locale from a JSON, CSV or Excel file">
+    <button class="addLoc ro-hide" id="addLocaleBtn" title="Add a locale from a JSON, CSV or Excel file">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
       <span>Add locale</span>
     </button>
@@ -973,15 +1024,19 @@
         <span class="filemeta" id="fileMeta"></span>
         <span class="filemeta" id="keysMeta" hidden></span>
         <button class="syncpill" id="syncPill" data-s="off" aria-haspopup="dialog" hidden></button>
+        <span class="ropill" id="roPill" title="You can view and export strings, but not change them" hidden>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+          Read only
+        </span>
       </div>
     </div>
     <div class="actions">
-      <button id="undoBtn" title="Undo last change" disabled>
+      <button class="ro-hide" id="undoBtn" title="Undo last change" disabled>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7 4 12l5 5"/><path d="M4 12h11a5 5 0 0 1 0 10h-1"/></svg>
         <span id="undoLabel">Undo</span>
       </button>
       <div class="actgroup" id="localeActions" hidden>
-        <div class="menuwrap">
+        <div class="menuwrap ro-hide">
           <button id="importMenuBtn" data-menu="importMenu" aria-haspopup="menu" aria-expanded="false" title="Bring translations from a file into this locale">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
             Import <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
@@ -1029,7 +1084,7 @@
             </button>
           </div>
         </div>
-        <div class="menuwrap">
+        <div class="menuwrap ro-hide">
           <button class="icon" id="localeMenuBtn" data-menu="localeMenu" aria-haspopup="menu" aria-expanded="false" title="More for this locale" aria-label="More for this locale">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
           </button>
@@ -1063,7 +1118,7 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
           All translated and reviewed
         </span>
-        <button class="primary" id="nextBtn" hidden>
+        <button class="primary ro-hide" id="nextBtn" hidden>
           <span id="nextLabel">Translate next</span>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
         </button>
@@ -1095,7 +1150,7 @@
       </select>
     </div>
 
-    <div class="reviewbar" id="reviewBar" hidden>
+    <div class="reviewbar ro-hide" id="reviewBar" hidden>
       <span class="reviewbar-label" id="reviewBarLabel"></span>
       <div class="reviewbar-actions">
         <button id="approveSelBtn" disabled>Approve selected</button>
@@ -1159,7 +1214,7 @@
           <button data-kf="all" aria-pressed="true">All keys <span class="count" data-kc="all">0</span></button>
           <button data-kf="mismatch" aria-pressed="false">Mismatched <span class="count" data-kc="mismatch">0</span></button>
         </div>
-        <div class="addkey">
+        <div class="addkey ro-hide">
           <input id="newKeyInput" placeholder="New key, e.g. Modal.Title" aria-label="New key name" spellcheck="false">
           <button class="primary" id="addKeyBtn">Add key</button>
         </div>
@@ -1167,12 +1222,12 @@
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4.3-4.3"/></svg>
           <input id="keyQ" placeholder="Search keys" aria-label="Search keys">
         </label>
-        <button id="syncAllBtn" title="Add every missing key to the locales that lack it, with an empty value">
+        <button class="ro-hide" id="syncAllBtn" title="Add every missing key to the locales that lack it, with an empty value">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
           Sync to All
         </button>
       </div>
-      <div class="synchint" id="syncHint"></div>
+      <div class="synchint ro-hide" id="syncHint"></div>
     </section>
     <section class="panel">
       <div class="thead keythead">
@@ -1245,7 +1300,7 @@
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 16V4M12 4 7 9M12 4l5 5M4 18v2h16v-2"/></svg>
           Choose workbook…
         </button>
-        <button id="importLocalesBtn" class="primary approve" title="Add each selected tab to your locale list on the left, ready to edit in the app" disabled>
+        <button id="importLocalesBtn" class="primary approve ro-hide" title="Add each selected tab to your locale list on the left, ready to edit in the app" disabled>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4v16M4 12h11m0 0-4-4m4 4-4 4"/></svg>
           <span id="importLocalesLabel">Add to app as locales</span>
         </button>
@@ -1420,6 +1475,43 @@
     <div class="logfoot">
       <button id="logMore" hidden>Load more</button>
       <span class="filemeta" id="logMeta" role="status"></span>
+    </div>
+  </div>
+</div>
+
+<div class="logpage" id="usersPage" role="dialog" aria-modal="true" aria-labelledby="usersTitle" hidden>
+  <div class="logwrap">
+    <header class="loghead">
+      <div>
+        <div class="eyebrow">Admin</div>
+        <h1 id="usersTitle">Users</h1>
+        <p class="filemeta">Invite people to Translation Manager and choose what they can do.</p>
+      </div>
+      <button class="icon" id="usersClose" aria-label="Close Users">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </header>
+    <form class="panel invite" id="inviteForm" novalidate>
+      <h2>Invite someone</h2>
+      <p class="filemeta">They get an email with a link to sign in. The link works for 24 hours; you can resend it from the list below.</p>
+      <div class="perm" role="radiogroup" aria-label="Permission">
+        <label><input type="radio" name="perm" value="editor" checked><span><b>Can edit</b><small>Translate, review, import, and manage locales and keys.</small></span></label>
+        <label><input type="radio" name="perm" value="viewer"><span><b>Read only</b><small>View and export. Edit buttons are hidden and nothing can be changed.</small></span></label>
+      </div>
+      <div class="invite-row">
+        <input type="email" id="inviteEmail" placeholder="name@company.com" aria-label="Email address to invite" autocomplete="off" spellcheck="false">
+        <button class="primary" type="submit" id="inviteSend">Send invite</button>
+      </div>
+      <div class="usermsg" id="inviteMsg" role="status"></div>
+    </form>
+    <div class="logday">People with access</div>
+    <div class="ulist" id="userList"></div>
+    <div class="logfoot">
+      <button id="usersRefresh">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.7-4.4M4 4v3h3M4 13a8 8 0 0 0 14.7 4.4M20 20v-3h-3"/></svg>
+        Refresh
+      </button>
+      <span class="filemeta" id="usersMeta" role="status"></span>
     </div>
   </div>
 </div>
@@ -2599,9 +2691,9 @@
       kn.innerHTML = dot > -1
         ? '<span class="ns">' + esc(term.slice(0, dot + 1)) + "</span>" + esc(term.slice(dot + 1))
         : esc(term);
-      kn.title = "Click to rename this key";
+      if(!readOnly()) kn.title = "Click to rename this key";
       kn.addEventListener("click", function(){
-        if(kn.querySelector("input")) return;
+        if(readOnly() || kn.querySelector("input")) return;
         var inp = document.createElement("input");
         inp.value = term; kn.textContent = ""; kn.appendChild(inp);
         inp.focus(); inp.select();
@@ -2651,12 +2743,13 @@
 
   /* drag & drop */
   var dz = $("#drop"), depth = 0;
-  window.addEventListener("dragenter", function(e){ e.preventDefault(); if(!cloud.user) return; depth++; dz.classList.add("on"); });
+  window.addEventListener("dragenter", function(e){ e.preventDefault(); if(!cloud.user || readOnly()) return; depth++; dz.classList.add("on"); });
   window.addEventListener("dragover", function(e){ e.preventDefault(); });
   window.addEventListener("dragleave", function(){ if(--depth <= 0){ depth = 0; dz.classList.remove("on"); } });
   window.addEventListener("drop", function(e){
     e.preventDefault(); depth = 0; dz.classList.remove("on");
     if(!cloud.user) return;                       // nothing loads behind the sign-in page
+    if(readOnly()){ toast("You have read-only access"); return; }
     var f = e.dataTransfer.files && e.dataTransfer.files[0];
     if(!f) return;
     // dropping a file adds it as a new locale (or seeds the first one)
@@ -3369,6 +3462,11 @@
     var host = $("#rows"), foot = $("#foot");
     host.textContent = ""; foot.textContent = "";
     if(state.active === -1){
+      if(readOnly()){
+        host.innerHTML = '<div class="empty"><h3>No locales yet</h3>' +
+          '<p>Nothing has been added yet. You have read-only access, so an editor needs to add the first locale.</p></div>';
+        return;
+      }
       host.innerHTML = '<div class="empty"><h3>No locales yet</h3>' +
         '<p>Add a JSON, CSV or Excel file of your strings to see what\'s translated, fill in the gaps and export it back out. Each file becomes a locale in the sidebar — you can also drop a .json or .csv file anywhere on this page.</p>' +
         '<div class="cta"><button class="primary" id="emptyImport">Add locale</button></div></div>';
@@ -3421,12 +3519,13 @@
 
       var vcell = document.createElement("div");
       vcell.className = "val" + (st === "missing" ? " empty" : "");
-      vcell.tabIndex = 0;
+      var ro = readOnly();
+      vcell.tabIndex = ro ? -1 : 0;
       if(rtl){ vcell.dir = "rtl"; vcell.style.textAlign = "right"; }
-      vcell.textContent = st === "missing" ? "Add translation" : r.definition;
-      vcell.title = "Click to edit";
+      vcell.textContent = st === "missing" ? (ro ? "Not translated yet" : "Add translation") : r.definition;
+      if(!ro) vcell.title = "Click to edit";
       function edit(){
-        if(vcell.querySelector("textarea")) return;
+        if(readOnly() || vcell.querySelector("textarea")) return;
         var ta = document.createElement("textarea");
         ta.value = r.definition;
         if(rtl){ ta.dir = "rtl"; }
@@ -4140,7 +4239,8 @@
   var SAVE_DELAY = 1500, RETRY_DELAY = 10000;
   var cloud = {
     client: null, user: null,
-    isOwner: false,   // from the is_owner() database function; gates Open File
+    isOwner: false,   // role === "owner": the Admin (Users page, restore backup, clear all)
+    role: null,       // from my_role(): "owner", "editor" or "viewer" (read only); null while loading
     authKnown: false, // true once Supabase has reported the initial session
     signedOut: false, // set when this tab signs out, so the landing page can say so
     ready: false,     // true once the cloud copy has been loaded for this user
@@ -4150,6 +4250,10 @@
     err: "", lastSaved: null,
     timer: null, running: null, again: false
   };
+  /* Viewers can look and export but not change anything. Until the role has loaded the app
+     stays read-only too, so nobody briefly sees edit buttons they can't use. The database
+     enforces the same rule (row-level security), this only keeps the screen honest. */
+  function readOnly(){ return !!(cloud && cloud.user) && cloud.role !== "owner" && cloud.role !== "editor"; }
   var FOOTNOTE_LOCAL = "", FOOTNOTE_CLOUD = "Changes save to the cloud automatically and are shared with your team. Undo covers the last 10 changes.";
 
   function newCloudId(){
@@ -4192,7 +4296,7 @@
   /* Write every changed locale, insert new ones, delete removed ones. Never rejects. */
   function cloudFlush(){
     clearTimeout(cloud.timer); cloud.timer = null;
-    if(!cloud.user || !cloud.ready) return Promise.resolve();
+    if(!cloud.user || !cloud.ready || readOnly()) return Promise.resolve();
     if(cloud.running){ cloud.again = true; return cloud.running; }
     var jobs = [], seen = {}, fresh = [];
     state.locales.forEach(function(l, i){
@@ -4301,10 +4405,17 @@
     if(was === now){ cloudSetStatus(); return; }
     clearTimeout(cloud.timer); cloud.timer = null;
     cloud.ready = false; cloud.synced = {}; cloud.conflicts = {}; cloud.err = ""; cloud.lastSaved = null;
-    cloud.isOwner = false; applyOwnerUI();
+    cloud.isOwner = false; cloud.role = null; applyOwnerUI();
     if(now){
-      cloud.client.rpc("is_owner").then(function(res){
-        if(cloud.user && cloud.user.id === now){ cloud.isOwner = !res.error && res.data === true; applyOwnerUI(); }
+      cloud.client.rpc("my_role").then(function(res){
+        if(!res.error) return res.data;
+        // a database without permissions yet: the owner, and everyone else edits as before
+        return cloud.client.rpc("is_owner").then(function(r){ return !r.error && r.data === true ? "owner" : "editor"; });
+      }).then(function(role){
+        if(!cloud.user || cloud.user.id !== now) return;
+        cloud.role = role; cloud.isOwner = role === "owner";
+        applyOwnerUI(); render();
+        cloudSchedule();      // anything opened before the role was known can be saved now
       });
     }
     if(!now){
@@ -4343,9 +4454,13 @@
   }
 
   function applyOwnerUI(){
-    ["#openFileBtn","#clearAllBtn","#ownerSep"].forEach(function(sel){
+    ["#openFileBtn","#clearAllBtn","#ownerSep","#usersBtn"].forEach(function(sel){
       $(sel).style.display = cloud.isOwner ? "" : "none";
     });
+    var ro = readOnly();
+    document.documentElement.classList.toggle("ro", ro);
+    $("#roPill").hidden = !ro || !cloud.role;
+    if(!cloud.isOwner) closeUsers();
   }
 
   function cloudSetStatus(){
@@ -4674,12 +4789,179 @@
     if(e.key === "Escape" && !warnResolve && !$("#acctOv").classList.contains("show")) closeLog();
   });
 
+  /* ============ Users page (Admin only) ============
+     Lists everyone with access and lets the Admin invite people as "Can edit" or "Read only",
+     change that later, resend an invite or remove someone. The work happens in the admin-users
+     Edge Function, which holds the service-role key and checks that the caller is the Admin;
+     the permission itself is enforced by row-level security on public.locales. */
+  var ROLE_LABEL = { owner: "Admin", editor: "Can edit", viewer: "Read only" };
+  var TRASH = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>';
+  var inviteBusy = false;
+
+  function adminCall(body){
+    return cloud.client.functions.invoke("admin-users", { body: body }).then(function(res){
+      if(!res.error) return res.data || {};
+      var ctx = res.error.context;
+      var read = ctx && typeof ctx.json === "function" ? ctx.json().catch(function(){ return {}; }) : Promise.resolve({});
+      return read.then(function(d){ throw new Error((d && d.error) || res.error.message || "request failed"); });
+    });
+  }
+  function inviteRedirect(){ return new URL("signin.html", location.href).href; }
+  function openUsers(){
+    if(!cloud.user || !cloud.isOwner) return;
+    $("#usersPage").hidden = false;
+    document.body.style.overflow = "hidden";
+    $("#inviteEmail").focus();
+    loadUsers();
+  }
+  function closeUsers(){
+    if($("#usersPage").hidden) return;
+    $("#usersPage").hidden = true;
+    document.body.style.overflow = "";
+    if(cloud.isOwner) $("#usersBtn").focus();
+  }
+  function inviteMsg(text, kind){
+    var m = $("#inviteMsg");
+    m.textContent = text || ""; m.className = "usermsg" + (kind ? " " + kind : "");
+  }
+  function loadUsers(){
+    $("#usersMeta").textContent = "Loading…";
+    return adminCall({ action: "list" }).then(function(d){
+      var people = d.people || [];
+      renderUsers(people);
+      $("#usersMeta").textContent = people.length + (people.length === 1 ? " person" : " people");
+    }).catch(function(err){
+      $("#userList").textContent = "";
+      $("#usersMeta").textContent = "Couldn't load users — " + err.message;
+    });
+  }
+  function shortDate(iso){ return new Date(iso).toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" }); }
+  function userState(p){
+    if(p.role === "owner") return { text: "Admin · full access" };
+    if(p.last_sign_in_at) return { text: "Last signed in " + shortDate(p.last_sign_in_at) };
+    if(p.invited_at){
+      return Date.now() - new Date(p.invited_at).getTime() > 864e5
+        ? { text: "Invite expired — resend it", pending: true }
+        : { text: "Invited " + shortDate(p.invited_at) + " · hasn't signed in yet", pending: true };
+    }
+    return { text: "Not invited yet", pending: true };
+  }
+  function sendInvite(email, role){
+    return adminCall({ action: "invite", email: email, role: role, redirectTo: inviteRedirect() });
+  }
+  function renderUsers(people){
+    var host = $("#userList");
+    host.textContent = "";
+    if(!people.length){ host.appendChild(el("div", "logempty", "Nobody yet. Invite someone above.")); return; }
+    people.forEach(function(p){
+      var row = el("div", "urow");
+      var who = el("div", "uwho");
+      who.appendChild(el("span", "acct-av", (p.email.charAt(0) || "?").toUpperCase()));
+      var txt = el("div");
+      txt.appendChild(el("div", "uemail", p.email));
+      var st = userState(p);
+      txt.appendChild(el("span", "ustate" + (st.pending ? " pending" : ""), st.text));
+      who.appendChild(txt);
+      row.appendChild(who);
+
+      var acts = el("div", "uacts");
+      if(p.role === "owner"){
+        acts.appendChild(el("span", "urole", "Admin"));
+      } else {
+        var sel = document.createElement("select");
+        sel.setAttribute("aria-label", "Permission for " + p.email);
+        ["editor", "viewer"].forEach(function(r){
+          var o = el("option", null, ROLE_LABEL[r]);
+          o.value = r; o.selected = p.role === r;
+          sel.appendChild(o);
+        });
+        sel.addEventListener("change", function(){
+          var role = sel.value;
+          sel.disabled = true;
+          adminCall({ action: "role", email: p.email, role: role }).then(function(){
+            p.role = role;
+            toast(p.email + " can now " + (role === "viewer" ? "only view" : "edit") + " — applies next time they open the app");
+          }).catch(function(err){
+            sel.value = p.role;
+            toast("Couldn't change permission — " + err.message);
+          }).then(function(){ sel.disabled = false; });
+        });
+        acts.appendChild(sel);
+        if(!p.last_sign_in_at){
+          var rs = el("button", null, "Resend invite");
+          rs.addEventListener("click", function(){
+            rs.disabled = true;
+            sendInvite(p.email, sel.value).then(function(d){
+              toast(d.existing ? p.email + " already has an account — they can sign in from the sign-in page"
+                               : "Invite sent to " + p.email);
+              loadUsers();
+            }).catch(function(err){
+              rs.disabled = false;
+              toast("Couldn't send the invite — " + err.message);
+            });
+          });
+          acts.appendChild(rs);
+        }
+        var rm = el("button", "icon");
+        rm.innerHTML = TRASH;
+        rm.title = "Remove access"; rm.setAttribute("aria-label", "Remove " + p.email);
+        rm.addEventListener("click", function(){
+          warn({
+            title: "Remove " + p.email + "?",
+            message: "They'll no longer be able to open Translation Manager. Their past changes stay in the Activity log, and you can invite them again later.",
+            ok: "Remove access"
+          }).then(function(ok){
+            if(!ok) return;
+            adminCall({ action: "remove", email: p.email }).then(function(){
+              toast("Removed " + p.email);
+              loadUsers();
+            }).catch(function(err){ toast("Couldn't remove — " + err.message); });
+          });
+        });
+        acts.appendChild(rm);
+      }
+      row.appendChild(acts);
+      host.appendChild(row);
+    });
+  }
+
+  $("#inviteForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    if(inviteBusy) return;
+    var email = $("#inviteEmail").value.trim().toLowerCase();
+    var pick = document.querySelector("#inviteForm input[name=perm]:checked");
+    var role = pick ? pick.value : "editor";
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      inviteMsg("Enter a valid email address.", "err");
+      $("#inviteEmail").focus();
+      return;
+    }
+    inviteBusy = true; $("#inviteSend").disabled = true;
+    inviteMsg("Sending…");
+    sendInvite(email, role).then(function(d){
+      inviteMsg(d.existing
+        ? email + " already has an account. Their permission is now “" + ROLE_LABEL[role] + "”."
+        : "Invite sent to " + email + " (" + ROLE_LABEL[role] + "). The link works for 24 hours.", "ok");
+      $("#inviteEmail").value = "";
+      loadUsers();
+    }).catch(function(err){
+      inviteMsg("Couldn't send the invite — " + err.message, "err");
+    }).then(function(){ inviteBusy = false; $("#inviteSend").disabled = false; });
+  });
+  $("#usersBtn").addEventListener("click", openUsers);
+  $("#usersClose").addEventListener("click", closeUsers);
+  $("#usersRefresh").addEventListener("click", loadUsers);
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && !warnResolve && !$("#acctOv").classList.contains("show")) closeUsers();
+  });
+
   /* undo wiring */
   $("#undoBtn").addEventListener("click", undo);
   document.addEventListener("keydown", function(e){
     if((e.metaKey || e.ctrlKey) && !e.shiftKey && (e.key === "z" || e.key === "Z")){
       var t = document.activeElement.tagName;
       if(t === "TEXTAREA" || t === "INPUT") return; // let fields do their own undo
+      if(readOnly()) return;
       e.preventDefault(); undo();
     }
   });
