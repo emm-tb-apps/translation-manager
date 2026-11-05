@@ -149,14 +149,20 @@
     letter-spacing:-.02em; font-variant-numeric:tabular-nums; color:var(--ink);
   }
   .covof{font-size:12.5px; color:var(--ink-2)}
-  .legend{display:flex; gap:6px 14px; flex-wrap:wrap; font-size:12px; color:var(--ink-2)}
-  .legend span{display:inline-flex; align-items:center; gap:6px}
-  .legend b{font-weight:600; color:var(--ink); font-variant-numeric:tabular-nums}
   .proghead .nextwrap{margin-left:auto; display:flex; align-items:center; gap:10px}
   .alldone{font-size:12.5px; color:var(--jade); font-weight:500; display:inline-flex; align-items:center; gap:6px}
-  .progbar{display:none; height:8px; border-radius:99px; overflow:hidden; background:var(--tick-empty); margin-top:12px}
+  .progbar{display:flex; height:8px; border-radius:99px; overflow:hidden; background:var(--tick-empty); margin-top:14px}
   .progbar i{display:block; height:100%}
   .progbar .done{background:var(--jade)} .progbar .review{background:var(--ochre)} .progbar .missing{background:var(--rose)}
+  /* the status counts are the filter: one row of chips instead of a legend plus tabs */
+  .statfilters{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px}
+  .statfilters button{
+    border-radius:999px; padding:6px 13px; gap:7px; font-size:13px; color:var(--ink-2);
+    background:var(--surface); border-color:var(--line-strong);
+  }
+  .statfilters button:hover{border-color:var(--accent); color:var(--ink)}
+  .statfilters button[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent); color:var(--ink); font-weight:600}
+  .statfilters .count{font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums}
 
   .stats{display:flex; gap:10px; flex-wrap:wrap}
   .stat{
@@ -198,20 +204,6 @@
   .keymore{padding:9px 4px; font-size:11.5px; color:var(--ink-3)}
   .dot{width:7px; height:7px; border-radius:50%; background:currentColor; flex:none}
 
-  /* ---------- ribbon (signature) ---------- */
-  .ribbon{
-    display:flex; flex-wrap:wrap; gap:2px; align-content:flex-start; margin-top:14px;
-    padding:9px 10px; background:var(--surface-2);
-    border:1px solid var(--line); border-radius:10px; min-height:36px;
-  }
-  .tick{
-    width:4px; height:13px; border-radius:1.5px; background:var(--tick-empty);
-    cursor:pointer; transition:transform .1s ease, opacity .1s ease;
-  }
-  .tick:hover{transform:scaleY(1.35)}
-  .tick.done{background:var(--jade)} .tick.review{background:var(--ochre)} .tick.missing{background:var(--rose)}
-  .tick.dim{opacity:.22}
-  .tickhint{margin-top:8px; font-size:11.5px; color:var(--ink-3)}
 
   /* ---------- controls ---------- */
   .controls{
@@ -245,7 +237,7 @@
   select:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
 
   /* ---------- table ---------- */
-  .thead,.row{display:grid; grid-template-columns:32px minmax(150px,1fr) minmax(170px,1.6fr) minmax(150px,1.3fr) minmax(120px,0.9fr) 120px 40px; gap:14px}
+  .thead,.row{display:grid; grid-template-columns:32px minmax(110px,0.9fr) minmax(140px,1.2fr) minmax(190px,1.8fr) 130px; gap:14px}
   .thead{
     padding:9px 14px; border-bottom:1px solid var(--line); background:var(--surface-2);
     position:sticky; top:0; z-index:5; border-radius:0;
@@ -286,6 +278,8 @@
   .meta{margin-top:3px; font-size:11px; color:var(--ink-3)}
   .val{font-size:13.5px; line-height:1.5; color:var(--ink); cursor:text; word-break:break-word; min-height:20px}
   .val:hover{text-decoration:underline; text-decoration-color:var(--line-strong); text-underline-offset:3px}
+  .val.empty{border:1px dashed var(--line-strong); border-radius:5px; padding:4px 9px; color:var(--ink-3)}
+  .val.empty:hover{text-decoration:none; border-color:var(--accent); color:var(--accent-ink)}
   .val.empty{color:var(--ink-3); font-style:italic}
   .val:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:6px}
   .src{font-size:13px; line-height:1.5; color:var(--ink-2); word-break:break-word; direction:ltr; text-align:left}
@@ -326,17 +320,20 @@
   .tag .tagx:hover{opacity:1; background:rgba(0,0,0,.08)}
   html[data-theme="dark"] .tag .tagx:hover{background:rgba(255,255,255,.14)}
   .tag .tagx:focus-visible{outline:2px solid var(--accent); outline-offset:1px; opacity:1}
+  /* status column: only exceptions get a label; translated rows show a quiet tick */
+  .acts{display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:6px; min-height:24px}
+  .okmark{display:inline-flex; color:var(--jade)}
+  .tcell{min-width:0}
+  .tcell .tags{margin-top:6px}
   .flag{
     padding:5px; width:28px; height:28px; justify-content:center; border-color:transparent;
     background:transparent; color:var(--ink-3); opacity:0; border-radius:8px;
   }
-  .row:hover .flag,.flag:focus-visible,.flag.on{opacity:1}
-  .flag.on{color:var(--ochre)}
+  .row:hover .flag,.flag:focus-visible{opacity:1}
   .flag:hover{background:var(--surface-3); color:var(--ink)}
-  /* a flagged row shows an always-visible Approve tick instead of the flag */
-  .flag.approve{opacity:1; color:var(--jade); border-color:var(--jade-soft); background:var(--jade-soft)}
-  .flag.approve:hover{background:var(--jade); border-color:var(--jade); color:#fff}
-  html[data-theme="dark"] .flag.approve:hover{color:#08130F}
+  .approvebtn{padding:4px 10px; gap:5px; font-size:12px; font-weight:600; color:var(--jade); background:var(--jade-soft); border-color:transparent}
+  .approvebtn:hover{background:var(--jade); border-color:var(--jade); color:#fff}
+  html[data-theme="dark"] .approvebtn:hover{color:#08130F}
 
   .tablefoot{padding:12px 14px; display:flex; justify-content:center}
   .reviewbar{
@@ -394,18 +391,6 @@
     font-size:12.5px; font-weight:600; color:var(--ink-2); background:none; border:0; cursor:pointer; padding:4px 2px;
   }
   .excelback:hover{color:var(--accent-ink)}
-  .excelhome{display:grid; grid-template-columns:1fr 1fr; gap:16px}
-  .excelhome-card{
-    display:flex; flex-direction:column; align-items:flex-start; gap:8px; text-align:left;
-    padding:22px; border:1px solid var(--line); border-radius:var(--r); background:var(--surface); cursor:pointer;
-    transition:border-color .15s ease, transform .05s ease;
-  }
-  .excelhome-card:hover{border-color:var(--accent)}
-  .excelhome-card:active{transform:translateY(1px)}
-  .excelhome-card .ehc-ic{display:inline-flex; padding:10px; border-radius:12px; background:var(--accent-soft); color:var(--accent-ink)}
-  .excelhome-card .ehc-title{font-family:"Open Sans",sans-serif; font-size:19px; font-weight:600; color:var(--ink)}
-  .excelhome-card .ehc-desc{font-size:12.5px; line-height:1.55; color:var(--ink-2)}
-  @media (max-width:640px){ .excelhome{grid-template-columns:1fr} }
   /* collapsible "what the buttons do" help */
   .help{margin:12px 0 0; border:1px solid transparent; border-radius:var(--r); overflow:hidden}
   .help[open]{border-color:var(--line); background:var(--surface)}
@@ -432,15 +417,12 @@
   }
   @media (max-width:760px){
     .thead{display:none}
-    .row{grid-template-columns:24px 1fr 34px; gap:6px 10px; padding:13px 14px}
+    .row{grid-template-columns:24px minmax(0,1fr) auto; gap:6px 10px; padding:13px 14px}
     .row .pick{grid-row:1; grid-column:1}
-    .row .pill{grid-column:2}
-    .flag{opacity:1; grid-row:1; grid-column:3}
-    .key{grid-column:2}
-    .val{grid-column:1 / -1}
-    .src{grid-column:1 / -1}
-    .tags{grid-column:1 / -1}
-    .tags.empty{display:none}
+    .row .kcell{grid-row:1; grid-column:2}
+    .row .acts{grid-row:1; grid-column:3}
+    .row .src,.row .tcell{grid-column:1 / -1}
+    .flag{opacity:1}
     .src::before{content:"EN: "; font-family:"IBM Plex Mono",monospace; font-size:10px; color:var(--ink-3)}
   }
   /* ---------- manage keys view ---------- */
@@ -452,44 +434,25 @@
   }
   .keysbanner svg{margin-top:1px; flex:none}
   .keysbanner b{font-weight:600}
-  .keyshero{padding:18px 20px; border-left:3px solid var(--accent)}
-  .keystats{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px}
-  .kstat{
-    flex:1 1 140px; background:var(--surface-2); border:1px solid var(--line);
-    border-radius:10px; padding:12px 14px;
+  .keyswarn{
+    display:flex; align-items:center; gap:10px 14px; flex-wrap:wrap; margin-top:20px;
+    padding:12px 16px; border-radius:var(--r); background:var(--ochre-soft);
+    border:1px solid color-mix(in srgb,var(--ochre) 35%,transparent);
   }
-  .kstat .num{
-    display:block; font-family:"Open Sans",sans-serif; font-weight:600;
-    font-size:24px; line-height:1.1; letter-spacing:-.02em; font-variant-numeric:tabular-nums; color:var(--ink);
+  .keyswarn > svg{color:var(--ochre); flex:none}
+  .kw-text{flex:1 1 260px; min-width:0; display:flex; flex-direction:column; font-size:12.5px; color:var(--ink-2)}
+  .kw-text b{font-size:13.5px; font-weight:600; color:var(--ink)}
+  #keysView > .panel{margin-top:20px}
+  #keysView > .keyswarn + .panel{margin-top:14px}
+  .keysbar .keysearch{flex:1 1 220px}
+  .keyrow.addrow{grid-template-columns:minmax(220px,1.4fr) minmax(160px,1.2fr) auto; background:var(--accent-soft)}
+  .addrow input{
+    width:100%; box-sizing:border-box; font:400 13px/1.4 "IBM Plex Mono",monospace; color:var(--ink);
+    background:var(--surface); border:1.5px solid var(--accent); border-radius:7px; padding:7px 10px;
   }
-  .kstat.warn .num{color:var(--rose)} .kstat.ok .num{color:var(--jade)}
-  .kstat .lbl{margin-top:3px; font-size:11.5px; color:var(--ink-2)}
-  .kstat.click{cursor:pointer; user-select:none; transition:border-color .12s, background .12s}
-  .kstat.click:hover{border-color:var(--line-strong)}
-  .kstat.click:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
-  .kstat.click[aria-disabled="true"]{cursor:default}
-  .kstat.click[aria-disabled="true"]:hover{border-color:var(--line)}
-  .kstat.on{border-color:var(--accent); background:var(--accent-soft)}
-  .kstat.warn.on{border-color:var(--rose); background:var(--rose-soft)}
-  .tapcue{
-    font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.04em; text-transform:uppercase;
-    color:var(--rose); opacity:.8; margin-left:6px;
-  }
-  .kstat.warn.on .tapcue{opacity:1}
-  .keysbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-  .addkey{display:flex; gap:6px; flex:1 1 320px; min-width:240px}
-  .addkey input{
-    flex:1; font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--ink);
-    background:var(--surface-2); border:1px solid var(--line); border-radius:9px; padding:8px 11px;
-  }
-  .addkey input:focus{outline:none; border-color:var(--accent)}
-  .keysearch{flex:0 1 200px}
-  #syncAllBtn{border-color:var(--line-strong)}
-  #syncAllBtn:hover{border-color:var(--accent); color:var(--accent-ink)}
-  #syncAllBtn.pending{background:var(--rose-soft); border-color:var(--rose); color:var(--rose)}
-  #syncAllBtn.pending:hover{filter:brightness(1.03)}
-  .synchint{margin-top:10px; font-size:12px; color:var(--ink-3)}
-  .synchint b{color:var(--rose); font-weight:600}
+  .addrow input:focus{outline:none}
+  .addrow .addhint{font-size:12px; color:var(--ink-2)}
+  .addrow .addacts{display:flex; gap:6px; justify-content:flex-end}
 
   .keythead,.keyrow{display:grid; grid-template-columns:minmax(220px,1.4fr) minmax(200px,2fr) 40px; gap:14px}
   .keyrow{padding:11px 14px; border-bottom:1px solid var(--line); align-items:center}
@@ -520,6 +483,7 @@
   @media (max-width:760px){
     .keythead{display:none}
     .keyrow{grid-template-columns:1fr 34px; gap:6px 10px}
+    .keyrow.addrow{grid-template-columns:1fr}
     .keydel{opacity:1}
     .presence{grid-column:1}
   }
@@ -600,7 +564,8 @@
 
   /* locale list */
   .sbhead{display:flex; align-items:center; gap:8px; padding:14px 16px 6px}
-  .sbhead .eyebrow{flex:1}
+  .sbhead .eyebrow{flex:1; white-space:nowrap}
+  .sbadd{width:26px; height:26px; padding:0; justify-content:center; border-radius:7px; flex:none}
   .sbsort{display:flex; align-items:center; color:var(--ink-3)}
   .sbsort select{
     font:inherit; font-size:11.5px; color:var(--ink-2); max-width:118px;
@@ -638,10 +603,6 @@
   }
   .loc:hover .rm,.loc .rm:focus-visible{opacity:1}
   .loc .rm:hover{background:var(--surface-3); color:var(--rose)}
-  .addLoc{
-    margin:4px 12px 12px; justify-content:center; border-style:dashed; color:var(--ink-2);
-  }
-  .addLoc:hover{color:var(--accent-ink); border-color:var(--accent)}
 
   /* footer: backup menu + account */
   .sbfoot{
@@ -674,10 +635,8 @@
   .app.railed .sidebar{width:64px}
   .app.railed .brand-name,
   .app.railed .nav span:not(.mismatch-badge),
-  .app.railed .sbhead,
   .app.railed .loc .meta2,
   .app.railed .loc .rm,
-  .app.railed .addLoc span,
   .app.railed .sbfootBtn span,
   .app.railed .sbfootBtn .chev,
   .app.railed .me-txt{display:none}
@@ -687,7 +646,8 @@
   .app.railed .mismatch-badge{position:absolute; margin:0; top:-3px; right:-5px; min-width:16px; height:16px; font-size:9px}
   .app.railed .locales{padding:10px 8px 2px; align-items:center}
   .app.railed .loc{justify-content:center; padding:5px; width:auto}
-  .app.railed .addLoc{margin:8px auto; width:40px; padding:9px 0}
+  .app.railed .sbhead{justify-content:center; padding:10px 0 2px}
+  .app.railed .sbhead .eyebrow,.app.railed .sbsort{display:none}
   .app.railed .sbfoot{align-items:center; padding:10px 8px 12px}
   .app.railed .sbfootBtn{width:40px; padding:9px 0; justify-content:center}
   .app.railed .merow{flex-direction:column}
@@ -705,7 +665,8 @@
     .collapseBtn{display:none}
     .views{flex-direction:row; overflow-x:auto; padding:0 12px 8px; gap:4px; border-bottom:0}
     .nav{width:auto; flex:none; padding:7px 11px}
-    .sbhead{display:none}
+    .sbhead{padding:0 12px 6px}
+    .sbsort{display:none}
     .locales{flex:none; flex-direction:row; overflow-x:auto; padding:2px 12px 10px; gap:6px; align-items:center}
     .loc{width:auto; flex:none; padding:5px 10px 5px 5px; border:1px solid var(--line)}
     .loc.active{border-color:var(--accent)}
@@ -713,7 +674,6 @@
     .loc .badge::before{inset:2.5px; border-radius:5px}
     .loc .lname{font-size:12.5px; max-width:140px}
     .loc .rm{display:none}
-    .addLoc{margin:0 12px 10px; padding:6px 10px; align-self:flex-start}
     /* backup + account sit in the brand row */
     .sbfoot{position:absolute; top:8px; right:10px; flex-direction:row; align-items:center; gap:2px; padding:0; margin:0; border:0}
     .sbfootBtn{width:34px; padding:8px 0; justify-content:center}
@@ -773,10 +733,10 @@
   .acct-btns button{flex:1; justify-content:center}
   .acct-msg{font-size:12.5px; color:var(--ink-2); margin-top:10px; min-height:1em}
   /* ---------- read-only access (viewers) ---------- */
-  html.ro .ro-hide,html.ro .loc .rm,html.ro .keydel,html.ro .tagx,html.ro .flag{display:none !important}
+  html.ro .ro-hide,html.ro .loc .rm,html.ro .keydel,html.ro .tagx,html.ro .flag,html.ro .approvebtn{display:none !important}
   html.ro .val,html.ro .keyname{cursor:default}
   html.ro .val:hover{text-decoration:none}
-  html.ro .val.empty{font-style:italic}
+  html.ro .val.empty{font-style:italic; border-color:transparent; padding-left:0; color:var(--ink-3)}
   .ropill{
     display:inline-flex; align-items:center; gap:5px; padding:2px 9px 2px 7px; border-radius:999px;
     font-size:11.5px; font-weight:500; background:var(--surface-3); color:var(--ink-2);
@@ -892,8 +852,8 @@
     .actions{margin-left:0; width:100%}
     #undoLabel{display:none}
     .prog{margin-top:14px; padding:14px}
-    .progbar{display:flex}
-    .ribbon,.tickhint{display:none}
+    .statfilters{flex-wrap:nowrap; overflow-x:auto; padding-bottom:2px}
+    .statfilters button{flex:none}
     .coverage{font-size:24px}
     .proghead .nextwrap{margin-left:0; width:100%}
     .proghead .nextwrap button{flex:1; justify-content:center}
@@ -937,18 +897,6 @@
         <span>Keys</span>
         <span class="mismatch-badge" id="mismatchBadge" hidden>0</span>
       </button>
-      <button class="nav" id="excelBtn" title="Import an Excel workbook as locales, or export locales to Excel">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h18M3 15h18"/></svg>
-        <span>Excel tool</span>
-      </button>
-      <button class="nav" id="logBtn" title="Who changed what, and when" aria-haspopup="dialog" style="display:none">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>
-        <span>Activity log</span>
-      </button>
-      <button class="nav" id="usersBtn" title="Invite people and choose what they can do" aria-haspopup="dialog" style="display:none">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>
-        <span>Users</span>
-      </button>
     </nav>
     <div class="sbhead">
       <span class="eyebrow" id="localesHead">Locales</span>
@@ -962,13 +910,20 @@
           <option value="cov-asc">Least translated</option>
         </select>
       </label>
+      <button class="icon ghost sbadd ro-hide" id="addLocaleBtn" title="Add a locale from a JSON, CSV or Excel file" aria-label="Add locale">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
     </div>
     <nav class="locales" id="localeList" aria-label="Locales"></nav>
-    <button class="addLoc ro-hide" id="addLocaleBtn" title="Add a locale from a JSON, CSV or Excel file">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-      <span>Add locale</span>
-    </button>
     <div class="sbfoot">
+      <button class="sbfootBtn" id="logBtn" title="Who changed what, and when" aria-haspopup="dialog" style="display:none">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>
+        <span>Activity log</span>
+      </button>
+      <button class="sbfootBtn" id="usersBtn" title="Invite people and choose what they can do" aria-haspopup="dialog" style="display:none">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>
+        <span>Users</span>
+      </button>
       <button class="sbfootBtn" id="installBtn" title="Install Translation Manager as an app on this device" hidden>
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
         <span>Install app</span>
@@ -1035,6 +990,10 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7 4 12l5 5"/><path d="M4 12h11a5 5 0 0 1 0 10h-1"/></svg>
         <span id="undoLabel">Undo</span>
       </button>
+      <button class="primary ro-hide" id="addKeyOpen" hidden>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Add key
+      </button>
       <div class="actgroup" id="localeActions" hidden>
         <div class="menuwrap ro-hide">
           <button id="importMenuBtn" data-menu="importMenu" aria-haspopup="menu" aria-expanded="false" title="Bring translations from a file into this locale">
@@ -1055,11 +1014,16 @@
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v6a3 3 0 0 0 3 3h4a3 3 0 0 1 3 3v6M7 3H4m3 0h3m7 18h3m-3 0h-3"/></svg>
               <span class="mi"><b>Update &amp; overwrite</b><small>Replaces matching translations with the file's and adds any new keys.</small></span>
             </button>
+            <div class="menusep"></div>
+            <button role="menuitem" id="importXlsxNav">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h18M3 15h18"/></svg>
+              <span class="mi"><b>Excel workbook with several tabs…</b><small>Preview the tabs, then add them as new locales or split them into files</small></span>
+            </button>
             <div class="menunote">Imported strings are tagged and flagged for review, and every import can be undone.</div>
           </div>
         </div>
         <div class="menuwrap">
-          <button class="primary" id="exportMenuBtn" data-menu="exportMenu" aria-haspopup="menu" aria-expanded="false" title="Download this locale">
+          <button id="exportMenuBtn" data-menu="exportMenu" aria-haspopup="menu" aria-expanded="false" title="Download this locale">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3m0 0L8 7m4-4 4 4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
             Export <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
           </button>
@@ -1080,7 +1044,7 @@
             <div class="menusep"></div>
             <button role="menuitem" id="exportAllNav">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h18M3 15h18"/></svg>
-              <span class="mi"><b>All locales to Excel…</b><small>Opens the Excel tool: one workbook, a tab per locale</small></span>
+              <span class="mi"><b>All locales to Excel…</b><small>One workbook with a tab per locale</small></span>
             </button>
           </div>
         </div>
@@ -1108,11 +1072,6 @@
   <section class="panel prog" id="hero">
     <div class="proghead">
       <div class="covbig"><span class="coverage" id="coverage">—</span><span class="covof" id="covOf">translated</span></div>
-      <div class="legend">
-        <span style="color:var(--jade)"><i class="dot"></i><span><b id="cDone">0</b> translated</span></span>
-        <span style="color:var(--ochre)"><i class="dot"></i><span><b id="cReview">0</b> need review</span></span>
-        <span style="color:var(--rose)"><i class="dot"></i><span><b id="cMissing">0</b> untranslated</span></span>
-      </div>
       <div class="nextwrap">
         <span class="alldone" id="allDone" hidden>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
@@ -1124,22 +1083,20 @@
         </button>
       </div>
     </div>
-    <div class="progbar" id="progBar" aria-hidden="true"><i class="done"></i><i class="review"></i><i class="missing"></i></div>
-    <div class="ribbon" id="ribbon"></div>
-    <div class="tickhint">One mark per string, in file order. Hover to read the key, click to jump to it.</div>
+    <div class="progbar" id="progBar" role="img"><i class="done"></i><i class="review"></i><i class="missing"></i></div>
+    <div class="statfilters" id="filters" role="group" aria-label="Show strings">
+      <button data-f="all"     aria-pressed="true">All <span class="count" data-c="all">0</span></button>
+      <button data-f="missing" aria-pressed="false"><i class="dot" style="color:var(--rose)"></i>Untranslated <span class="count" data-c="missing">0</span></button>
+      <button data-f="review"  aria-pressed="false"><i class="dot" style="color:var(--ochre)"></i>Needs review <span class="count" data-c="review">0</span></button>
+      <button data-f="done"    aria-pressed="false"><i class="dot" style="color:var(--jade)"></i>Translated <span class="count" data-c="done">0</span></button>
+    </div>
   </section>
 
   <section class="panel">
     <div class="controls" id="tControls">
-      <div class="segmented" id="filters">
-        <button data-f="all"     aria-pressed="true">All <span class="count" data-c="all">0</span></button>
-        <button data-f="missing" aria-pressed="false">Untranslated <span class="count" data-c="missing">0</span></button>
-        <button data-f="review"  aria-pressed="false">Needs review <span class="count" data-c="review">0</span></button>
-        <button data-f="done"    aria-pressed="false">Translated <span class="count" data-c="done">0</span></button>
-      </div>
       <label class="search">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4.3-4.3"/></svg>
-        <input id="q" placeholder="Search keys and text" aria-label="Search strings">
+        <input id="q" placeholder="Search keys, English or translations" aria-label="Search strings">
         <kbd>/</kbd>
       </label>
       <select id="sectionSel" aria-label="Filter by section"></select>
@@ -1169,11 +1126,9 @@
     <div class="thead" id="tHead">
       <div class="pick"><input type="checkbox" id="selectAll" title="Select all shown" aria-label="Select all shown strings"></div>
       <div><button class="sortable" data-sort="key">Key</button></div>
+      <div>English</div>
       <div id="valHead">Translation</div>
-      <div>English source</div>
-      <div>Tags</div>
-      <div><button class="sortable" data-sort="status">Status</button></div>
-      <div></div>
+      <div style="text-align:right"><button class="sortable" data-sort="status">Status</button></div>
     </div>
     <div class="rows" id="rows"></div>
     <div class="tablefoot" id="foot"></div>
@@ -1181,92 +1136,45 @@
   </div>
 
   <div id="keysView" hidden>
-    <div class="keysbanner">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
-      <span>Keys are <b>shared by every locale</b>. Adding, renaming or deleting a key here changes all locales at once, and every change can be undone.</span>
+    <div class="keyswarn ro-hide" id="keysWarn" role="status" hidden>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0ZM12 9v4M12 17h.01"/></svg>
+      <div class="kw-text"><b id="keysWarnTitle"></b><span>Those locales can't be translated for these keys until the key exists there.</span></div>
+      <button id="syncAllBtn" title="Add every missing key, empty, to the locales that lack it">Add them to every locale</button>
     </div>
-    <details class="help">
-      <summary>
-        <span class="chev"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
-        How this page works
-      </summary>
-      <div class="help-body">
-        <dl>
-          <dt>Add key</dt>
-          <dd>Add a brand-new key to <b>every</b> locale at once, with an empty value ready to translate.</dd>
-          <dt>Sync to All</dt>
-          <dd>Find keys that exist in some locales but not others and add each missing key (empty) to the locales that lack it, so every locale shares the same key set.</dd>
-          <dt>All keys / Mismatched</dt>
-          <dd>Filter the list to every key, or only the keys that are <b>missing from at least one locale</b>.</dd>
-          <dt>Search keys</dt>
-          <dd>Narrow the list to keys whose name matches your text.</dd>
-          <dt>Rename (click a key)</dt>
-          <dd>Click a key to edit it inline; the rename applies across <b>all</b> locales at once.</dd>
-          <dt>Delete</dt>
-          <dd>The × on a row removes that key from <b>every</b> locale. Undo reverses it.</dd>
-        </dl>
-      </div>
-    </details>
-    <section class="panel keyshero">
-      <div class="keystats" id="keyStats"></div>
-      <div class="keysbar">
+    <section class="panel">
+      <div class="controls keysbar">
         <div class="segmented" id="keyFilters">
           <button data-kf="all" aria-pressed="true">All keys <span class="count" data-kc="all">0</span></button>
-          <button data-kf="mismatch" aria-pressed="false">Mismatched <span class="count" data-kc="mismatch">0</span></button>
-        </div>
-        <div class="addkey ro-hide">
-          <input id="newKeyInput" placeholder="New key, e.g. Modal.Title" aria-label="New key name" spellcheck="false">
-          <button class="primary" id="addKeyBtn">Add key</button>
+          <button data-kf="mismatch" aria-pressed="false">Missing somewhere <span class="count" data-kc="mismatch">0</span></button>
         </div>
         <label class="search keysearch">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4.3-4.3"/></svg>
           <input id="keyQ" placeholder="Search keys" aria-label="Search keys">
         </label>
-        <button class="ro-hide" id="syncAllBtn" title="Add every missing key to the locales that lack it, with an empty value">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
-          Sync to All
-        </button>
       </div>
-      <div class="synchint ro-hide" id="syncHint"></div>
-    </section>
-    <section class="panel">
       <div class="thead keythead">
         <div>Key</div>
-        <div>Present in locales</div>
+        <div>In locales</div>
         <div></div>
       </div>
+      <form class="keyrow addrow ro-hide" id="addKeyRow" hidden>
+        <input id="newKeyInput" placeholder="New key, e.g. Modal.Title" aria-label="New key name" spellcheck="false" autocomplete="off">
+        <span class="addhint" id="addKeyHint"></span>
+        <span class="addacts">
+          <button type="button" id="addKeyCancel">Cancel</button>
+          <button type="submit" class="primary" id="addKeyBtn">Add</button>
+        </span>
+      </form>
       <div class="rows" id="keysRows"></div>
       <div class="tablefoot" id="keysFoot"></div>
     </section>
   </div>
 
   <div id="excelView" hidden>
-    <!-- Excel Tool home -->
-    <div id="excelHome">
-      <div class="keysbanner">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg>
-        <span>Bring a multi-tab Excel workbook in as locales, or export your locales to one Excel workbook.</span>
-      </div>
-      <section class="panel">
-        <div class="excelhome">
-          <button type="button" class="excelhome-card" id="excelGoImport">
-            <span class="ehc-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M12 4 7 9M12 4l5 5M4 18v2h16v-2"/></svg></span>
-            <span class="ehc-title">Import a workbook</span>
-            <span class="ehc-desc">Preview a multi-tab workbook, then add its tabs as locales or split them into separate files.</span>
-          </button>
-          <button type="button" class="excelhome-card" id="excelGoExport">
-            <span class="ehc-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v12m0-12L7 13m5-5 5 5M4 6V4h16v2"/></svg></span>
-            <span class="ehc-title">Export to Excel</span>
-            <span class="ehc-desc">Download one workbook with a tab per locale: every string, or only what still needs translating.</span>
-          </button>
-        </div>
-      </section>
-    </div>
-    <!-- Import area -->
     <div id="excelImport" hidden>
       <button type="button" class="excelback" id="excelImportBack">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg>
-        Back to Excel tool
+        Back to Translations
       </button>
       <div class="keysbanner">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg>
@@ -1345,7 +1253,7 @@
     <div id="excelExport" hidden>
       <button type="button" class="excelback" id="excelExportBack">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg>
-        Back to Excel tool
+        Back to Translations
       </button>
       <div class="keysbanner">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v12m0-12L7 13m5-5 5 5M4 6V4h16v2"/></svg>
@@ -2587,74 +2495,56 @@
   // view toggle
   function setView(v){
     state.view = v;
+    if(v !== "keys") $("#addKeyRow").hidden = true;
     render();
-    if(v === "keys"){ var n = $("#newKeyInput"); if(n) n.focus(); }
   }
   $("#navTranslate").addEventListener("click", function(){ setView("translate"); });
   $("#viewBtn").addEventListener("click", function(){ setView("keys"); });
-  $("#addKeyBtn").addEventListener("click", function(){
+  function openAddKey(){
+    var n = state.locales.length;
+    $("#addKeyHint").textContent = n
+      ? "Added to " + (n === 1 ? "the 1 locale" : "all " + n + " locales") + ", empty and ready to translate"
+      : "Add a locale first";
+    $("#addKeyRow").hidden = false;
+    $("#newKeyInput").focus();
+  }
+  function closeAddKey(){
+    $("#addKeyRow").hidden = true;
+    $("#newKeyInput").value = "";
+    $("#addKeyOpen").focus();
+  }
+  $("#addKeyOpen").addEventListener("click", openAddKey);
+  $("#addKeyCancel").addEventListener("click", closeAddKey);
+  $("#addKeyRow").addEventListener("submit", function(e){
+    e.preventDefault();
     var inp = $("#newKeyInput");
-    if(addKey(inp.value)) inp.value = "";
+    if(addKey(inp.value)){ inp.value = ""; inp.focus(); }   // stays open for the next one
   });
   $("#newKeyInput").addEventListener("keydown", function(e){
-    if(e.key === "Enter"){ e.preventDefault(); if(addKey(this.value)) this.value = ""; }
+    if(e.key === "Escape"){ e.preventDefault(); closeAddKey(); }
   });
   $("#keyQ").addEventListener("input", function(e){ state.keysQ = e.target.value; state.keysLimit = 150; renderKeys(); });
   $("#syncAllBtn").addEventListener("click", syncAll);
   Array.prototype.forEach.call(document.querySelectorAll("#keyFilters button"), function(b){
     b.addEventListener("click", function(){ state.keysFilter = b.dataset.kf; state.keysLimit = 150; renderKeys(); });
   });
-  function pickKeyFilter(card){
-    if(!card || card.getAttribute("aria-disabled") === "true") return;
-    state.keysFilter = card.dataset.kf; state.keysLimit = 150; renderKeys();
-  }
-  $("#keyStats").addEventListener("click", function(e){ pickKeyFilter(e.target.closest("[data-kf]")); });
-  $("#keyStats").addEventListener("keydown", function(e){
-    if(e.key === "Enter" || e.key === " "){
-      var card = e.target.closest("[data-kf]");
-      if(card){ e.preventDefault(); pickKeyFilter(card); }
-    }
-  });
 
-  function renderKeyStats(ki){
-    var host = $("#keyStats");
-    var uniq = ki.order.length, nLoc = state.locales.length;
-    var missing = countMissing(ki);
-    var inAll = ki.order.filter(function(t){ return ki.presence[t].count === nLoc; }).length;
-    var onAll = state.keysFilter === "all", onMis = state.keysFilter === "mismatch";
-    host.innerHTML =
-      '<div class="kstat click' + (onAll?" on":"") + '" data-kf="all" role="button" tabindex="0" aria-pressed="' + onAll + '" title="Show all keys">' +
-        '<span class="num">' + uniq + '</span><span class="lbl">Unique keys</span></div>' +
-      '<div class="kstat"><span class="num">' + nLoc + '</span><span class="lbl">Locale' + (nLoc!==1?"s":"") + '</span></div>' +
-      '<div class="kstat ' + (missing?"":"ok") + '"><span class="num">' + inAll + '</span><span class="lbl">In every locale</span></div>' +
-      '<div class="kstat warn click' + (onMis?" on":"") + '" data-kf="mismatch" role="button" tabindex="' + (missing?"0":"-1") + '"' +
-        ' aria-pressed="' + onMis + '" aria-disabled="' + (missing?"false":"true") + '"' +
-        ' title="' + (missing? "Show only keys missing from some locales" : "No keys are missing") + '">' +
-        '<span class="num">' + missing + '</span><span class="lbl">Missing entries' +
-        (missing? ' <span class="tapcue">tap to filter</span>' : "") + '</span></div>';
-
-    var btn = $("#syncAllBtn");
-    btn.classList.toggle("pending", missing > 0);
-    btn.disabled = missing === 0;
-    var hint = $("#syncHint");
-    if(nLoc <= 1){
-      hint.innerHTML = "Add a second locale to compare key coverage. Every key you add here is created in all loaded locales.";
-    } else if(missing){
-      var affected = ki.order.filter(function(t){ return ki.presence[t].count < nLoc; }).length;
-      hint.innerHTML = "<b>" + affected + "</b> key" + (affected>1?"s are":" is") +
-        " missing from at least one locale (" + missing + " entries total). " +
-        "Sync to All adds them with an empty value so every locale reaches " + uniq + " strings.";
-    } else {
-      hint.textContent = "All " + nLoc + " locales share the same " + uniq + " keys. Nothing to sync.";
-    }
+  /* the warning only appears when some keys are missing from some locales, with the fix as its button */
+  function renderKeysWarn(ki){
+    var nLoc = state.locales.length;
+    var affected = nLoc > 1 ? ki.order.filter(function(t){ return ki.presence[t].count < nLoc; }).length : 0;
+    $("#keysWarn").hidden = !affected;
+    $("#keysWarnTitle").textContent = affected === 1
+      ? "1 key is missing from some locales"
+      : affected + " keys are missing from some locales";
   }
   function renderKeys(){
     var ki = keyIndex();
-    renderKeyStats(ki);
+    renderKeysWarn(ki);
     var host = $("#keysRows"), foot = $("#keysFoot");
     host.textContent = ""; foot.textContent = "";
     if(state.active === -1 || !ki.order.length){
-      host.innerHTML = '<div class="empty"><h3>No keys yet</h3><p>Add a locale, or create a key above. Keys you add appear in every loaded locale.</p></div>';
+      host.innerHTML = '<div class="empty"><h3>No keys yet</h3><p>Add a locale, or press Add key. Keys you add appear in every locale.</p></div>';
       return;
     }
     var q = state.keysQ.toLowerCase();
@@ -3319,9 +3209,6 @@
     return c;
   }
   function renderStats(c){
-    $("#cDone").textContent = c.done;
-    $("#cReview").textContent = c.review;
-    $("#cMissing").textContent = c.missing;
     Array.prototype.forEach.call(document.querySelectorAll("[data-c]"), function(el){
       el.textContent = c[el.dataset.c];
     });
@@ -3332,6 +3219,7 @@
     // round down, so 99.96% never reads as a finished 100%
     $("#coverage").textContent = c.all ? (Math.floor(pct * 10) / 10) + "%" : "—";
     $("#covOf").textContent = "translated · " + c.done + " of " + c.all;
+    $("#progBar").setAttribute("aria-label", c.done + " translated, " + c.review + " need review, " + c.missing + " untranslated");
     var bar = $("#progBar").children;
     bar[0].style.width = (c.all ? c.done / c.all * 100 : 0) + "%";
     bar[1].style.width = (c.all ? c.review / c.all * 100 : 0) + "%";
@@ -3345,44 +3233,6 @@
       : c.review + " flagged for review — jumps to the next one";
     $("#allDone").hidden = !c.all || !nb.hidden;
   }
-  function renderRibbon(){
-    var rib = $("#ribbon");
-    rib.textContent = "";
-    var rows = activeRows();
-    var n = rows.length;
-    if(!n) return;
-    var perTick = n > 900 ? Math.ceil(n / 900) : 1;
-    var frag = document.createDocumentFragment();
-    for(var i = 0; i < n; i += perTick){
-      var bucket = rows.slice(i, i + perTick);
-      var st = "done", label;
-      bucket.forEach(function(r){
-        var s = statusOf(r);
-        if(s === "missing") st = "missing";
-        else if(s === "review" && st !== "missing") st = "review";
-      });
-      var t = document.createElement("i");
-      t.className = "tick " + st;
-      if(state.filter !== "all" && st !== state.filter) t.classList.add("dim");
-      label = perTick === 1
-        ? bucket[0].term + "\n" + STATUS[st].label
-        : bucket.length + " strings · " + STATUS[st].label;
-      t.dataset.tip = label;
-      t.dataset.term = bucket[0].term;
-      frag.appendChild(t);
-    }
-    rib.appendChild(frag);
-  }
-  $("#ribbon").addEventListener("mousemove", function(e){
-    var t = e.target.closest(".tick");
-    if(t) showTip(t.dataset.tip, e.clientX, e.clientY); else hideTip();
-  });
-  $("#ribbon").addEventListener("mouseleave", hideTip);
-  $("#ribbon").addEventListener("click", function(e){
-    var t = e.target.closest(".tick");
-    if(!t) return;
-    jumpTo(t.dataset.term);
-  });
   function jumpTo(term){
     var row = document.querySelector('.row[data-term="' + (window.CSS && CSS.escape ? CSS.escape(term) : term) + '"]');
     if(!row){
@@ -3469,9 +3319,11 @@
       }
       host.innerHTML = '<div class="empty"><h3>No locales yet</h3>' +
         '<p>Add a JSON, CSV or Excel file of your strings to see what\'s translated, fill in the gaps and export it back out. Each file becomes a locale in the sidebar — you can also drop a .json or .csv file anywhere on this page.</p>' +
-        '<div class="cta"><button class="primary" id="emptyImport">Add locale</button></div></div>';
+        '<div class="cta"><button class="primary" id="emptyImport">Add locale</button> <button id="emptyXlsx">Import Excel workbook</button></div></div>';
       var eb = $("#emptyImport");
       if(eb) eb.addEventListener("click", function(){ $("#addLocaleInput").click(); });
+      var xb = $("#emptyXlsx");
+      if(xb) xb.addEventListener("click", openWorkbookImport);
       return;
     }
     if(!list.length){
@@ -3511,6 +3363,7 @@
       pcell.appendChild(cb);
 
       var kcell = document.createElement("div");
+      kcell.className = "kcell";
       var dot = r.term.indexOf(".");
       kcell.innerHTML = '<div class="key">' +
         (dot > -1 ? '<span class="ns">' + esc(r.term.slice(0, dot + 1)) + "</span>" + esc(r.term.slice(dot + 1)) : esc(r.term)) +
@@ -3582,15 +3435,14 @@
       srccell.textContent = srcVal || "—";
       if(srcVal) srccell.title = srcVal;
 
-      var scell = document.createElement("div");
-      scell.innerHTML = '<span class="pill ' + st + '"><i class="dot"></i>' + STATUS[st].label + "</span>";
-
+      // translation cell: the editable text, with its tags underneath only when it has any
       var tcell = document.createElement("div");
+      tcell.className = "tcell";
+      tcell.appendChild(vcell);
       var tags = normTags(r.tags);
-      tcell.className = "tags" + (tags.length ? "" : " empty");
-      if(!tags.length){
-        tcell.innerHTML = '<span class="notag">—</span>';
-      } else {
+      if(tags.length){
+        var tagbox = document.createElement("div");
+        tagbox.className = "tags";
         tags.forEach(function(tg){
           var chip = document.createElement("span");
           chip.className = "tag t-" + tagSlug(tg);
@@ -3608,20 +3460,35 @@
             render();
           });
           chip.appendChild(x);
-          tcell.appendChild(chip);
+          tagbox.appendChild(chip);
         });
+        tcell.appendChild(tagbox);
       }
 
-      var fcell = document.createElement("div");
-      var fb = document.createElement("button");
-      fb.className = "flag" + (r.fuzzy ? " approve" : "");
-      fb.innerHTML = r.fuzzy ? CHECK : FLAG;
-      fb.title = r.fuzzy ? "Approve — clear the review flag" : "Flag for review";
-      fb.setAttribute("aria-label", fb.title);
-      fb.addEventListener("click", function(){ snapshot(); r.fuzzy = r.fuzzy ? 0 : 1; render(); });
-      fcell.appendChild(fb);
+      // status: only exceptions get a label, each next to the action that resolves it
+      var acell = document.createElement("div");
+      acell.className = "acts";
+      if(st === "review"){
+        acell.insertAdjacentHTML("beforeend", '<span class="pill review">' + STATUS.review.label + "</span>");
+        var ab = document.createElement("button");
+        ab.className = "approvebtn";
+        ab.innerHTML = CHECK + "Approve";
+        ab.title = "Approve — clear the review flag";
+        ab.addEventListener("click", function(){ snapshot(); r.fuzzy = 0; render(); });
+        acell.appendChild(ab);
+      } else {
+        if(st === "missing") acell.insertAdjacentHTML("beforeend", '<span class="pill missing">' + STATUS.missing.label + "</span>");
+        var fb = document.createElement("button");
+        fb.className = "flag";
+        fb.innerHTML = FLAG;
+        fb.title = "Flag for review";
+        fb.setAttribute("aria-label", "Flag " + r.term + " for review");
+        fb.addEventListener("click", function(){ snapshot(); r.fuzzy = 1; render(); });
+        acell.appendChild(fb);
+        if(st === "done") acell.insertAdjacentHTML("beforeend", '<span class="okmark" title="' + STATUS.done.label + '" role="img" aria-label="' + STATUS.done.label + '">' + CHECK + "</span>");
+      }
 
-      row.appendChild(pcell); row.appendChild(kcell); row.appendChild(vcell); row.appendChild(srccell); row.appendChild(tcell); row.appendChild(scell); row.appendChild(fcell);
+      row.appendChild(pcell); row.appendChild(kcell); row.appendChild(srccell); row.appendChild(tcell); row.appendChild(acell);
       frag.appendChild(row);
     });
     host.appendChild(frag);
@@ -3647,8 +3514,9 @@
     var l = activeLocale();
     var keys = state.view === "keys", xl = state.view === "excel", global = keys || xl;
     ["#mergeBtn","#mergeMissingBtn","#mergeNewBtn","#csvBtn","#jsonBtn"].forEach(function(sel){ $(sel).disabled = !l; });
-    $("#eyebrow").textContent = keys ? "Shared by every locale" : (xl ? "Workbooks in and out" : "Translations");
-    $("#appName").textContent = keys ? "Keys" : (xl ? "Excel tool" : (l ? localeTitle(l) : "Translation Manager"));
+    var xlTitle = excel.page === "export" ? "Export to Excel" : "Import Excel workbook";
+    $("#eyebrow").textContent = keys ? "Shared by every locale" : (xl ? "Excel" : "Translations");
+    $("#appName").textContent = keys ? "Keys" : (xl ? xlTitle : (l ? localeTitle(l) : "Translation Manager"));
     var chip = $("#localeChip");
     chip.textContent = l ? l.code : "";
     chip.hidden = global || !l || localeTitle(l) === l.code;
@@ -3658,15 +3526,16 @@
     $("#fileMeta").hidden = global;
     $("#keysMeta").hidden = !keys;
     $("#localeActions").hidden = global || !l;
+    $("#addKeyOpen").hidden = !keys;
     $("#valHead").textContent = "Translation" + (l ? " · " + l.code : "");
     $("#importInto").textContent = $("#exportFrom").textContent = l ? l.code : "this locale";
-    document.title = (keys ? "Keys" : xl ? "Excel tool" : l ? l.code : "") + (keys || xl || l ? " · " : "") + "Translation Manager";
+    document.title = (keys ? "Keys" : xl ? xlTitle : l ? l.code : "") + (keys || xl || l ? " · " : "") + "Translation Manager";
     if(keys){
       var n = state.locales.length;
       var uniq = keyIndex().order.length;
       var mm = mismatchCount();
-      $("#keysMeta").textContent = n + " locale" + (n!==1?"s":"") + " · " + uniq +
-        " unique key" + (uniq!==1?"s":"") + (mm ? " · " + mm + " mismatched" : " · all in sync");
+      $("#keysMeta").textContent = uniq + " key" + (uniq!==1?"s":"") + ", shared by " +
+        (n === 1 ? "1 locale" : "all " + n + " locales") + " · changes here apply to every locale and can be undone";
     }
   }
   // count keys missing from at least one locale (project-wide consistency)
@@ -3685,7 +3554,7 @@
     $("#translateView").hidden = keys || xl;
     $("#keysView").hidden = !keys;
     $("#excelView").hidden = !xl;
-    [["#navTranslate","translate"],["#viewBtn","keys"],["#excelBtn","excel"]].forEach(function(p){
+    [["#navTranslate","translate"],["#viewBtn","keys"]].forEach(function(p){
       var b = $(p[0]), on = state.view === p[1];
       b.classList.toggle("on", on);
       if(on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
@@ -3707,7 +3576,6 @@
       $("#hero").hidden = !has; $("#tControls").hidden = !has; $("#tHead").hidden = !has;
       renderStats(counts());
       renderSections();
-      renderRibbon();
       var list = visible();
       renderRows(list);
       updateSelUI();
@@ -3902,10 +3770,8 @@
     toast("Cleared imported workbook");
   }
   $("#clearXlsxBtn").addEventListener("click", clearWorkbook);
-  $("#excelGoImport").addEventListener("click", function(){ excel.page = "import"; render(); });
-  $("#excelGoExport").addEventListener("click", function(){ excel.page = "export"; render(); });
-  $("#excelImportBack").addEventListener("click", function(){ excel.page = "home"; render(); });
-  $("#excelExportBack").addEventListener("click", function(){ excel.page = "home"; render(); });
+  $("#excelImportBack").addEventListener("click", function(){ setView("translate"); });
+  $("#excelExportBack").addEventListener("click", function(){ setView("translate"); });
 
   /* ============ Excel Tool · Export page ============ */
   var exp = { cat:"locales", include:{}, active:-1, excludeKeys:{}, keyQ:"" };   // include: {localeId:bool}; excludeKeys: {term:true}; cat: locales|strings|translated|untranslated|review
@@ -4154,19 +4020,15 @@
   $("#expKeysNone").addEventListener("click", function(){
     exportKeyList().forEach(function(o){ exp.excludeKeys[o.key] = true; }); renderExpKeys();
   });
-  $("#excelBtn").addEventListener("click", function(){
-    excel.page = "home";                                // the nav item always lands on the Excel tool home
-    setView("excel");
-  });
+  function openWorkbookImport(){ excel.page = "import"; setView("excel"); }
+  $("#importXlsxNav").addEventListener("click", openWorkbookImport);
   $("#exportAllNav").addEventListener("click", function(){ excel.page = "export"; setView("excel"); });
 
   function renderExcel(){
-    var page = excel.page || "home";
-    $("#excelHome").hidden = page !== "home";
+    var page = excel.page === "export" ? "export" : "import";
     $("#excelImport").hidden = page !== "import";
     $("#excelExport").hidden = page !== "export";
     if(page === "export"){ renderExport(); return; }
-    if(page !== "import") return;   // home page has no dynamic content to render yet
 
     var loaded = excel.sheets.length > 0;
     $("#xlsxMeta").textContent = loaded ? (excel.name + " · " + excel.sheets.length + " tabs") : "";
