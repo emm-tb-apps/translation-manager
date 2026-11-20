@@ -1,5 +1,6 @@
 -- Translation Manager — cloud workspace schema.
--- One row per locale; its strings live in a jsonb array (same shape as the app's "Save All" file).
+-- The workspace is a set of JSON files in the "translations" storage bucket (bottom of this file).
+-- The tables here hold roles, the Activity log, and the old locales table kept as a backup.
 -- Every signed-in user shares the same workspace. Anonymous visitors have no access at all.
 
 create table if not exists public.locales (
@@ -118,13 +119,11 @@ $$;
 revoke all on function public.can_edit() from public, anon;
 grant execute on function public.can_edit() to authenticated;
 
--- Writes: editors and the Admin only. Read-only people can look and export, nothing else.
+-- The locales table is a read-only backup now: the workspace lives in files (see "File storage"
+-- below), and the app only reads this table once, to move it into files. No write policies.
 drop policy if exists "editors can add locales"    on public.locales;
 drop policy if exists "editors can edit locales"   on public.locales;
 drop policy if exists "editors can delete locales" on public.locales;
-create policy "editors can add locales"    on public.locales for insert to authenticated with check (public.can_edit());
-create policy "editors can edit locales"   on public.locales for update to authenticated using (public.can_edit()) with check (public.can_edit());
-create policy "editors can delete locales" on public.locales for delete to authenticated using (public.can_edit());
 
 -- People who already had an account before permissions existed keep editing.
 insert into public.app_roles (email, role)
@@ -222,3 +221,50 @@ drop trigger if exists locales_log on public.locales;
 create trigger locales_log
   after insert or update or delete on public.locales
   for each row execute function public.locales_log();
+
+-- ============ File storage ============
+-- Each locale is a pair of JSON files in the private "translations" bucket:
+--   translations/<Project>_<Language>.json          {"key": "text"}, exactly the file the widget reads
+--   .translation-manager/notes/<same file name>     review flags, tags, context and comments
+-- plus .translation-manager/manifest.json (which file is which locale, in sidebar order).
+-- Everyone signed in can read; only editors and the Admin can add, change or delete files.
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('translations', 'translations', false, 10485760)
+on conflict (id) do nothing;
+
+drop policy if exists "translation files: signed-in users read" on storage.objects;
+drop policy if exists "translation files: editors add"          on storage.objects;
+drop policy if exists "translation files: editors change"       on storage.objects;
+drop policy if exists "translation files: editors delete"       on storage.objects;
+create policy "translation files: signed-in users read" on storage.objects for select to authenticated
+  using (bucket_id = 'translations');
+create policy "translation files: editors add" on storage.objects for insert to authenticated
+  with check (bucket_id = 'translations' and public.can_edit());
+create policy "translation files: editors change" on storage.objects for update to authenticated
+  using (bucket_id = 'translations' and public.can_edit()) with check (bucket_id = 'translations' and public.can_edit());
+create policy "translation files: editors delete" on storage.objects for delete to authenticated
+  using (bucket_id = 'translations' and public.can_edit());
+
+-- Activity log entries are written by the app after each save (it works out the per-key diff).
+-- log_change() stamps who and when itself, so an entry can't claim to come from someone else.
+create or replace function public.log_change(p_action text, p_locale_code text, p_summary text, p_details jsonb)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if not public.can_edit() then
+    raise exception 'read-only users cannot save changes' using errcode = '42501';
+  end if;
+  if p_action not in ('created', 'updated', 'deleted') then
+    raise exception 'unknown action %', p_action;
+  end if;
+  insert into public.activity_log (user_id, user_email, action, locale_id, locale_code, summary, details)
+  values (auth.uid(), auth.jwt() ->> 'email', p_action, null,
+          left(coalesce(p_locale_code, ''), 64), left(coalesce(p_summary, ''), 500),
+          coalesce(p_details, '{}'::jsonb));
+end;
+$$;
+revoke all on function public.log_change(text, text, text, jsonb) from public, anon;
+grant execute on function public.log_change(text, text, text, jsonb) to authenticated;
