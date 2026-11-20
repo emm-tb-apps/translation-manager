@@ -1031,7 +1031,11 @@
             <div class="menuhead">Download strings from <b id="exportFrom">this locale</b></div>
             <button role="menuitem" id="jsonBtn">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5a2 2 0 0 0 2 2h1M16 3h1a2 2 0 0 1 2 2v5a2 2 0 0 0 2 2 2 2 0 0 0-2 2v5a2 2 0 0 1-2 2h-1"/></svg>
-              <span class="mi"><b>JSON (POEditor)</b><small id="jsonSub">The strings shown in the table</small></span>
+              <span class="mi"><b>JSON</b><small id="jsonSub">The strings shown in the table</small></span>
+            </button>
+            <button role="menuitem" id="jsonListBtn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+              <span class="mi"><b>JSON (POEditor list)</b><small>term / definition entries, with review flags</small></span>
             </button>
             <button role="menuitem" id="csvBtn">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M8 13h8M8 17h8"/></svg>
@@ -1056,6 +1060,10 @@
             <button role="menuitem" id="renameLocaleBtn">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
               <span class="mi"><b>Change locale code…</b><small>For example de-DE or pt-BR</small></span>
+            </button>
+            <button role="menuitem" id="renameFileBtn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M9 15h6"/></svg>
+              <span class="mi"><b>Change file name…</b><small id="fileNameSub">The JSON file's name in the bucket</small></span>
             </button>
             <button role="menuitem" class="danger" id="removeLocaleBtn">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
@@ -1474,7 +1482,7 @@
     term:r.term, definition:r.definition, context:r.context, term_plural:r.term_plural,
     reference:r.reference, comment:r.comment, source:r.source,
     tags:(r.tags ? r.tags.slice() : []), fuzzy:r.fuzzy }; }); }
-  function cloneLocale(l){ return { id:l.id, cloudId:l.cloudId, code:l.code, name:l.name, file:l.file,
+  function cloneLocale(l){ return { id:l.id, store:l.store, renamedFrom:l.renamedFrom, fromDb:l.fromDb, code:l.code, name:l.name, file:l.file,
     rows:cloneRows(l.rows), selected:Object.assign({}, l.selected) }; }
 
   /* Call BEFORE any content change. Snapshots the WHOLE project (all locales), tagged with
@@ -2197,7 +2205,7 @@
       localeCount: state.locales.length,
       locales: state.locales.map(function(l){
         return {
-          code: l.code, name: l.name, file: l.file,
+          code: l.code, name: l.name, file: l.file, store: l.store || "",
           rtl: isRTL(l.code),
           stringCount: l.rows.length,
           strings: l.rows.map(function(r){
@@ -2257,7 +2265,9 @@
       // dedupe codes within the incoming project
       var base = code, c = code, n = 2;
       while(built.some(function(b){ return b.code === c; })){ c = base + "-" + n; n++; }
-      built.push({ id: ++uid, code: c, name: L.name || prettyName(L.file || "") || "Locale",
+      var st = /^[A-Za-z0-9][A-Za-z0-9._-]*\.json$/.test(L.store || "") &&
+               !built.some(function(b){ return b.store && b.store.toLowerCase() === L.store.toLowerCase(); }) ? L.store : "";
+      built.push({ id: ++uid, store: st, code: c, name: L.name || prettyName(L.file || "") || "Locale",
                    file: L.file || "", rows: rows, selected: {} });
     });
     if(!built.length){ toast("No locales found in that file"); return; }
@@ -2393,6 +2403,23 @@
     toast("Renamed " + was + " to " + next);
   });
   $("#removeLocaleBtn").addEventListener("click", function(){ if(state.active > -1) removeLocale(state.active); });
+  $("#renameFileBtn").addEventListener("click", function(){
+    var l = activeLocale();
+    if(!l) return;
+    var current = l.store || fileNameFor(l);
+    var entered = window.prompt("File name for “" + l.code + "” in the translations bucket:", current);
+    if(entered === null) return;
+    var name = entered.trim().replace(/\.json$/i, "").replace(/[^A-Za-z0-9._-]+/g, "_").replace(/^[._-]+/, "");
+    if(!name){ toast("Enter a file name"); return; }
+    name += ".json";
+    if(name === current) return;
+    if(fileTaken(name, l)){ toast(name + " is already used by another locale"); return; }
+    snapshot();
+    if(l.store && !l.renamedFrom && cloud.files[l.store]) l.renamedFrom = l.store;   // saved as a rename, not delete + create
+    l.store = name;
+    render();
+    toast("File renamed to " + name);
+  });
 
   /* English display name for a locale code, e.g. de-DE → German (Germany) */
   var LANG_NAMES = null;
@@ -3014,6 +3041,7 @@
   /* ============ export ============ */
   function baseName(){
     var l = activeLocale();
+    if(l && l.store) return l.store.replace(/\.json$/i, "");     // same name as in the bucket
     var n = ((l && l.file) || "locale").replace(/\.[^.]+$/, "");
     var loc = (l && l.code) || "";
     return n + (loc && n.indexOf(loc) === -1 ? "_" + loc : "");
@@ -3030,7 +3058,15 @@
     // exports what is currently in view, so a filter doubles as a work list
     return visible();
   }
+  /* {"key": "text"}, byte for byte the format of the translation files in the bucket */
   $("#jsonBtn").addEventListener("click", function(){
+    if(state.active === -1){ toast("Add a locale first"); return; }
+    var rows = exportRows();
+    if(!rows.length){ toast("Nothing to export"); return; }
+    download(translationText(rows), baseName() + ".json", "application/json");
+    toast("Exported " + rows.length + " strings as JSON");
+  });
+  $("#jsonListBtn").addEventListener("click", function(){
     if(state.active === -1){ toast("Add a locale first"); return; }
     var rows = exportRows();
     if(!rows.length){ toast("Nothing to export"); return; }
@@ -3038,7 +3074,7 @@
       return { term:r.term, definition:r.definition, context:r.context,
                term_plural:r.term_plural, reference:r.reference, comment:r.comment, fuzzy:r.fuzzy };
     });
-    download(JSON.stringify(out, null, 2), baseName() + ".json", "application/json");
+    download(JSON.stringify(out, null, 2), baseName() + "_poeditor.json", "application/json");
     toast("Exported " + rows.length + " strings as JSON");
   });
   $("#csvBtn").addEventListener("click", function(){
@@ -3513,7 +3549,7 @@
   function renderHeader(){
     var l = activeLocale();
     var keys = state.view === "keys", xl = state.view === "excel", global = keys || xl;
-    ["#mergeBtn","#mergeMissingBtn","#mergeNewBtn","#csvBtn","#jsonBtn"].forEach(function(sel){ $(sel).disabled = !l; });
+    ["#mergeBtn","#mergeMissingBtn","#mergeNewBtn","#csvBtn","#jsonBtn","#jsonListBtn"].forEach(function(sel){ $(sel).disabled = !l; });
     var xlTitle = excel.page === "export" ? "Export to Excel" : "Import Excel workbook";
     $("#eyebrow").textContent = keys ? "Shared by every locale" : (xl ? "Excel" : "Translations");
     $("#appName").textContent = keys ? "Keys" : (xl ? xlTitle : (l ? localeTitle(l) : "Translation Manager"));
@@ -3521,7 +3557,7 @@
     chip.textContent = l ? l.code : "";
     chip.hidden = global || !l || localeTitle(l) === l.code;
     $("#fileMeta").textContent = l
-      ? (l.file ? l.file + " · " : "") + l.rows.length + " string" + (l.rows.length !== 1 ? "s" : "")
+      ? ((l.store || l.file) ? (l.store || l.file) + " · " : "") + l.rows.length + " string" + (l.rows.length !== 1 ? "s" : "")
       : "Add a locale to get started";
     $("#fileMeta").hidden = global;
     $("#keysMeta").hidden = !keys;
@@ -4089,110 +4125,331 @@
     }
   }
 
-  /* ============ Cloud sync (Supabase) ============
-     Signed-in users share one workspace: each locale is one row in public.locales with its
-     strings stored as jsonb. Changes are auto-saved SAVE_DELAY ms after the last edit, and
-     only locales whose content changed are written. Updates carry the version we last saw,
-     so a locale someone else saved in the meantime is never silently overwritten — it is
-     flagged as a conflict until the user presses Sync (which loads the cloud copy). */
+  /* ============ Cloud sync: one pair of JSON files per locale ============
+     Signed-in users share one workspace, kept as files in a storage bucket (Supabase Storage now,
+     AWS S3 later):
+       translations/<Project>_<Language>.json          {"key": "text"}, exactly the file the widget reads
+       .translation-manager/notes/<same file name>     review flags, tags, context, comments, plurals —
+                                                       only for keys that have any
+       .translation-manager/manifest.json              which file is which locale, in sidebar order
+     Changes are auto-saved SAVE_DELAY ms after the last edit, and only files whose text changed are
+     written. Before replacing a file the app checks its version tag still matches the one it loaded,
+     so a file someone else saved in the meantime is never silently overwritten — it is flagged as a
+     conflict until the user presses Sync. Every save is also recorded in public.activity_log via
+     log_change(). Only `store` below talks to the bucket: moving to S3 means replacing it (S3 can
+     make the version check part of the write itself). */
   var TM = window.TM_CONFIG || {};      // config.js — shared with the sign-in page
   var SUPABASE_URL = TM.supabaseUrl || "";
   var SUPABASE_KEY = TM.supabaseKey || "";
-  var SAVE_DELAY = 1500, RETRY_DELAY = 10000;
+  var BUCKET = TM.bucket || "translations";
+  var DIR_FILES = "translations", DIR_META = ".translation-manager", DIR_NOTES = DIR_META + "/notes";
+  var MANIFEST = "manifest.json", DEFAULT_PROJECT = "Recruitment_Widget";
+  var SAVE_DELAY = 1500, RETRY_DELAY = 10000, POLL_EVERY = 60000;
   var cloud = {
     client: null, user: null,
     isOwner: false,   // role === "owner": the Admin (Users page, restore backup, clear all)
     role: null,       // from my_role(): "owner", "editor" or "viewer" (read only); null while loading
     authKnown: false, // true once Supabase has reported the initial session
     signedOut: false, // set when this tab signs out, so the landing page can say so
-    ready: false,     // true once the cloud copy has been loaded for this user
+    ready: false,     // true once the workspace has been loaded for this user
     busy: false,      // a save, load or sync is in flight
-    synced: {},       // cloudId -> { sig, version } as last written / read
-    conflicts: {},    // cloudId -> locale code, for locales changed elsewhere
+    files: {},        // file name -> as last loaded / saved: { code, t, n, tTag, nTag, rows }
+    manifest: null,   // { text, tag } as last loaded / saved; null when the bucket has none yet
+    project: DEFAULT_PROJECT,
+    conflicts: {},    // file name (or MANIFEST) -> locale code, for files changed elsewhere
+    unreadable: {},   // file name -> tag, for files that aren't valid JSON (skipped, not re-polled)
+    legacy: false,    // the workspace is still in the old database table, waiting for the Admin to move it
+    moving: false,    // the move to files is being written
     err: "", lastSaved: null,
-    timer: null, running: null, again: false
+    timer: null, running: null, again: false, pollTimer: null
   };
   /* Viewers can look and export but not change anything. Until the role has loaded the app
-     stays read-only too, so nobody briefly sees edit buttons they can't use. The database
-     enforces the same rule (row-level security), this only keeps the screen honest. */
-  function readOnly(){ return !!(cloud && cloud.user) && cloud.role !== "owner" && cloud.role !== "editor"; }
-  var FOOTNOTE_LOCAL = "", FOOTNOTE_CLOUD = "Changes save to the cloud automatically and are shared with your team. Undo covers the last 10 changes.";
+     stays read-only too, so nobody briefly sees edit buttons they can't use. Storage policies
+     enforce the same rule; this only keeps the screen honest. */
+  function readOnly(){
+    return !!(cloud && cloud.user) && (cloud.legacy || (cloud.role !== "owner" && cloud.role !== "editor"));
+  }
+  var FOOTNOTE_LOCAL = "", FOOTNOTE_CLOUD = "Changes save to the shared translation files automatically. Undo covers the last 10 changes.";
 
-  function newCloudId(){
-    if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
-    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c){
-      var r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 3 | 8)).toString(16);
+  /* ---- the bucket ---- */
+  function isMissing(err){ return !!err && (String(err.statusCode || err.status) === "404" || /not.?found/i.test(err.message || "")); }
+  function isTaken(err){ return !!err && (String(err.statusCode) === "409" || /already exists|duplicate/i.test(err.message || "")); }
+  function conflictError(){ var e = new Error("changed by someone else"); e.conflict = true; return e; }
+  function tagOf(item){ return (item.metadata && item.metadata.eTag) || item.updated_at || "?"; }
+  var store = {
+    bucket: function(){ return cloud.client.storage.from(BUCKET); },
+    /* file name -> version tag, for every file directly inside a folder */
+    list: function(dir){
+      var out = {}, PAGE = 1000;
+      function page(offset){
+        return store.bucket().list(dir, { limit: PAGE, offset: offset, sortBy: { column: "name", order: "asc" } }).then(function(res){
+          if(res.error) throw res.error;
+          var items = res.data || [];
+          items.forEach(function(it){ if(it.id) out[it.name] = tagOf(it); });   // folders have no id
+          return items.length === PAGE ? page(offset + PAGE) : out;
+        });
+      }
+      return page(0);
+    },
+    /* the version tag of one file, or null if it doesn't exist */
+    tag: function(dir, name){
+      return store.bucket().list(dir, { limit: 100, search: name }).then(function(res){
+        if(res.error) throw res.error;
+        var hit = (res.data || []).filter(function(it){ return it.id && it.name === name; })[0];
+        return hit ? tagOf(hit) : null;
+      });
+    },
+    /* a file's text, or null if it doesn't exist */
+    read: function(path){
+      return store.bucket().download(path).then(function(res){
+        if(res.error){ if(isMissing(res.error)) return null; throw res.error; }
+        return res.data.text();
+      });
+    },
+    /* mustCreate refuses to replace a file that already exists */
+    write: function(path, text, mustCreate){
+      return store.bucket().upload(path, new Blob([text], { type: "application/json" }),
+        { upsert: !mustCreate, contentType: "application/json", cacheControl: "0" }).then(function(res){
+        if(res.error){ if(mustCreate && isTaken(res.error)) throw conflictError(); throw res.error; }
+      });
+    },
+    remove: function(paths){
+      return store.bucket().remove(paths).then(function(res){ if(res.error) throw res.error; });
+    }
+  };
+  /* Replace a file only if it is still the version we last saw (expected null: it shouldn't exist
+     yet), and return its new tag. Supabase can't make that check part of the write, so there is a
+     moment between check and write where two saves could cross; S3's If-Match closes it. */
+  function writeChecked(dir, name, text, expected, force){
+    var check = force ? Promise.resolve() : store.tag(dir, name).then(function(now){
+      if((now || null) !== (expected || null)) throw conflictError();
+    });
+    return check.then(function(){ return store.write(dir + "/" + name, text, !force && !expected); })
+                .then(function(){ return store.tag(dir, name); });
+  }
+
+  /* ---- file formats ---- */
+  var NOTE_FIELDS = ["context", "comment", "term_plural", "reference", "source"];
+  /* the translation file: {"key": "text"} in row order, two-space indent, like the widget's own files */
+  function translationText(rows){
+    var o = Object.create(null);
+    rows.forEach(function(r){ if(!(r.term in o)) o[r.term] = r.definition; });
+    return JSON.stringify(o, null, 2);
+  }
+  /* the notes file: only keys with a review flag, tags or details. The English source is left out
+     when the workspace has an English locale (its own file already says it). */
+  function notesText(rows, hasEnglish){
+    var o = Object.create(null), seen = Object.create(null);
+    rows.forEach(function(r){
+      if(r.term in seen) return;
+      seen[r.term] = 1;
+      var n = {};
+      if(r.fuzzy) n.review = true;
+      var tags = normTags(r.tags);
+      if(tags.length) n.tags = tags;
+      NOTE_FIELDS.forEach(function(f){
+        if(r[f] && !(f === "source" && hasEnglish)) n[f] = r[f];
+      });
+      if(Object.keys(n).length) o[r.term] = n;
+    });
+    return JSON.stringify(o, null, 2);
+  }
+  function hasEnglish(locales){ return locales.some(function(l){ return /^en(?:[-_]|$)/i.test(l.code || ""); }); }
+  function rowsFromFiles(tText, nText){
+    var rows = fromJSON(tText), notes = null;
+    try{ notes = nText ? JSON.parse(nText) : null; }catch(e){ notes = null; }
+    if(!notes || typeof notes !== "object" || Array.isArray(notes)) return rows;
+    return rows.map(function(r){
+      var n = Object.prototype.hasOwnProperty.call(notes, r.term) ? notes[r.term] : null;
+      if(!n || typeof n !== "object") return r;
+      return makeRow({ term: r.term, definition: r.definition, context: n.context, comment: n.comment,
+                       term_plural: n.term_plural, reference: n.reference, source: n.source,
+                       tags: n.tags, fuzzy: n.review ? 1 : 0 });
     });
   }
-  function cloudRows(l){
-    return l.rows.map(function(r){
-      return { term:r.term, definition:r.definition, context:r.context,
-               term_plural:r.term_plural, reference:r.reference,
-               comment:r.comment, source:r.source,
-               tags:normTags(r.tags), fuzzy:r.fuzzy ? 1 : 0 };
-    });
+  function manifestText(){
+    return JSON.stringify({
+      version: 1,
+      project: cloud.project,
+      locales: state.locales.map(function(l){ return { code: l.code, name: l.name || "", file: l.store || "" }; })
+    }, null, 2);
   }
-  function cloudRecord(l, i){
-    return { code:l.code, name:l.name || "", file:l.file || "", position:i, strings:cloudRows(l) };
-  }
-  function cloudSig(rec){ return JSON.stringify([rec.code, rec.name, rec.file, rec.position, rec.strings]); }
 
+  /* ---- file names: <Project>_<Language>.json, e.g. Recruitment_Widget_Bulgarian.json.
+     The language alone when it's the only locale of that language, else with its region
+     (Recruitment_Widget_Arabic_Israel.json). ---- */
+  function safeName(s){
+    return String(s).normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^A-Za-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  }
+  function fileLabel(l){
+    var code = String(l.code || "").trim().replace(/_/g, "-"), lang = code.split("-")[0].toLowerCase();
+    var shared = state.locales.some(function(x){
+      return x !== l && String(x.code || "").split(/[-_]/)[0].toLowerCase() === lang;
+    });
+    var label = "";
+    try{ label = LANG_NAMES ? LANG_NAMES.of(shared && code.indexOf("-") > -1 ? code : lang) : ""; }catch(e){}
+    return label || code || "Locale";
+  }
+  function fileTaken(name, l){
+    var low = name.toLowerCase();
+    return state.locales.some(function(x){ return x !== l && x.store && x.store.toLowerCase() === low; });
+  }
+  function fileNameFor(l){
+    var stem = safeName(cloud.project || DEFAULT_PROJECT) + "_" + (safeName(fileLabel(l)) || "Locale");
+    var name = stem + ".json", n = 2;
+    while(fileTaken(name, l)){ name = stem + "_" + n + ".json"; n++; }
+    return name;
+  }
+
+  /* ---- Activity log: the app works out what changed per key and records it ---- */
+  function rowSig(r){
+    return JSON.stringify([r.definition, r.context, r.term_plural, r.reference, r.comment, r.source, normTags(r.tags), r.fuzzy ? 1 : 0]);
+  }
+  function logChange(action, code, file, before, after, wasCode, fromFile){
+    var bits = [], info;
+    if(action === "created"){
+      bits.push("created with " + after.length + " strings");
+      info = { strings: after.length, file: file };
+    } else if(action === "deleted"){
+      bits.push("deleted (" + before.length + " strings)");
+      info = { strings: before.length, file: file };
+    } else {
+      var a = Object.create(null), b = Object.create(null), keys = [], nChg = 0, nAdd = 0, nRem = 0;
+      before.forEach(function(r){ if(!(r.term in a)) a[r.term] = r; });
+      after.forEach(function(r){ if(!(r.term in b)) b[r.term] = r; });
+      Object.keys(a).concat(Object.keys(b).filter(function(t){ return !(t in a); })).sort().forEach(function(t){
+        var x = a[t], y = b[t];
+        if(x && y && rowSig(x) === rowSig(y)) return;
+        var change = !x ? "added" : !y ? "removed" : "changed";
+        if(change === "added") nAdd++; else if(change === "removed") nRem++; else nChg++;
+        if(keys.length < 200) keys.push({
+          key: t, change: change,
+          from: x ? x.definition : null, to: y ? y.definition : null,
+          review_from: x ? String(x.fuzzy ? 1 : 0) : null, review_to: y ? String(y.fuzzy ? 1 : 0) : null
+        });
+      });
+      if(wasCode && wasCode !== code) bits.push("renamed from " + wasCode);
+      if(fromFile) bits.push("file renamed from " + fromFile);
+      if(nChg) bits.push(nChg + " changed");
+      if(nAdd) bits.push(nAdd + " added");
+      if(nRem) bits.push(nRem + " removed");
+      if(!bits.length) return;     // nothing worth recording
+      info = { changed: nChg, added: nAdd, removed: nRem, keys: keys, truncated: nChg + nAdd + nRem > 200, file: file };
+    }
+    cloud.client.rpc("log_change", { p_action: action, p_locale_code: code, p_summary: bits.join(" · "), p_details: info })
+      .then(function(res){ if(res && res.error) console.warn("Activity log not updated:", res.error.message); });
+  }
+
+  /* ---- saving ---- */
   function cloudSchedule(delay){
     if(!cloud.user || !cloud.ready) return;
     clearTimeout(cloud.timer);
     cloud.timer = setTimeout(cloudFlush, delay == null ? SAVE_DELAY : delay);
   }
   function cloudDirty(){
-    if(!cloud.user || !cloud.ready) return false;
-    var seen = {};
-    var changed = state.locales.some(function(l, i){
-      if(!l.cloudId) return true;
-      seen[l.cloudId] = 1;
-      if(cloud.conflicts[l.cloudId]) return false;
-      var p = cloud.synced[l.cloudId];
-      return !p || p.sig !== cloudSig(cloudRecord(l, i));
+    if(!cloud.user || !cloud.ready || readOnly()) return false;
+    var en = hasEnglish(state.locales), seen = {};
+    var changed = state.locales.some(function(l){
+      if(!l.store) return true;
+      seen[l.store] = 1;
+      if(cloud.conflicts[l.store]) return false;
+      var p = cloud.files[l.store];
+      return !p || p.code !== l.code || p.t !== translationText(l.rows) || p.n !== notesText(l.rows, en);
     });
-    return changed || Object.keys(cloud.synced).some(function(id){ return !seen[id]; });
+    if(changed || Object.keys(cloud.files).some(function(f){ return !seen[f]; })) return true;
+    return !cloud.conflicts[MANIFEST] && (!cloud.manifest || cloud.manifest.text !== manifestText());
   }
 
-  /* Write every changed locale, insert new ones, delete removed ones. Never rejects. */
+  /* Write a locale's two files: the translation file first, so if the notes write fails the text
+     is still safe and only a flag is behind (the next save retries it). */
+  function saveLocale(l, f, rows, t, n, prev, from, moving){
+    var fresh = !prev || !!from;        // a file name the bucket doesn't have yet
+    var rec = { code: l.code, t: fresh ? null : prev.t, n: fresh ? null : prev.n,
+                tTag: fresh ? null : prev.tTag, nTag: fresh ? null : prev.nTag, rows: prev ? prev.rows : null };
+    var force = moving, p = Promise.resolve();
+    if(rec.t !== t) p = p.then(function(){
+      return writeChecked(DIR_FILES, f, t, rec.tTag, force).then(function(tag){ rec.tTag = tag; rec.t = t; cloud.files[f] = rec; });
+    });
+    if(rec.n !== n) p = p.then(function(){
+      return writeChecked(DIR_NOTES, f, n, rec.nTag, force || fresh).then(function(tag){ rec.nTag = tag; rec.n = n; cloud.files[f] = rec; });
+    });
+    if(from) p = p.then(function(){
+      return store.remove([DIR_FILES + "/" + from, DIR_NOTES + "/" + from]).then(function(){
+        delete cloud.files[from];
+        if(l.renamedFrom === from) l.renamedFrom = null;
+      });
+    });
+    return p.then(function(){
+      var before = rec.rows, was = prev ? prev.code : null;
+      rec.code = l.code; rec.rows = rows;
+      cloud.files[f] = rec;
+      if(moving) return;                  // the one-time move isn't an edit: nothing to log
+      if(before) logChange("updated", l.code, f, before, rows, was, from);
+      else logChange("created", l.code, f, null, rows);
+    });
+  }
+  function removeLocaleFiles(f, prev, moving){
+    var check = moving ? Promise.resolve() : store.tag(DIR_FILES, f).then(function(now){
+      if(now && now !== prev.tTag) throw conflictError();     // someone edited it since: keep it, ask to Sync
+    });
+    return check.then(function(){ return store.remove([DIR_FILES + "/" + f, DIR_NOTES + "/" + f]); }).then(function(){
+      delete cloud.files[f];
+      logChange("deleted", prev.code, f, prev.rows || [], null);
+    });
+  }
+  function saveManifest(moving){
+    var text = manifestText();
+    if(cloud.conflicts[MANIFEST] || (cloud.manifest && cloud.manifest.text === text)) return Promise.resolve();
+    return writeChecked(DIR_META, MANIFEST, text, cloud.manifest ? cloud.manifest.tag : null, moving).then(function(tag){
+      cloud.manifest = { text: text, tag: tag };
+    }, function(err){
+      if(err && err.conflict){ cloud.conflicts[MANIFEST] = "the locale list"; return; }
+      throw err;
+    });
+  }
+
+  /* Write every changed locale, add new ones, delete removed ones, then the manifest. Never rejects. */
   function cloudFlush(){
     clearTimeout(cloud.timer); cloud.timer = null;
     if(!cloud.user || !cloud.ready || readOnly()) return Promise.resolve();
     if(cloud.running){ cloud.again = true; return cloud.running; }
-    var jobs = [], seen = {}, fresh = [];
-    state.locales.forEach(function(l, i){
-      if(!l.cloudId) l.cloudId = newCloudId();
-      var id = l.cloudId;
-      seen[id] = 1;
-      if(cloud.conflicts[id]) return;
-      var rec = cloudRecord(l, i), sig = cloudSig(rec), prev = cloud.synced[id];
-      if(prev && prev.sig === sig) return;
-      var q = prev
-        ? cloud.client.from("locales").update(rec).eq("id", id).eq("version", prev.version)
-        : cloud.client.from("locales").upsert(Object.assign({ id:id }, rec));
-      jobs.push(q.select("version").then(function(res){
-        if(res.error) throw res.error;
-        if(!res.data || !res.data.length){ cloud.conflicts[id] = l.code; fresh.push(l.code); return; }
-        cloud.synced[id] = { sig:sig, version:res.data[0].version };
+    var en = hasEnglish(state.locales), jobs = [], fresh = [], seen = {}, moving = cloud.moving;
+    state.locales.forEach(function(l){ if(!l.store) l.store = fileNameFor(l); seen[l.store] = 1; });
+    var renaming = {};
+    state.locales.forEach(function(l){
+      var f = l.store;
+      if(cloud.conflicts[f]) return;
+      var rows = cloneRows(l.rows), t = translationText(rows), n = notesText(rows, en);
+      var prev = cloud.files[f], from = null;
+      if(!prev && l.renamedFrom && cloud.files[l.renamedFrom] && !seen[l.renamedFrom]){
+        from = l.renamedFrom; prev = cloud.files[from]; renaming[from] = 1;
+      }
+      if(prev && !from && prev.t === t && prev.n === n && prev.code === l.code) return;
+      jobs.push(saveLocale(l, f, rows, t, n, prev, from, moving).catch(function(err){
+        if(err && err.conflict){ cloud.conflicts[f] = l.code; fresh.push(l.code); return; }
+        throw err;
       }));
     });
-    Object.keys(cloud.synced).forEach(function(id){
-      if(seen[id]) return;
-      jobs.push(cloud.client.from("locales").delete().eq("id", id).then(function(res){
-        if(res.error) throw res.error;
-        delete cloud.synced[id];
+    Object.keys(cloud.files).forEach(function(f){
+      if(seen[f] || renaming[f] || cloud.conflicts[f]) return;
+      var prev = cloud.files[f];
+      jobs.push(removeLocaleFiles(f, prev, moving).catch(function(err){
+        if(err && err.conflict){ cloud.conflicts[f] = prev.code; fresh.push(prev.code); return; }
+        throw err;
       }));
     });
-    if(!jobs.length){ cloudSetStatus(); return Promise.resolve(); }
+    var manifestDue = !cloud.conflicts[MANIFEST] && (!cloud.manifest || cloud.manifest.text !== manifestText());
+    if(!jobs.length && !manifestDue){ cloudSetStatus(); return Promise.resolve(); }
     cloud.busy = true; cloudSetStatus();
-    cloud.running = Promise.all(jobs).then(function(){
+    cloud.running = Promise.all(jobs).then(function(){ return saveManifest(moving); }).then(function(){
       cloud.err = ""; cloud.lastSaved = new Date();
     }, function(err){
       cloud.err = (err && err.message) || "network error";
       cloudSchedule(RETRY_DELAY);
     }).then(function(){
       cloud.busy = false; cloud.running = null;
+      // the move is done once a whole round (files and manifest) has been written without errors
+      if(moving && !cloud.err){ cloud.moving = false; toast("Moved " + state.locales.length + " locales into file storage"); }
       if(fresh.length) toast("“" + fresh.join("”, “") + "” was changed by someone else — open Account and press Sync");
       cloudSetStatus();
       if(cloud.again){ cloud.again = false; return cloudFlush(); }
@@ -4200,39 +4457,167 @@
     return cloud.running;
   }
 
+  /* ---- loading ---- */
+  /* Read the workspace: the folder listings first (they carry each file's version tag), then the
+     manifest and every locale's two files. Listing first means a file saved by someone else while
+     this runs reads as newer than its tag — a needless "Sync needed" later, never a lost change. */
   function cloudFetch(){
-    return cloud.client.from("locales")
-      .select("id,code,name,file,position,strings,version")
-      .order("position").order("created_at")
-      .then(function(res){ if(res.error) throw res.error; return res.data || []; });
-  }
-  /* Replace the screen with the cloud copy. Locales that were never saved (e.g. opened before
-     signing in) are kept and uploaded by the next save. */
-  function cloudApply(data){
-    var prev = cloud.synced, a = activeLocale();
-    cloud.synced = {}; cloud.conflicts = {};
-    var built = data.map(function(d, i){
-      var l = { id: ++uid, cloudId: d.id, code: d.code, name: d.name || "", file: d.file || "",
-                rows: (Array.isArray(d.strings) ? d.strings : []).map(makeRow), selected: {} };
-      cloud.synced[d.id] = { sig: cloudSig(cloudRecord(l, i)), version: d.version };
-      return l;
+    var tags = {};
+    return Promise.all([store.list(DIR_FILES), store.list(DIR_NOTES), store.list(DIR_META)]).then(function(r){
+      tags.files = r[0]; tags.notes = r[1]; tags.meta = r[2];
+      return tags.meta[MANIFEST] ? store.read(DIR_META + "/" + MANIFEST) : null;
+    }).then(function(mText){
+      var man = null;
+      try{ man = mText ? JSON.parse(mText) : null; }catch(e){ man = null; }
+      var data = { manifest: mText == null ? null : { text: mText, tag: tags.meta[MANIFEST] },
+                   project: (man && man.project) || DEFAULT_PROJECT, locales: [], skipped: {} };
+      if(!data.manifest){
+        // no manifest: either a brand-new workspace, or one still in the old database table
+        return cloud.client.from("locales").select("code,name,file,strings").order("position").order("created_at").then(function(res){
+          if(!res.error && res.data && res.data.length){ data.legacy = res.data; return data; }
+          return readLocales(data, [], tags);
+        });
+      }
+      return readLocales(data, man && Array.isArray(man.locales) ? man.locales : [], tags);
     });
-    state.locales.filter(function(l){
-      return !l.cloudId || (!cloud.synced[l.cloudId] && !prev[l.cloudId]);
+  }
+  function readLocales(data, listed, tags){
+    var entries = [], seen = {};
+    listed.forEach(function(e){
+      if(!e || !e.file || seen[e.file] || !tags.files[e.file]) return;
+      seen[e.file] = 1;
+      entries.push({ file: e.file, code: String(e.code || ""), name: String(e.name || "") });
+    });
+    // JSON files put straight into the bucket show up too, after the listed ones
+    Object.keys(tags.files).sort().forEach(function(f){
+      if(seen[f] || !/\.json$/i.test(f)) return;
+      entries.push({ file: f, code: guessLocale(f) || f.replace(/\.json$/i, ""), name: "" });
+    });
+    return Promise.all(entries.map(function(e){
+      return Promise.all([
+        store.read(DIR_FILES + "/" + e.file),
+        tags.notes[e.file] ? store.read(DIR_NOTES + "/" + e.file) : null
+      ]).then(function(t){
+        e.t = t[0]; e.n = t[1]; e.tTag = tags.files[e.file]; e.nTag = tags.notes[e.file] || null;
+        return e;
+      });
+    })).then(function(list){
+      data.locales = list.filter(function(e){ return e.t != null; });
+      return data;
+    });
+  }
+  /* Replace the screen with what's in the bucket (or, before the move, the old database table).
+     Locales that were never saved (e.g. opened before signing in) are kept and uploaded next save. */
+  function cloudApply(data, quiet){
+    var prevFiles = cloud.files, a = activeLocale(), aStore = a && a.store;
+    cloud.files = {}; cloud.conflicts = {}; cloud.unreadable = {};
+    cloud.project = data.project || DEFAULT_PROJECT;
+    cloud.manifest = data.manifest || null;
+    cloud.legacy = !!data.legacy;
+    var built = [], bad = [];
+    if(data.legacy){
+      built = data.legacy.map(function(d){
+        return { id: ++uid, store: "", fromDb: true, code: d.code, name: d.name || "", file: d.file || "",
+                 rows: (Array.isArray(d.strings) ? d.strings : []).map(makeRow), selected: {} };
+      });
+    } else {
+      data.locales.forEach(function(e){
+        var rows;
+        try{ rows = rowsFromFiles(e.t, e.n); }catch(err){ bad.push(e.file); cloud.unreadable[e.file] = e.tTag; return; }
+        built.push({ id: ++uid, store: e.file, code: e.code || e.file, name: e.name, file: e.file, rows: rows, selected: {} });
+        cloud.files[e.file] = { code: e.code || e.file, t: null, n: null, tTag: e.tTag, nTag: e.nTag, rows: cloneRows(rows) };
+      });
+      // record the text the app itself would write, so merely loading a hand-made file never counts as a change
+      var en = hasEnglish(built);
+      built.forEach(function(l){
+        var rec = cloud.files[l.store];
+        rec.t = translationText(l.rows);
+        rec.n = notesText(l.rows, en);
+      });
+    }
+    if(!data.legacy) state.locales.filter(function(l){
+      if(l.fromDb) return false;           // the old database copy, already in files (or still waiting to move)
+      return !l.store || (!cloud.files[l.store] && !prevFiles[l.store]);
     }).forEach(function(l){
       var base = l.code, c = base, n = 2;
       while(built.some(function(b){ return b.code === c; })){ c = base + "-" + n; n++; }
       l.code = c; built.push(l);
     });
     var idx = built.indexOf(a);
-    if(idx < 0 && a && a.cloudId) idx = built.findIndex(function(l){ return l.cloudId === a.cloudId; });
+    if(idx < 0 && aStore) idx = built.findIndex(function(l){ return l.store === aStore; });
     state.locales = built;
     state.active = idx > -1 ? idx : (built.length ? 0 : -1);
-    state.limit = 120;
+    if(!quiet) state.limit = 120;
     history = []; updateUndo();
     cloud.ready = true;
+    applyOwnerUI();
     render();
+    if(bad.length) toast("Couldn't read " + bad.join(", ") + " — it isn't valid JSON");
+    offerMove();
   }
+
+  /* ---- the one-time move from the old database table into files ---- */
+  function offerMove(){
+    if(!cloud.legacy || !cloud.ready || !cloud.role || cloud.offered) return;
+    if(!cloud.isOwner){
+      cloud.offered = true;
+      toast("Editing is paused until the Admin moves the locales into file storage");
+      return;
+    }
+    cloud.offered = true;
+    var n = state.locales.length;
+    warn({
+      title: "Move " + n + " locale" + (n !== 1 ? "s" : "") + " into file storage?",
+      message: "Each locale is saved as a JSON file in the “" + BUCKET + "” bucket, named like " +
+               DEFAULT_PROJECT + "_Bulgarian.json, with its review flags and comments in a second file.\n\n" +
+               "The database copy stays as a backup. Editing is paused for everyone until this is done.",
+      ok: "Move to files"
+    }).then(function(ok){
+      cloud.offered = false;
+      if(!ok || !cloud.legacy) return;
+      cloud.legacy = false; cloud.moving = true;
+      applyOwnerUI(); render();
+      toast("Moving " + n + " locales into files…");
+      cloudFlush().then(function(){
+        if(cloud.moving) toast("The move stopped part-way (" + (cloud.err || "network error") + ") — it carries on automatically");
+      });
+    });
+  }
+
+  /* ---- picking up other people's saves ---- */
+  function changedElsewhere(files, notes, meta){
+    var mine = cloud.files;
+    var theirs = Object.keys(files).filter(function(f){ return /\.json$/i.test(f) && cloud.unreadable[f] !== files[f]; });
+    if(theirs.length !== Object.keys(mine).length) return true;
+    if((meta[MANIFEST] || null) !== (cloud.manifest ? cloud.manifest.tag : null)) return true;
+    return theirs.some(function(f){
+      return !mine[f] || mine[f].tTag !== files[f] || (mine[f].nTag || null) !== (notes[f] || null);
+    });
+  }
+  /* About once a minute (and when the tab comes back into view) check the bucket's version tags;
+     if someone else saved and nothing here is unsaved or being edited, quietly load their version. */
+  function editing(){ return !!document.querySelector(".val textarea, .keyname input, #addKeyRow:not([hidden])"); }
+  function cloudPoll(){
+    clearTimeout(cloud.pollTimer);
+    cloud.pollTimer = setTimeout(cloudPoll, POLL_EVERY);
+    if(!cloud.user || !cloud.ready || cloud.busy || cloud.legacy || cloud.moving || document.hidden) return;
+    if(editing() || cloudDirty() || Object.keys(cloud.conflicts).length) return;
+    var mine = false;
+    Promise.all([store.list(DIR_FILES), store.list(DIR_NOTES), store.list(DIR_META)]).then(function(r){
+      if(!changedElsewhere(r[0], r[1], r[2]) || cloud.busy || editing() || cloudDirty()) return;
+      mine = cloud.busy = true; cloudSetStatus();
+      return cloudFetch().then(function(data){
+        cloud.busy = mine = false;
+        if(editing() || cloudDirty() || data.legacy) return;   // something changed here meanwhile: try next time
+        cloudApply(data, true);
+        toast("Updated with your team's latest changes");
+      });
+    }).catch(function(){ /* offline or similar: next round */ }).then(function(){
+      if(mine) cloud.busy = false;
+      cloudSetStatus();
+    });
+  }
+  document.addEventListener("visibilitychange", function(){ if(!document.hidden) setTimeout(cloudPoll, 500); });
 
   function cloudSync(){
     if(!cloud.user || cloud.busy) return;
@@ -4241,8 +4626,8 @@
     warn({
       title: "Overwrite your unsaved edits?",
       message: "Someone else changed “" + codes.join("”, “") + "” since you loaded it. Syncing loads their " +
-               "version and overwrites your unsaved edits to " + (codes.length > 1 ? "those locales" : "it") +
-               ".\n\nTip: use Save All first if you want to keep a copy of your version.",
+               "version and overwrites your unsaved edits to " + (codes.length > 1 ? "those" : "it") +
+               ".\n\nTip: use Download backup first if you want to keep a copy of your version.",
       ok: "Load their version"
     }).then(function(ok){ if(ok) doCloudSync(); });
   }
@@ -4254,7 +4639,8 @@
     }).then(function(data){
       cloud.busy = false; cloud.err = ""; cloud.lastSaved = new Date();
       cloudApply(data);
-      toast("Synced · " + data.length + " locale" + (data.length !== 1 ? "s" : "") + " from the cloud");
+      var n = state.locales.length;
+      toast("Synced · " + n + " locale" + (n !== 1 ? "s" : "") + (cloud.legacy ? " from the database" : " from the translation files"));
     }).catch(function(err){
       cloud.busy = false;
       toast("Sync failed — " + ((err && err.message) || "network error"));
@@ -4266,7 +4652,9 @@
     cloud.user = u;
     if(was === now){ cloudSetStatus(); return; }
     clearTimeout(cloud.timer); cloud.timer = null;
-    cloud.ready = false; cloud.synced = {}; cloud.conflicts = {}; cloud.err = ""; cloud.lastSaved = null;
+    clearTimeout(cloud.pollTimer); cloud.pollTimer = null;
+    cloud.ready = false; cloud.files = {}; cloud.manifest = null; cloud.conflicts = {}; cloud.unreadable = {};
+    cloud.legacy = false; cloud.moving = false; cloud.offered = false; cloud.err = ""; cloud.lastSaved = null;
     cloud.isOwner = false; cloud.role = null; applyOwnerUI();
     if(now){
       cloud.client.rpc("my_role").then(function(res){
@@ -4278,6 +4666,7 @@
         cloud.role = role; cloud.isOwner = role === "owner";
         applyOwnerUI(); render();
         cloudSchedule();      // anything opened before the role was known can be saved now
+        offerMove();          // the Admin moves an old database workspace into files
       });
     }
     if(!now){
@@ -4292,13 +4681,15 @@
     cloudFetch().then(function(data){
       cloud.busy = false; cloud.lastSaved = new Date();
       cloudApply(data);
-      toast(data.length
-        ? "Loaded " + data.length + " locale" + (data.length !== 1 ? "s" : "") + " from the cloud"
-        : "Signed in — your locales will be saved to the cloud");
+      var n = state.locales.length;
+      if(!cloud.legacy) toast(n
+        ? "Loaded " + n + " locale" + (n !== 1 ? "s" : "") + " from the translation files"
+        : "Signed in — locales you add are saved as translation files");
+      cloudPoll();
     }).catch(function(err){
       cloud.busy = false;
-      cloud.err = "couldn't load from the cloud (" + ((err && err.message) || "network error") + "). Press Sync to retry";
-      toast("Could not load from the cloud");
+      cloud.err = "couldn't load the translation files (" + ((err && err.message) || "network error") + "). Press Sync to retry";
+      toast("Could not load the translation files");
     }).then(function(){ cloudSetStatus(); });
   }
 
@@ -4475,7 +4866,7 @@
   });
 
   /* ============ Activity Log page ============
-     Reads public.activity_log, which a database trigger fills on every saved change
+     Reads public.activity_log, which the app fills (through log_change()) on every saved change
      (who, when, which locale, and a per-key before/after diff). Read-only for everyone. */
   var LOG_PAGE = 50;
   var logState = { rows: [], done: false, loading: false, users: {}, locales: {} };
